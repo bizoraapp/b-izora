@@ -1,6 +1,6 @@
 # Bizora — Developer Documentation
 
-**Version:** 4.0.8 · **Build:** 2026.08.25 · **Database schema:** v8
+**Version:** 4.2.1 · **Build:** 2026.09.09a · **Database schema:** v8
 **Maintainer:** Ngwe Lesley Mbom
 
 This document exists so future work on Bizora can extend it without needing to re-read all ~10,400 lines to understand how the pieces fit together. It reflects the app as of Phase 6 (production hardening) of the PWA conversion.
@@ -94,6 +94,7 @@ Offline ECDSA (P-256) signature verification — no server, no network call for 
 1. **Schema changes**: add the new store/index to `IDB_SCHEMA`, bump `IDB_VERSION`. The existing `onupgradeneeded` handler only *adds* missing stores — it never touches existing ones. Document the change in `DatabaseManager.MIGRATIONS`.
 2. **New settings-style keys**: add to `LEGACY_OBJ_KEYS` — no version bump needed.
 3. **Deploys**: bump `APP_VERSION` + `CACHE_VERSION` together. Netlify (or your chosen host) picks up the new files; the service worker's stale-while-revalidate + update banner handle the rest — users are never forced to reload mid-task.
+   The new worker installs and then **waits**; it must never call `skipWaiting()` on itself. Activation happens only when the user taps “Update now”, which posts `SKIP_WAITING`, and the page reloads only when `userInitiatedUpdate` is set. Both guards are required — removing either one reintroduces silent, forced reloads (this regressed once, in the 4.0.7–4.1.1 range). A critical-asset precache failure rejects the install so the broken worker is discarded rather than offered to the user.
 4. **Testing before shipping a change**: run the internal Developer Test Suite (Ctrl+Alt+Shift+D in the running app), confirm a fresh-install boot, an upgrade-from-previous-version boot, and an offline boot all work.
 
 ---

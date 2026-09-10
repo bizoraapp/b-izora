@@ -287,7 +287,20 @@ body{font-family:'Manrope','Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,
   radial-gradient(900px 500px at -10% 110%,rgba(11,44,107,.05),transparent 60%),
   var(--bg);
   color:var(--txt);display:flex;min-height:100vh;transition:background .3s,color .3s;font-size:16px;line-height:1.5;background-attachment:fixed}
-::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:10px}
+/* Global page scrollbar. The thumb previously used var(--border2), a border
+   grey (#D6DBE6 light / #2B3A5C dark) that sits almost on top of the page
+   background, so the main scrollbar was hard to see on desktop. It now
+   reuses the SAME gold the sidebar already uses (.sb-nav thumb below):
+   rgba(244,180,0,.45) = the --gold token #F4B400 at 45% alpha, with the
+   same .75 hover. Colour only — width, height, radius, transparent track
+   and scrolling behaviour are all unchanged, so no layout shift is
+   possible. Deliberately no `scrollbar-color`: in Chromium that property
+   takes precedence over ::-webkit-scrollbar rules and would discard this
+   6px width, widening the scrollbar and shifting page content.
+   iOS/Android use overlay scrollbars, so this is a desktop-visible change
+   with no practical effect on mobile. */
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(244,180,0,.45);border-radius:10px}
+::-webkit-scrollbar-thumb:hover{background:rgba(244,180,0,.75)}
 ::selection{background:var(--gold-lt);color:var(--navy)}
 /* LICENSE BANNER */
 .lic-banner{display:flex;align-items:center;gap:12px;padding:11px 28px;font-size:14.5px;font-weight:700;color:#fff;position:sticky;top:68px;z-index:90}
@@ -558,9 +571,31 @@ tbody tr.cancelled-row td:last-child{text-decoration:none;opacity:1}
 .fin-section-lbl{font-size:14.5px;font-weight:800;color:var(--navy);margin:22px 0 10px;letter-spacing:.2px}
 [data-theme=dark] .fin-section-lbl{color:var(--txt)}
 .fin-section-lbl:first-of-type{margin-top:0}
-.fin-tbl-wrap{box-shadow:var(--sh);margin-bottom:6px}
+/* These three Financial Summary tables (Inventory Potential, Lifetime Sales
+   & Cash Summary, Expenses) sit directly on the page rather than inside a
+   .card wrapper, unlike the Daily/Monthly summaries below them. The rule
+   previously set only a shadow, so the tables inherited the page background
+   and read as flat panels rather than cards — the Design System calls for
+   cards to sit on the background with visible contrast. Uses the same
+   tokens as .card, so light and dark themes both resolve correctly with no
+   theme-specific override. */
+.fin-tbl-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--r2);box-shadow:var(--sh);margin-bottom:6px;overflow:hidden}
 .fin-table{width:100%;border-collapse:collapse}
 .fin-note{font-size:12px;color:var(--txt3);margin:-4px 0 10px;line-height:1.4;font-style:italic}
+/* High-visibility inline warning for the New Expense category field. The
+   previous styling reused .fin-note (12px, grey, italic), which reads as an
+   optional footnote and was being skimmed past — but recording stock as an
+   expense silently understates profit, so this one note has to be
+   impossible to miss. Reuses the existing --danger/--danger-lt tokens and
+   the same box treatment as .credit-limit-warn, so it stays inside the
+   Design System rather than introducing a new visual language. Deliberately
+   static: no animation, transition or backdrop-filter, which the Android
+   platform CSS block strips anyway and which cost GPU time on low-end
+   devices. --danger-lt is translucent rgba, so it sits correctly on both
+   the light and dark card backgrounds without a theme-specific override. */
+.exp-stock-warn{background:var(--danger-lt);border:1.5px solid var(--danger);border-left-width:5px;border-radius:var(--r2);padding:11px 13px;margin:10px 0 0}
+.esw-title{color:var(--danger);font-weight:900;font-size:13.5px;line-height:1.35;text-transform:uppercase;letter-spacing:.02em}
+.esw-body{color:var(--danger);font-weight:700;font-size:13px;line-height:1.5;margin-top:5px}
 /* Opt-in emphasis for a confirmation message that must not be skim-read.
    Applied per-call via confirm2()'s `alert` flag and always cleared again,
    so every other confirmation dialog keeps its normal neutral styling. */
@@ -640,6 +675,17 @@ tbody tr.cancelled-row td:last-child{text-decoration:none;opacity:1}
 /* PROGRESS */
 .progress{height:5px;background:var(--border);border-radius:10px;overflow:hidden}
 .progress-fill{height:100%;border-radius:10px;transition:width .6s ease}
+/* GETTING STARTED CHECKLIST (Dashboard) */
+.gs-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px}
+.gs-steps{display:flex;flex-direction:column;gap:2px}
+.gs-step{display:flex;align-items:center;gap:10px;padding:10px 8px;border-radius:var(--r3);cursor:pointer;transition:var(--transition)}
+.gs-step:hover{background:var(--bg)}
+.gs-step.done{cursor:default}
+.gs-step.done:hover{background:none}
+.gs-step-check{font-size:16px;flex-shrink:0}
+.gs-step-label{flex:1;font-size:14px;font-weight:600;color:var(--txt)}
+.gs-step.done .gs-step-label{text-decoration:line-through;color:var(--txt3);font-weight:500}
+.gs-step-arrow{color:var(--txt3);font-size:14px;flex-shrink:0}
 /* TABS */
 .tabs{display:flex;gap:3px;background:var(--bg);padding:3px;border-radius:var(--r2);margin-bottom:18px;border:1px solid var(--border);width:fit-content}
 .tab{padding:7px 16px;border-radius:var(--r3);cursor:pointer;font-size:14px;font-weight:600;color:var(--txt2);transition:var(--transition)}
@@ -736,9 +782,38 @@ tbody tr.cancelled-row td:last-child{text-decoration:none;opacity:1}
   .pos-items-hdr span{font-size:10px}
 }
 @media(max-width:480px){.kpi-grid{grid-template-columns:1fr 1fr}.stats-5{grid-template-columns:repeat(2,1fr)}}
+/* Product Analytics print header — screen-hidden, print-visible. The topic
+   controls live in .filter-bar, which print hides, so without this the
+   printed sheet carried no topic name, period or product. */
+.pa-print-header{display:none}
+/* Print-only row cap. Slow Movers and Reorder Suggestions list every
+   qualifying product by design — at 2,000 products that is ~3,676 and
+   ~2,000 rows respectively. On screen that is fine (measured 35-88 ms), but
+   asking the print engine to lay all of them out took ~30 s and produced a
+   15 MB PDF in desktop Chromium, which on a 2 GB Android would be far
+   worse. This rule hides everything past the cap FOR PRINT ONLY: the screen
+   keeps rendering exactly what it renders today, no row is removed from the
+   DOM, and no render function or calculation is touched. CSV still exports
+   the complete dataset. */
+.pa-print-only{display:none}
 @media print{
   .sidebar,.topbar,.filter-bar,.btn,.sb-overlay,.bottom-nav,.fin-updated{display:none!important}
   .main{margin-left:0}.page-wrap{padding:0}
+  /* Reveal the header and keep each card's own title, so the printed page
+     still says what each table is. Inactive .pa-tab-content panels and
+     #prodListView stay hidden by their own inline display:none. */
+  .pa-print-header{display:block!important;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #000}
+  .pa-print-header .pah-biz{font-size:13px;font-weight:700}
+  .pa-print-header .pah-title{font-size:17px;font-weight:800;margin-top:2px}
+  .pa-print-header .pah-meta{font-size:12px;margin-top:2px}
+  .pa-print-header .pah-note{font-size:10.5px;margin-top:6px;font-style:italic}
+  .card-title{display:block!important}
+  /* Cap printable rows per table. nth-child is used rather than a JS class
+     sweep so no element is mutated to achieve the cap — the rows simply are
+     not laid out for print. Keep this number in sync with PA_PRINT_ROW_CAP. */
+  #prodAnalyticsView tbody tr:nth-child(n+101){display:none!important}
+  .pa-print-only{display:block!important}
+  .pa-trunc-note{font-size:11px;font-style:italic;margin:6px 0 2px;padding:4px 0;border-top:1px dashed #000}
 }
 /* BOTTOM NAV (mobile) */
 .bottom-nav{display:none;position:fixed;left:12px;right:12px;bottom:14px;z-index:150;background:var(--glass-bg);backdrop-filter:blur(20px) saturate(180%);-webkit-backdrop-filter:blur(20px) saturate(180%);border:1px solid var(--glass-brd);border-radius:26px;padding:8px 6px;box-shadow:0 16px 40px rgba(11,44,107,.28),inset 0 1px 0 rgba(255,255,255,.5);justify-content:space-around;align-items:center}
@@ -1400,15 +1475,22 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
         </div>
         <div class="greet-chart">📈</div>
       </div>
+      <!-- Getting Started checklist: populated/shown by renderGettingStarted()
+           (called from loadDashboard()); hidden via inline style until then so
+           nothing flashes before app data has hydrated. Hidden automatically
+           once all four milestones are complete, or for the current session
+           only via the card's close button — never permanently while
+           incomplete, so the guidance can always be found again. -->
+      <div class="card gs-card" id="gsCard" style="display:none;margin-bottom:14px"></div>
       <div class="sec-title" style="margin-bottom:12px">🚀 <span data-i18n="dash_quick_menu_title">Quick Menu</span></div>
       <div class="quick-actions" id="quickActions">
+        <div class="qa-btn" onclick="openModal('mAddProd');resetProdForm()"><span class="qa-ic">➕</span><span class="qa-lbl" data-i18n="btn_add_product">Add Product</span></div>
+        <div class="qa-btn" onclick="openModal('mAddCust');resetCustForm()"><span class="qa-ic">👤</span><span class="qa-lbl" data-i18n="btn_add_customer">Add Customer</span></div>
         <div class="qa-btn" onclick="quickNewSale('cash')"><span class="qa-ic">💵</span><span class="qa-lbl" data-i18n="btn_new_cash_sale">New Cash Sale</span></div>
         <div class="qa-btn" onclick="quickNewSale('credit')"><span class="qa-ic">🧾</span><span class="qa-lbl" data-i18n="btn_new_credit_sale">New Credit Sale</span></div>
-        <div class="qa-btn" onclick="quickLogExpense()"><span class="qa-ic">💸</span><span class="qa-lbl" data-i18n="btn_log_expense">Log Expense</span></div>
         <div class="qa-btn" onclick="openModal('mAddPay');resetPayForm()"><span class="qa-ic">💳</span><span class="qa-lbl" data-i18n="btn_record_repayment">Record Repayment</span></div>
-        <div class="qa-btn" onclick="openModal('mAddCust');resetCustForm()"><span class="qa-ic">👤</span><span class="qa-lbl" data-i18n="btn_new_customer">New Customer</span></div>
-        <div class="qa-btn" onclick="go('reports')"><span class="qa-ic">📊</span><span class="qa-lbl" data-i18n="btn_print_report">Print Report</span></div>
-        <div class="qa-btn" onclick="quickSearchInvoice()"><span class="qa-ic">🔍</span><span class="qa-lbl" data-i18n="btn_search_invoice">Search Invoice</span></div>
+        <div class="qa-btn" onclick="quickLogExpense()"><span class="qa-ic">💰</span><span class="qa-lbl" data-i18n="btn_log_expense">Log Expense</span></div>
+        <div class="qa-btn" onclick="quickSearchInvoice()"><span class="qa-ic">🔎</span><span class="qa-lbl" data-i18n="btn_search_invoice">Search Invoice</span></div>
       </div>
       <div class="sec-title" style="margin-bottom:12px">💳 <span data-i18n="dash_credit_debt_title">Credit &amp; Debt</span></div>
       <div class="kpi-grid" id="kpiGrid"></div>
@@ -1509,10 +1591,18 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
       </div>
       </div>
       <div id="prodAnalyticsView" style="display:none">
+        <!-- Print-only. Hidden on screen; @media print reveals it. Carries the
+             topic, period and product that the .filter-bar controls show on
+             screen but that printing hides. -->
+        <div id="paPrintHeader" class="pa-print-header"></div>
         <div class="card" style="margin-bottom:14px">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
             <div class="card-title" style="margin:0" data-i18n="prd_btn_analytics">📊 Product Analytics</div>
-            <button class="btn btn-outline btn-xs" onclick="closeProductAnalytics()" data-i18n="prd_btn_back_list">← Back to Product List</button>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-outline btn-xs" onclick="printAnalytics()">🖨️ <span data-i18n="btn_print">Print</span></button>
+              <button class="btn btn-outline btn-xs" onclick="exportAnalyticsCSV()">📤 <span data-i18n="btn_export">Export</span></button>
+              <button class="btn btn-outline btn-xs" onclick="closeProductAnalytics()" data-i18n="prd_btn_back_list">← Back to Product List</button>
+            </div>
           </div>
           <div id="paInsights" class="stats-row stats-4"></div>
         </div>
@@ -1868,6 +1958,7 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
         <select class="fc" id="expCatSel" onchange="filterExpenses()"><option value="" data-i18n="lbl_all_categories">All Categories</option></select>
         <input type="date" class="fc" id="expDateFrom" title="From date" data-i18n-title="lbl_from_date" onchange="filterExpenses()">
         <input type="date" class="fc" id="expDateTo" title="To date" data-i18n-title="lbl_to_date" onchange="filterExpenses()">
+        <button class="btn btn-outline" id="expCatClassBtn" onclick="openExpCatClassifier()">📦 <span data-i18n="opex_classify_btn">Categories</span></button>
         <button class="btn btn-primary" onclick="openAddExpense()">➕ <span data-i18n="exp_new_expense">New Expense</span></button>
       </div>
       <div class="card">
@@ -1905,7 +1996,10 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
           <tbody id="finTableExpenses"></tbody>
         </table>
       </div>
-      <div class="fin-note" id="finNetProfitNote" data-i18n="fin_net_profit_note">Gross Profit − Total Expenses. An operational estimate, not a formal accounting figure.</div>
+      <div class="fin-note" id="finNetProfitNote" data-i18n="fin_net_profit_note">Gross Profit − Operating Expenses. An operational estimate, not a formal accounting figure.</div>
+      <!-- Shown only when an owner-classified inventory amount was excluded.
+           Populated by computeFinancialSummary(); hidden otherwise. -->
+      <div class="fin-note" id="finInventoryExcludedNote" style="display:none"></div>
       <div style="margin:10px 0 4px"><button class="btn btn-outline" onclick="exportFinancialCSV('lifetime')" data-i18n="ldg_btn_export_csv">📥 Export CSV</button></div>
       <div class="fin-section-lbl">📆 <span data-i18n="fin_daily_summary">Daily Financial Summary</span></div>
       <div class="card" style="margin-bottom:14px">
@@ -2080,6 +2174,12 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
           <option value="slowest-paying" data-i18n="rpt_opt_slowest_paying">Slowest Paying Customers</option>
           <option value="most-sold-products" data-i18n="rpt_opt_most_sold">Most Sold Products</option>
           <option value="monthly-sales-trend" data-i18n="rpt_opt_monthly_trend">Monthly Sales Trend</option>
+          </optgroup>
+          <optgroup label="Financial Statements">
+          <option value="profit-loss" data-i18n="rpt_opt_profit_loss">Profit &amp; Loss Statement</option>
+          <option value="operating-expenses" data-i18n="rpt_opt_operating_expenses">Operating Expenses</option>
+          <option value="executive-summary" data-i18n="rpt_opt_exec_summary">Executive Summary</option>
+          <option value="fast-slow-products" data-i18n="rpt_opt_fast_slow">Fast &amp; Slow-Moving Products</option>
           </optgroup>
         </select>
         <button class="btn btn-outline" onclick="exportDynReportCSV()" data-i18n="ldg_btn_export_csv">📥 Export CSV</button>
@@ -2543,6 +2643,22 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
         <label class="form-label">Business Name</label>
         <input class="fc fw" id="frBizName" type="text" placeholder="e.g. Mama Ngozi's Store">
       </div>
+      <!-- Reuses the exact same logo functionality as Settings: same
+           handleLogoUpload()/removeLogo() functions, same settings.logo
+           storage key, same .logo-preview-box styling — just a second
+           preview element (frLogoPreviewBox) that renderLogoPreview()
+           also updates. No second upload path, no second storage key. -->
+      <div class="form-group">
+        <label class="form-label">Business Logo (optional)</label>
+        <div style="display:flex;gap:14px;align-items:center">
+          <div class="logo-preview-box" id="frLogoPreviewBox">🏢</div>
+          <div>
+            <input type="file" id="frLogoFile" accept="image/*" style="display:none" onchange="handleLogoUpload(event)">
+            <button class="btn btn-outline btn-sm" onclick="document.getElementById('frLogoFile').click()" data-i18n="set_btn_upload_logo">📷 Upload Logo</button>
+            <button class="btn btn-ghost btn-sm" onclick="removeLogo()" data-i18n="set_btn_remove">✕ Remove</button>
+          </div>
+        </div>
+      </div>
       <div class="form-group">
         <label class="form-label">Currency</label>
         <input class="fc fw" id="frCurrency" type="text" placeholder="FCFA" value="FCFA">
@@ -2905,7 +3021,10 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
       <div class="form-group"><label class="form-label" data-i18n="exp_category">Category *</label>
         <select class="fc fw" id="expCategory" onchange="onExpCategoryChange()"></select>
         <input type="text" class="fc fw" id="expNewCategory" placeholder="New category name…" data-i18n-ph="exp_new_category_ph" style="display:none;margin-top:8px">
-        <div class="fin-note" style="margin:8px 0 0" data-i18n="exp_stock_hint">📦 Buying stock? Record it under Inventory → Stock In. A product's cost is already counted automatically when it sells.</div>
+        <div class="exp-stock-warn">
+          <div class="esw-title" data-i18n="exp_stock_warn_title">⚠️ Stock is NOT an expense</div>
+          <div class="esw-body" data-i18n="exp_stock_hint">When you buy goods to sell, that money is not lost. It is still yours, sitting in your shop as stock. Recording it here makes your profit look smaller than it really is. Record it under Inventory → Stock In instead. Bizora adds the cost by itself on the day the product is sold.</div>
+        </div>
       </div>
       <div class="form-group"><label class="form-label" data-i18n="exp_date">Expense Date</label><input type="date" class="fc fw" id="expDate"></div>
       <div class="form-group"><label class="form-label"><span data-i18n="exp_notes">Notes</span> <span style="color:var(--txt3);font-weight:400" data-i18n="lbl_optional">(optional)</span></label><input type="text" class="fc fw" id="expNotes" placeholder="What was this for?" data-i18n-ph="exp_notes_ph"></div>
@@ -2913,6 +3032,25 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
     <div class="modal-ftr">
       <button class="btn btn-outline" onclick="closeModal('mAddExpense')" data-i18n="btn_cancel">Cancel</button>
       <button class="btn btn-primary" id="saveExpenseBtn" onclick="saveExpense()">💾 <span data-i18n="btn_save">Save</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- Inventory classification for expense categories. Read-only over the
+     expenses store: it edits only prefs.inventoryExpenseCategories and
+     never touches a single expense record. -->
+<div class="modal-bg" id="mExpCatClass">
+  <div class="modal modal-sm">
+    <div class="modal-hdr">
+      <div class="modal-title">📦 <span data-i18n="opex_classify_title">Inventory Categories</span></div>
+      <button class="modal-close" onclick="closeModal('mExpCatClass')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fin-note" style="margin:0 0 12px" data-i18n="opex_classify_intro">Tick any category that is money spent buying stock to resell. Ticked categories are left out of Operating Expenses, because a product's cost is already counted when it sells.</div>
+      <div id="expCatClassList"></div>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn btn-outline" onclick="closeModal('mExpCatClass')" data-i18n="btn_close">Close</button>
     </div>
   </div>
 </div>
@@ -3449,7 +3587,7 @@ const APP_LOGO='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAIAAADTED
    the "Update available" banner. Purely informational at the app layer;
    the actual update *mechanism* is the service worker (see UpdateManager
    in the bottom PWA runtime script). */
-const APP_VERSION='4.0.8';
+const APP_VERSION='4.2.1';
 /* Build number — date-based, bumped by regenerating this file. Shown on
    the About page alongside the version for support/debugging purposes. */
 const BUILD_NUMBER='2026.08.02b';
@@ -4425,12 +4563,22 @@ const DatabaseHealthManager = {
 const FirstRunWizard = {
   shouldShow(){
     const cfg = S.obj('settings', {});
-    return !cfg.setupCompleted && !cfg.businessName;
+    /* Three independent reasons never to auto-open the wizard:
+       - setupCompleted: written ONLY by complete() from now on, and also
+         present on legacy 4.1.9-or-earlier installs (where it may have come
+         from either a completion or an old skip — indistinguishable, and
+         deliberately left as-is; no migration, no reinterpretation).
+       - businessSetupSkipped: the user deliberately dismissed this wizard.
+         This is what suppresses re-opening for new skippers now, so skip()
+         no longer has to falsely assert setupCompleted.
+       - businessName: real business info exists by any route (e.g. entered
+         later via Settings), so onboarding is moot. */
+    return !cfg.setupCompleted && !cfg.businessSetupSkipped && !cfg.businessName;
   },
   checkAndShow(){
     const lockEl = document.getElementById('lockScreen');
     if(lockEl && lockEl.style.display !== 'none') return; // never stack over an active lock screen
-    if(this.shouldShow()) openModal('firstRunModal');
+    if(this.shouldShow()){ renderLogoPreview(); openModal('firstRunModal'); }
   },
   complete(){
     const name = document.getElementById('frBizName').value.trim();
@@ -4445,11 +4593,77 @@ const FirstRunWizard = {
     if(typeof loadDashboard==='function') loadDashboard();
   },
   skip(){
-    const cfg = { ...S.obj('settings', {}), setupCompleted: true };
+    /* Deliberately does NOT set setupCompleted — the user completed nothing.
+       setupCompleted now means exactly one thing: the user finished this
+       wizard via complete(). businessSetupSkipped records the dismissal and
+       is what keeps shouldShow() from re-opening the modal, so a skipper is
+       never nagged, yet no false completion is stored. The user can complete
+       setup later from Settings (reachable via the Getting Started
+       checklist), which sets businessName and flips that checklist item. */
+    const cfg = { ...S.obj('settings', {}), businessSetupSkipped: true };
     S.setObj('settings', cfg);
     closeModal('firstRunModal');
   }
 };
+
+/* ─── Dashboard "Getting Started" checklist ──────────────────────────
+   Separate, persistent companion to FirstRunWizard above — not a
+   replacement. FirstRunWizard is the one-time initial-setup modal;
+   this is a lightweight Dashboard card that recovers the onboarding
+   path for anyone who skipped it, only partially completed it, or
+   simply hasn't finished the four basic first-use milestones yet.
+   Reads only already-loaded, already-existing application data
+   (settings/products/customers/posSales/sales) — no new store, no new
+   settings sub-object, no polling/intervals/observers. Rendered from
+   loadDashboard() (same place every other Dashboard widget refreshes),
+   so it stays correct on every dashboard visit and on language switch,
+   with no extra reactivity plumbing needed.
+   "Set up your business" deliberately checks settings.businessName
+   directly (not setupCompleted) — see the comment in
+   FirstRunWizard.skip() above for why: skipping the wizard must not be
+   mistaken for having entered real business information. */
+let _gsHiddenThisSession=false;
+function gettingStartedSteps(){
+  const cfg=S.obj('settings',{});
+  return [
+    {key:'business',done:!!(cfg.businessName&&cfg.businessName.trim()),page:'settings'},
+    {key:'product', done:S.get('products').length>0,  page:'products'},
+    {key:'customer',done:S.get('customers').length>0, page:'customers'},
+    {key:'sale',    done:(S.get('posSales').length>0||S.get('sales').length>0), page:'pos'}
+  ];
+}
+function renderGettingStarted(){
+  const card=document.getElementById('gsCard');
+  if(!card)return;
+  const steps=gettingStartedSteps();
+  const allDone=steps.every(s=>s.done);
+  /* Auto-hides permanently once genuinely complete; a session-only hide
+     (dismissGettingStartedForSession) is the only other way it disappears
+     — never a permanent "don't show again" while milestones remain
+     incomplete, so the guidance can't be silently lost. */
+  if(allDone||_gsHiddenThisSession){card.style.display='none';return;}
+  card.style.display='';
+  const doneCount=steps.filter(s=>s.done).length;
+  const pct=Math.round((doneCount/steps.length)*100);
+  card.innerHTML=`
+    <div class="gs-head">
+      <div class="card-title" style="margin-bottom:0">🚀 ${t('gs_card_title')}</div>
+      <button class="btn btn-ghost btn-sm" onclick="dismissGettingStartedForSession()" title="${t('gs_hide_session')}">✕</button>
+    </div>
+    <div class="progress" style="margin:10px 0 14px"><div class="progress-fill" style="width:${pct}%;background:var(--success)"></div></div>
+    <div class="gs-steps">
+      ${steps.map(s=>`
+        <div class="gs-step ${s.done?'done':''}" ${s.done?'':`onclick="go('${s.page}')"`}>
+          <span class="gs-step-check">${s.done?'✅':'⬜'}</span>
+          <span class="gs-step-label">${t('gs_step_'+s.key)}</span>
+          ${s.done?'':'<span class="gs-step-arrow">→</span>'}
+        </div>`).join('')}
+    </div>`;
+}
+function dismissGettingStartedForSession(){
+  _gsHiddenThisSession=true;
+  renderGettingStarted();
+}
 
 
 /* ═══════════════════════════════════════════════════
@@ -5248,11 +5462,14 @@ const I18N_DICT={
     exp_inv_warn_title:'⚠️ Possible Inventory Purchase',
     exp_inv_warn_body:'This expense appears to be related to stock or inventory. Inventory costs are already recognized through COGS (Cost of Goods Sold) when products are sold. Recording the same inventory purchase as an expense may reduce Net Profit twice.',
     exp_inv_warn_ok:'Save Anyway',
-    exp_stock_hint:'📦 Buying stock? Record it under Inventory → Stock In. A product\'s cost is already counted automatically when it sells.',
+    exp_stock_warn_title:'⚠️ Stock is NOT an expense',
+    exp_stock_hint:'When you buy goods to sell, that money is not lost. It is still yours, sitting in your shop as stock. Recording it here makes your profit look smaller than it really is. Record it under Inventory → Stock In instead. Bizora adds the cost by itself on the day the product is sold.',
     excat_transport:'Transport',excat_fuel:'Fuel',excat_rent:'Rent',
     excat_salaries:'Salaries',excat_utilities:'Utilities',excat_maintenance:'Maintenance',excat_miscellaneous:'Miscellaneous',
     dash_expenses_title:'Expenses',fin_total_expenses:'Total Expenses',fin_net_profit:'Net Profit',dash_quick_menu_title:'Quick Menu',
-    fin_net_profit_note:'Gross Profit − Total Expenses. An operational estimate, not a formal accounting figure.',
+    fin_net_profit_note:'Gross Profit − Operating Expenses. An operational estimate, not a formal accounting figure.',
+    fin_inventory_excluded_note:'Excludes {amount} of expenses you classified as stock purchases — that cost is already counted when the product sells.',
+    fin_inventory_excluded:'Stock purchases excluded',
     btn_log_expense:'Log Expense',
     fin_row_inventory_value:'Inventory Value',fin_row_inventory_value_sub:'Cost of stock on hand',
     fin_row_projected_revenue:'Projected Revenue',fin_row_projected_revenue_sub:'If all current stock sells at listed price',
@@ -5267,7 +5484,7 @@ const I18N_DICT={
     fin_row_gross_profit:'Gross Profit',fin_row_gross_profit_sub:'Realized revenue minus cost of goods sold',
     fin_row_customer_credit_bal:'Customer Credit Balances',fin_row_customer_credit_bal_sub:'Owed back to customers from overpayments — a liability, not revenue',
     fin_row_total_sales:'Total Sales',fin_row_total_sales_sub:'All-time cash + credit revenue',
-    fin_row_total_expenses_sub:'All-time logged business expenses',
+    fin_row_total_expenses_sub:'All-time business expenses, excluding stock purchases',
     exp_no_permission_log:'🔒 You don\u2019t have permission to log expenses. Ask the Business Owner.',
     exp_no_permission_edit:'🔒 You don\u2019t have permission to edit expenses. Ask the Business Owner.',
     lic_active:'Active',lic_trial:'Trial',lic_days_left_suffix:'d left',lic_expires_in:'Expires in',lic_d_suffix:'d',
@@ -5371,6 +5588,12 @@ const I18N_DICT={
     toast_settings_save_failed:'⚠️ Could not save settings to device storage',
     toast_welcome_named:'Welcome, {name}! 🎉',
     toast_welcome_generic:'Welcome to Bizora! 🎉',
+    gs_card_title:'Get started with Bizora',
+    gs_step_business:'Set up your business',
+    gs_step_product:'Add your first product',
+    gs_step_customer:'Add your first customer',
+    gs_step_sale:'Make your first sale',
+    gs_hide_session:'Hide for now',
     lic_payment_opened:'💳 Complete your payment on the page that just opened. You\u2019ll receive your license key by email — come back here and tap "Activate" to enter it.',
     lic_activated_thanks:'✅ License activated — thank you!',
     toast_db_clearing:'Clearing database…',
@@ -5716,6 +5939,109 @@ const I18N_DICT={
     rpt_opt_slowest_paying:'Slowest Paying Customers',
     rpt_opt_most_sold:'Most Sold Products',
     rpt_opt_monthly_trend:'Monthly Sales Trend',
+    rpt_opt_profit_loss:'Profit & Loss Statement',
+    rpt_opt_operating_expenses:'Operating Expenses',
+    rpt_opt_exec_summary:'Executive Summary',
+    rpt_opt_fast_slow:'Fast & Slow-Moving Products',
+    pa_scope_overview:'Current stock position (all products)',
+    pa_scope_slow:'No sales in the last {days} days',
+    pa_scope_reorder:'Based on the last 30 days of sales',
+    pa_print_generated:'Generated',
+    pa_attribution_note:'Product analytics count only sales linked to a product. Sales entered without product lines are not included.',
+    pa_csv_section:'Section',
+    pa_print_truncated:'Printed list limited to the first {shown} of {total} rows. Export CSV for the complete list.',
+    pa_csv_avg_margin:'Average gross profit margin (%)',
+    pa_csv_avg_daily:'Average daily sales (last 30 days)',
+    pa_csv_days_left:'Days of stock remaining',
+    pa_deleted_product:'(deleted product)',
+    pa_status_critical:'Reorder now',
+    pa_status_warning:'Reorder soon',
+    pa_status_healthy:'Healthy',
+    prd_th_low_stock:'Low Stock Threshold',
+    prd_stat_total_products:'Total products',
+    prd_stat_active_products:'Active products',
+    prd_stat_low_stock:'Low stock products',
+    prd_stat_out_stock:'Out of stock products',
+    rpt_fsp_title:'🐎 Fast & Slow-Moving Products',
+    fsp_heading:'Fast & Slow-Moving Products',
+    fsp_sec_fast:'Fast Moving',
+    fsp_sec_slow:'Slow Moving',
+    fsp_sec_non_moving:'Non-Moving Products',
+    fsp_th_sales_value:'Sales Value',
+    fsp_th_last_sale:'Last Sale',
+    fsp_th_days_since:'Days Since Sale',
+    fsp_never:'Never',
+    fsp_products_analysed:'Products analysed',
+    fsp_with_sales:'Products with sales this period',
+    fsp_more_hidden:'{count} more product(s) not shown.',
+    fsp_show_all:'Show all products',
+    fsp_show_less:'Show fewer',
+    fsp_empty_sold:'No products recorded any sales in this period.',
+    fsp_empty_slow:'Not enough products with sales to show a slow-moving group.',
+    fsp_empty_non_moving:'Every product sold at least once in this period.',
+    fsp_attribution_notice:'Product movement counts only sales that were linked to a product. Sales entered without product lines — such as manually typed invoices or imported sales — are not included here.',
+    fsp_unattributed:'{amount} of sales in this period was not linked to any product, so it is not reflected in the figures above.',
+    rpt_exec_title:'📈 Executive Summary',
+    exec_heading:'Executive Summary',
+    exec_th_metric:'Metric',
+    exec_th_value:'Value',
+    exec_sec_financial:'Financial Performance',
+    exec_sec_sales:'Sales Activity',
+    exec_sec_credit:'Customer Credit',
+    exec_cash_sales:'Cash sales',
+    exec_credit_invoiced:'Credit invoiced',
+    exec_txn_count:'Number of sales',
+    exec_avg_sale:'Average sale value',
+    exec_credit_asof:'Credit figures show what customers owe today, not only for the selected period.',
+    exec_outstanding:'Outstanding debt',
+    exec_debtors:'Customers owing money',
+    exec_overdue:'Overdue amount',
+    exec_overdue_31:'Overdue 31+ days',
+    exec_top_expense_cat:'Largest expense category',
+    rpt_opex_title:'📊 Operating Expenses',
+    rpt_restricted_title:'🔒 Restricted report',
+    rpt_restricted_msg:'You don\u2019t have permission to view financial reports. Ask the Business Owner.',
+    opex_th_pct:'% of Total',
+    opex_th_txns:'Transactions',
+    opex_sec_summary:'Summary',
+    opex_sec_breakdown:'By Category',
+    opex_records:'Operating expense records',
+    opex_average:'Average expense',
+    opex_largest:'Largest expense',
+    opex_inventory_excluded:'Inventory / stock purchases excluded',
+    opex_inventory_excluded_note:'{amount} of stock purchases is not counted here. Stock is not an operating expense: its cost is counted when the product is sold.',
+    opex_negative_records:'{count} negative expense record(s) found in this period.',
+    opex_unclassified_note:'{count} custom category(ies) have not been classified. They are counted as operating expenses. Use Expenses → Categories to mark any that are stock purchases.',
+    perm_no_manage_expenses:'🔒 You don\u2019t have permission to manage expenses. Ask the Business Owner.',
+    opex_classify_btn:'Categories',
+    opex_classify_title:'Inventory Categories',
+    opex_classify_intro:'Tick any category that is money spent buying stock to resell. Ticked categories are left out of Operating Expenses, because a product\u2019s cost is already counted when it sells.',
+    opex_lock_builtin:'Always an operating expense',
+    opex_classify_confirm_title:'Mark as stock purchase?',
+    opex_classify_confirm_body:'This category will no longer be counted as an operating expense. Bizora will instead count the cost of these goods when they are sold.',
+    opex_classify_cost_warn:'Some of your products have no cost price saved. If you leave this category out of expenses without saving product costs, your profit will look bigger than it really is.',
+    opex_classify_confirm_ok:'Yes, it is stock',
+    opex_classify_saved:'Categories updated',
+    rpt_pnl_title:'📄 Profit & Loss Statement',
+    pnl_statement_heading:'Profit & Loss Statement',
+    pnl_period:'Period',
+    pnl_th_line_item:'Line Item',
+    pnl_th_amount:'Amount',
+    pnl_sec_revenue:'Revenue',
+    pnl_sec_opex:'Operating Expenses',
+    pnl_total_opex:'Total Operating Expenses',
+    pnl_no_expenses:'No expenses recorded for this period',
+    pnl_gross_margin:'Gross Margin',
+    pnl_net_margin:'Net Profit Margin',
+    pnl_net_loss:'Net Loss',
+    pnl_sec_reconciliation:'Revenue Recognition',
+    pnl_invoiced_credit:'Credit invoiced',
+    pnl_revenue_recognised:'Revenue recognised',
+    pnl_recognition_diff:'Recognition difference',
+    pnl_recognition_warn:'Some invoices in this period contain no recognised sale lines, so Revenue is understated by the amount above. Re-saving an affected invoice corrects it.',
+    pnl_cost_incomplete_warn:'Some product costs are unavailable or estimated. Cost of Goods Sold, Gross Profit and the margins may be incomplete.',
+    pnl_note_tax_inclusive:'Revenue includes any tax amounts contained in recorded sale totals.',
+    pnl_note_inventory_opex:'Operating expenses may include amounts entered as inventory purchases. Recording the same inventory cost here and in Cost of Goods Sold may overstate expenses.',
     set_card_license:'🔑 License',
     set_sub_license:'Your BIZORA license status — verified fully offline',
     set_card_business:'🏢 Business Information',
@@ -5956,7 +6282,7 @@ const I18N_DICT={
     page_saleshistory_title:'Historique des Ventes',page_saleshistory_desc:'Toutes les ventes au comptant et à crédit réunies',
     page_payments_title:'Remboursement de Crédit',page_payments_desc:'Enregistrez et suivez les remboursements des clients',
     page_collection_title:'Recouvrement de Créances',page_collection_desc:'Gérez les comptes en retard et les rappels de recouvrement',
-    reminder_msg_greeting:'Bonjour {name}, ceci est un rappel amical de {biz} : vous avez actuellement un solde impayé de {amount}.',
+    reminder_msg_greeting:'Bonjour {name}, ceci est un rappel amical de {biz}\u00A0: vous avez actuellement un solde impayé de {amount}.',
     reminder_msg_due:' Votre paiement était dû le {due}.',
     reminder_msg_closing:' Merci de bien vouloir régulariser votre paiement dès que possible.',
     reminder_prepared_whatsapp:'Rappel ouvert dans WhatsApp pour {name}',
@@ -5982,7 +6308,7 @@ const I18N_DICT={
     set_lbl_persale:'Notifications par vente',
     set_sub_persale:'Vous envoyer un message WhatsApp après chaque vente au comptant ou à crédit',
     set_lbl_eod:'Résumé de fin de journée',
-    set_sub_eod:'Active le bouton « Envoyer le résumé du jour » ci-dessous',
+    set_sub_eod:'Active le bouton «\u00A0Envoyer le résumé du jour\u00A0» ci-dessous',
     set_btn_save_owner_notif:'Enregistrer les paramètres de notification',
     set_btn_send_eod:'Envoyer le résumé du jour via WhatsApp',
     owner_notif_settings_saved:'Paramètres de notification enregistrés',
@@ -6073,11 +6399,14 @@ const I18N_DICT={
     exp_inv_warn_title:'⚠️ Achat de stock possible',
     exp_inv_warn_body:'Cette dépense semble être liée au stock ou aux marchandises. Le coût du stock est déjà pris en compte dans le COGS (Coût des marchandises vendues) lorsque les produits sont vendus. Enregistrer le même achat de stock comme dépense peut réduire deux fois le bénéfice net.',
     exp_inv_warn_ok:'Enregistrer quand même',
-    exp_stock_hint:'📦 Vous achetez du stock\u00A0? Enregistrez-le dans Inventaire → Réception de stock. Le coût d\'un produit est déjà comptabilisé automatiquement lors de sa vente.',
+    exp_stock_warn_title:'⚠️ Le stock n’est pas une dépense',
+    exp_stock_hint:'Quand vous achetez des marchandises à revendre, cet argent n’est pas perdu. Il vous appartient toujours, il est dans votre boutique sous forme de stock. L’enregistrer ici fait paraître votre bénéfice plus petit qu’il ne l’est vraiment. Enregistrez-le plutôt dans Inventaire → Réception de stock. Bizora ajoute le coût tout seul le jour où le produit est vendu.',
     excat_transport:'Transport',excat_fuel:'Carburant',excat_rent:'Loyer',
     excat_salaries:'Salaires',excat_utilities:'Charges',excat_maintenance:'Entretien',excat_miscellaneous:'Divers',
     dash_expenses_title:'Dépenses',fin_total_expenses:'Total des Dépenses',fin_net_profit:'Profit Net',dash_quick_menu_title:'Menu Rapide',
-    fin_net_profit_note:'Profit Brut − Dépenses Totales. Une estimation opérationnelle, pas un chiffre comptable formel.',
+    fin_net_profit_note:'Profit Brut − Charges d’exploitation. Une estimation opérationnelle, pas un chiffre comptable formel.',
+    fin_inventory_excluded_note:'Exclut {amount} de dépenses que vous avez classées comme achats de stock : ce coût est déjà compté lors de la vente du produit.',
+    fin_inventory_excluded:'Achats de stock exclus',
     btn_log_expense:'Enregistrer une Dépense',
     fin_row_inventory_value:'Valeur de l\u2019Inventaire',fin_row_inventory_value_sub:'Coût du stock disponible',
     fin_row_projected_revenue:'Revenu Projeté',fin_row_projected_revenue_sub:'Si tout le stock actuel se vend au prix affiché',
@@ -6092,7 +6421,7 @@ const I18N_DICT={
     fin_row_gross_profit:'Profit Brut',fin_row_gross_profit_sub:'Revenu réalisé moins le coût des marchandises vendues',
     fin_row_customer_credit_bal:'Soldes Créditeurs Clients',fin_row_customer_credit_bal_sub:'Dû aux clients suite à des trop-perçus — un passif, pas un revenu',
     fin_row_total_sales:'Ventes Totales',fin_row_total_sales_sub:'Revenu comptant + crédit depuis le début',
-    fin_row_total_expenses_sub:'Dépenses professionnelles enregistrées depuis le début',
+    fin_row_total_expenses_sub:'Dépenses professionnelles depuis le début, hors achats de stock',
     exp_no_permission_log:'🔒 Vous n\u2019avez pas la permission d\u2019enregistrer des dépenses. Demandez au Propriétaire.',
     exp_no_permission_edit:'🔒 Vous n\u2019avez pas la permission de modifier les dépenses. Demandez au Propriétaire.',
     lic_active:'Actif',lic_trial:'Essai',lic_days_left_suffix:'j restants',lic_expires_in:'Expire dans',lic_d_suffix:'j',
@@ -6191,6 +6520,12 @@ const I18N_DICT={
     toast_settings_save_failed:'⚠️ Impossible d\u2019enregistrer les paramètres sur le stockage de l\u2019appareil',
     toast_welcome_named:'Bienvenue, {name}\u00A0! 🎉',
     toast_welcome_generic:'Bienvenue sur Bizora\u00A0! 🎉',
+    gs_card_title:'Bien démarrer avec Bizora',
+    gs_step_business:'Configurer votre entreprise',
+    gs_step_product:'Ajouter votre premier produit',
+    gs_step_customer:'Ajouter votre premier client',
+    gs_step_sale:'Effectuer votre première vente',
+    gs_hide_session:'Masquer pour l\u2019instant',
     lic_payment_opened:'💳 Finalisez votre paiement sur la page qui vient de s\u2019ouvrir. Vous recevrez votre clé de licence par e-mail — revenez ici et appuyez sur «\u00A0Activer\u00A0» pour la saisir.',
     lic_activated_thanks:'✅ Licence activée — merci\u00A0!',
     toast_db_clearing:'Effacement de la base de données…',
@@ -6536,6 +6871,109 @@ const I18N_DICT={
     rpt_opt_slowest_paying:'Clients payant le plus lentement',
     rpt_opt_most_sold:'Produits les plus vendus',
     rpt_opt_monthly_trend:'Tendance mensuelle des ventes',
+    rpt_opt_profit_loss:'Compte de résultat',
+    rpt_opt_operating_expenses:'Charges d\u2019exploitation',
+    rpt_opt_exec_summary:'Résumé exécutif',
+    rpt_opt_fast_slow:'Produits à rotation rapide et lente',
+    pa_scope_overview:'État actuel du stock (tous les produits)',
+    pa_scope_slow:'Aucune vente au cours des {days} derniers jours',
+    pa_scope_reorder:'Basé sur les 30 derniers jours de ventes',
+    pa_print_generated:'Généré le',
+    pa_attribution_note:'Les analyses produits ne comptent que les ventes liées à un produit. Les ventes saisies sans ligne de produit ne sont pas incluses.',
+    pa_csv_section:'Section',
+    pa_print_truncated:'Liste imprimée limitée aux {shown} premières lignes sur {total}. Exportez le CSV pour la liste complète.',
+    pa_csv_avg_margin:'Marge brute moyenne (%)',
+    pa_csv_avg_daily:'Ventes quotidiennes moyennes (30 derniers jours)',
+    pa_csv_days_left:'Jours de stock restants',
+    pa_deleted_product:'(produit supprimé)',
+    pa_status_critical:'Réapprovisionner maintenant',
+    pa_status_warning:'Réapprovisionner bientôt',
+    pa_status_healthy:'Correct',
+    prd_th_low_stock:'Seuil de stock bas',
+    prd_stat_total_products:'Nombre total de produits',
+    prd_stat_active_products:'Produits actifs',
+    prd_stat_low_stock:'Produits en stock bas',
+    prd_stat_out_stock:'Produits en rupture de stock',
+    rpt_fsp_title:'🐎 Produits à rotation rapide et lente',
+    fsp_heading:'Produits à rotation rapide et lente',
+    fsp_sec_fast:'Rotation rapide',
+    fsp_sec_slow:'Rotation lente',
+    fsp_sec_non_moving:'Produits sans rotation',
+    fsp_th_sales_value:'Valeur des ventes',
+    fsp_th_last_sale:'Dernière vente',
+    fsp_th_days_since:'Jours depuis la vente',
+    fsp_never:'Jamais',
+    fsp_products_analysed:'Produits analysés',
+    fsp_with_sales:'Produits vendus sur la période',
+    fsp_more_hidden:'{count} autre(s) produit(s) non affiché(s).',
+    fsp_show_all:'Afficher tous les produits',
+    fsp_show_less:'Afficher moins',
+    fsp_empty_sold:'Aucun produit n’a enregistré de vente sur cette période.',
+    fsp_empty_slow:'Pas assez de produits vendus pour constituer un groupe à rotation lente.',
+    fsp_empty_non_moving:'Chaque produit a été vendu au moins une fois sur cette période.',
+    fsp_attribution_notice:'La rotation des produits ne compte que les ventes liées à un produit. Les ventes saisies sans ligne de produit — factures saisies manuellement ou ventes importées — ne sont pas incluses ici.',
+    fsp_unattributed:'{amount} de ventes sur cette période n’étaient liées à aucun produit : ce montant n’est donc pas reflété dans les chiffres ci-dessus.',
+    rpt_exec_title:'📈 Résumé exécutif',
+    exec_heading:'Résumé exécutif',
+    exec_th_metric:'Indicateur',
+    exec_th_value:'Valeur',
+    exec_sec_financial:'Performance financière',
+    exec_sec_sales:'Activité commerciale',
+    exec_sec_credit:'Crédit client',
+    exec_cash_sales:'Ventes au comptant',
+    exec_credit_invoiced:'Crédit facturé',
+    exec_txn_count:'Nombre de ventes',
+    exec_avg_sale:'Valeur moyenne d’une vente',
+    exec_credit_asof:'Les montants de crédit indiquent ce que les clients doivent aujourd’hui, et non uniquement pour la période sélectionnée.',
+    exec_outstanding:'Encours client',
+    exec_debtors:'Clients débiteurs',
+    exec_overdue:'Montant en retard',
+    exec_overdue_31:'En retard de 31 jours ou plus',
+    exec_top_expense_cat:'Poste de charges le plus élevé',
+    rpt_opex_title:'📊 Charges d\u2019exploitation',
+    rpt_restricted_title:'🔒 Rapport restreint',
+    rpt_restricted_msg:'Vous n\u2019avez pas la permission de consulter les rapports financiers. Demandez au propriétaire de l\u2019entreprise.',
+    opex_th_pct:'% du total',
+    opex_th_txns:'Transactions',
+    opex_sec_summary:'Résumé',
+    opex_sec_breakdown:'Par catégorie',
+    opex_records:'Nombre de charges enregistrées',
+    opex_average:'Charge moyenne',
+    opex_largest:'Charge la plus élevée',
+    opex_inventory_excluded:'Achats de stock exclus',
+    opex_inventory_excluded_note:'{amount} d\u2019achats de stock ne sont pas comptés ici. Le stock n\u2019est pas une charge d\u2019exploitation : son coût est compté lorsque le produit est vendu.',
+    opex_negative_records:'{count} charge(s) négative(s) trouvée(s) dans cette période.',
+    opex_unclassified_note:'{count} catégorie(s) personnalisée(s) ne sont pas classées. Elles sont comptées comme charges d\u2019exploitation. Utilisez Dépenses → Catégories pour indiquer celles qui sont des achats de stock.',
+    perm_no_manage_expenses:'🔒 Vous n\u2019avez pas la permission de gérer les dépenses. Demandez au propriétaire de l\u2019entreprise.',
+    opex_classify_btn:'Catégories',
+    opex_classify_title:'Catégories de stock',
+    opex_classify_intro:'Cochez chaque catégorie qui correspond à de l\u2019argent dépensé pour acheter des marchandises à revendre. Les catégories cochées sont exclues des charges d\u2019exploitation, car le coût d\u2019un produit est déjà compté lors de sa vente.',
+    opex_lock_builtin:'Toujours une charge d\u2019exploitation',
+    opex_classify_confirm_title:'Marquer comme achat de stock ?',
+    opex_classify_confirm_body:'Cette catégorie ne sera plus comptée comme une charge d\u2019exploitation. Bizora comptera plutôt le coût de ces marchandises lorsqu\u2019elles seront vendues.',
+    opex_classify_cost_warn:'Certains de vos produits n\u2019ont pas de prix de revient enregistré. Si vous excluez cette catégorie des charges sans enregistrer les coûts des produits, votre bénéfice paraîtra plus élevé qu\u2019il ne l\u2019est vraiment.',
+    opex_classify_confirm_ok:'Oui, c\u2019est du stock',
+    opex_classify_saved:'Catégories mises à jour',
+    rpt_pnl_title:'📄 Compte de résultat',
+    pnl_statement_heading:'Compte de résultat',
+    pnl_period:'Période',
+    pnl_th_line_item:'Poste',
+    pnl_th_amount:'Montant',
+    pnl_sec_revenue:'Produits',
+    pnl_sec_opex:'Charges d’exploitation',
+    pnl_total_opex:'Total des charges d’exploitation',
+    pnl_no_expenses:'Aucune dépense enregistrée pour cette période',
+    pnl_gross_margin:'Marge brute',
+    pnl_net_margin:'Marge nette',
+    pnl_net_loss:'Perte nette',
+    pnl_sec_reconciliation:'Comptabilisation des produits',
+    pnl_invoiced_credit:'Ventes à crédit facturées',
+    pnl_revenue_recognised:'Produits comptabilisés',
+    pnl_recognition_diff:'Écart de comptabilisation',
+    pnl_recognition_warn:'Certaines factures de cette période ne contiennent aucune ligne de vente comptabilisée : les produits sont donc sous-évalués du montant ci-dessus. Réenregistrer une facture concernée corrige l’écart.',
+    pnl_cost_incomplete_warn:'Certains coûts de produits sont indisponibles ou estimés. Le coût des marchandises vendues, le profit brut et les marges peuvent être incomplets.',
+    pnl_note_tax_inclusive:'Les produits incluent les taxes éventuelles comprises dans les totaux de vente enregistrés.',
+    pnl_note_inventory_opex:'Les charges d’exploitation peuvent inclure des montants saisis comme achats de stock. Enregistrer le même coût de stock ici et dans le coût des marchandises vendues peut surévaluer les charges.',
     set_card_license:'🔑 Licence',
     set_sub_license:'L\u2019état de votre licence BIZORA — vérifié entièrement hors ligne',
     set_card_business:'🏢 Informations sur l\u2019entreprise',
@@ -7132,7 +7570,7 @@ function miniStat(icon,label,val,cls='ms-primary'){
 }
 
 /* ═══════════════ DASHBOARD ═══════════════ */
-function loadDashboard(){updateGreeting();renderKPIs();renderPosKpis();renderExpKpis();renderBizAnalyticsKpis();renderInsights();renderActFeed();renderAlerts();renderUpcoming();setTimeout(drawAllCharts,120);}
+function loadDashboard(){updateGreeting();renderGettingStarted();renderKPIs();renderPosKpis();renderExpKpis();renderBizAnalyticsKpis();renderInsights();renderActFeed();renderAlerts();renderUpcoming();setTimeout(drawAllCharts,120);}
 /* Central refresh for every "live" figure that depends on sales, cash, or
    payment records. Previously, completing a POS sale, recording a payment,
    or deleting/cancelling an invoice only refreshed a notification badge —
@@ -7695,6 +8133,50 @@ function getItemRows(){
     subtotal:(parseFloat(row.querySelector('.item-qty').value)||0)*(parseFloat(row.querySelector('.item-price').value)||0)
   }));
 }
+/* ── F-1: revenue-recognition balancing line ────────────────────────
+   Manually created credit invoices take their value from a typed `amount`
+   field, while getItemRows() above is OPTIONAL and produces rows with no
+   productId and no cost. computeRealizedProfit() recognises revenue by
+   summing items[].subtotal, so an invoice with no item rows (or with rows
+   summing BELOW the typed amount) had part or all of its value silently
+   omitted from Revenue/Gross Profit/Net Profit — while still counting in
+   full towards Invoiced, Outstanding and customer debt (invBalance() reads
+   inv.amount, not items). Verified: a 30,000 itemless invoice contributed
+   0 revenue and did not even raise costIncomplete.
+
+   This is a WRITE-PATH correction only. It mirrors the pattern the CSV
+   sales importer has always used (see commitCsvImport's 'Imported line
+   item'): represent the unitemised value as one synthetic line so the
+   EXISTING, UNMODIFIED financial source-of-truth functions recognise it.
+   computeRealizedProfit(), buildProfitIndex(), computeProductSalesAggregates()
+   and computeFinancialSummary() are untouched.
+
+   Deliberate constraints:
+   - Original entered rows are never modified, reordered or removed.
+   - Only a POSITIVE difference is ever appended; if the entered rows meet
+     or exceed the amount, nothing is added (an over-itemised invoice is a
+     data-entry question, not something to silently "fix" by subtracting).
+   - cost is 0 with costEstimated:true, exactly as the CSV importer marks
+     an unknown cost — so findCost() flags costIncomplete and the P&L warns
+     rather than presenting a false 100% margin.
+   - The stored `name` is a fixed non-translated string: this is persisted
+     business data, not UI chrome, and must not change meaning when the
+     user switches language (same reasoning as 'Imported line item').
+   - Invoice `amount` is NOT changed, so Invoiced = Paid + Outstanding and
+     every existing balance/status calculation are unaffected.
+   Historical invoices are NOT rewritten; the P&L surfaces any remaining
+   gap through its Invoiced vs Revenue Recognised reconciliation line. */
+const UNITEMISED_LINE_NAME='Unitemised sale amount';
+function balanceSaleItems(items,amount){
+  const rows=Array.isArray(items)?items:[];
+  const amt=parseFloat(amount)||0;
+  if(!(amt>0))return rows;
+  const represented=rows.reduce((a,it)=>a+(parseFloat(it.subtotal)||((parseFloat(it.qty)||0)*(parseFloat(it.price)||0))||0),0);
+  const diff=amt-represented;
+  // Sub-currency-unit residue from decimal entry is not a recognition gap.
+  if(diff<=0.005)return rows;
+  return[...rows,{name:UNITEMISED_LINE_NAME,qty:1,price:diff,subtotal:diff,cost:0,costEstimated:true}];
+}
 function applyPayTerms(){
   const t=document.getElementById('sPayTerms').value;
   if(t==='custom')return;
@@ -7730,7 +8212,11 @@ function saveSale(){
   if(cust&&cust.status==='blocked'){toast(t('val_invoice_blocked_customer'),'error');return;}
   saveSaleBtn.disabled=true;
   const eid=document.getElementById('editSaleId').value;
-  const items=getItemRows();
+  /* F-1: append a balancing line when the entered rows do not represent the
+     full invoice amount, so Revenue recognition matches the invoiced value.
+     Applied to the edit path too, which is what lets an existing itemless
+     invoice become correctly recognised once the owner re-saves it. */
+  const items=balanceSaleItems(getItemRows(),amount);
   const data={cid,amount,date,due,items,paymentTerms:document.getElementById('sPayTerms').value,priority:document.getElementById('sPriority').value,notes:document.getElementById('sNotes').value.trim(),status:'pending'};
   let sales=S.get('sales');
   if(eid){
@@ -7853,13 +8339,34 @@ function looksLikeInventoryCategory(name){
   const n=(name||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
   return INVENTORY_CATEGORY_TERMS.some(term=>n.includes(term));
 }
+/* Forward-only identity fix. Previously, a name matching a built-in's
+   TRANSLATED label returned the typed text: a French owner typing "Loyer"
+   got category "Loyer" rather than the canonical id "rent", producing two
+   separate buckets ("Rent" and "Loyer") in every breakdown, and an orphan
+   value that never appears in the dropdown. It also lands permanently in
+   the Operating Expenses report's "unclassified" list.
+
+   The match now RESOLVES to whatever it matched: a built-in match returns
+   the canonical id, an existing custom match returns that existing custom
+   value, and only a genuinely new name is added. Matching is checked
+   against both languages, not just the active one, so switching language
+   cannot create a duplicate of a category the owner already has.
+
+   Strictly forward-only — existing records keep whatever value they were
+   saved with, and nothing historical is merged or rewritten. */
 function addCustomExpenseCategory(name){
   name=(name||'').trim();
   if(!name)return null;
   const prefs=S.obj('prefs');
   const custom=prefs.customExpenseCategories||[];
-  const exists=[...DEFAULT_EXPENSE_CATEGORIES,...custom].some(c=>expenseCategoryLabel(c).toLowerCase()===name.toLowerCase()||c.toLowerCase()===name.toLowerCase());
-  if(exists)return name;
+  const norm=s=>(s||'').trim().toLowerCase();
+  const target=norm(name);
+  for(const id of DEFAULT_EXPENSE_CATEGORIES){
+    const labels=['en','fr'].map(l=>(I18N_DICT[l]&&I18N_DICT[l]['excat_'+id])||'');
+    if(norm(id)===target||labels.some(l=>norm(l)===target))return id;
+  }
+  const existing=custom.find(c=>norm(c)===target);
+  if(existing)return existing;
   S.setObj('prefs',{...prefs,customExpenseCategories:[...custom,name]});
   return name;
 }
@@ -8040,6 +8547,265 @@ function delExpense(id){
 function computeExpenseTotals(datePrefix){
   const exps=S.get('expenses').filter(e=>!datePrefix||(e.date||'').startsWith(datePrefix));
   return exps.reduce((a,e)=>a+parseFloat(e.amount||0),0);
+}
+/* Expense totals grouped by category, for a period expressed as a predicate
+   over the expense date (so it composes with getReportPeriodPredicate() and
+   therefore supports all seven Reports periods, including Custom Range).
+
+   ONE pass over the expenses store. computeExpenseTotals() above is
+   unchanged and remains the source of truth for the scalar total everywhere
+   it is already used; this helper is additive. The `total` returned here is
+   summed from the very same category buckets it returns, so the P&L's
+   "Total Operating Expenses" is arithmetically incapable of disagreeing with
+   the category lines printed above it.
+
+   Category labelling deliberately reuses expenseCategoryLabel()/
+   expenseCategoryIcon() rather than re-implementing the built-in-vs-custom
+   distinction, so a custom category the owner invented still renders with
+   its own name. Sorted by value descending — biggest cost first is what an
+   SME owner actually wants to see. */
+function computeExpensesByCategory(pred){
+  const ok=typeof pred==='function'?pred:()=>true;
+  const byCat=new Map();
+  let total=0,count=0;
+  for(const e of S.get('expenses')){
+    if(!ok(e.date||''))continue;
+    const amt=parseFloat(e.amount||0)||0;
+    const cat=e.category||'miscellaneous';
+    byCat.set(cat,(byCat.get(cat)||0)+amt);
+    total+=amt;count++;
+  }
+  const categories=[...byCat.entries()]
+    .map(([category,amount])=>({category,amount,label:expenseCategoryLabel(category),icon:expenseCategoryIcon(category)}))
+    .sort((a,b)=>b.amount-a.amount);
+  return{categories,total,count};
+}
+/* ── Inventory vs operating classification ──────────────────────────────
+   An expense RECORD existing is not the same thing as an OPERATING
+   EXPENSE. Stock bought for resale is not consumed by running the
+   business; its cost belongs to inventory and reaches the P&L through
+   COGS when the item sells. Counting it as an operating expense too would
+   deduct it twice.
+
+   Classification is by EXACT match on the stored category value — the same
+   string expense.category actually holds. It deliberately does NOT use
+   looksLikeInventoryCategory(): that function documents itself as a
+   data-entry nudge, not an accounting classifier, and testing showed it
+   both excludes real operating costs (a French "Achat de carburant" is
+   fuel; "Approvisionnement en eau" is a water bill) and misses real stock
+   ("Matières premières", "Inventaire"). A wrong guess here silently moves
+   money between Gross Profit and Net Profit, so nothing is guessed.
+
+   Two tiers, and deliberately NOT a third:
+     1. The seven built-in IDs are operating BY DEFINITION and can never be
+        reclassified, even if a corrupted or hand-edited prefs list names
+        them. This makes the worst case a no-op rather than a wrong P&L.
+     2. Everything else is operating UNLESS the owner has explicitly listed
+        it. Unclassified therefore defaults to OPERATING, which is exactly
+        the behaviour before this feature existed, so installing a new
+        version changes no number at all.
+
+   There is intentionally NO automatic-inventory tier. An earlier version
+   auto-excluded the retired 'stock_purchase' id on the grounds that its
+   name is unambiguous. That was wrong for a reason worth recording: a
+   merchant who had 65,000 CFA of stock_purchase expenses would open the
+   new version and find Operating Expenses down 65,000 and Net Profit up
+   65,000, having decided nothing. Whether a past purchase was inventory
+   is an accounting judgement about that merchant's own books — an app
+   update must never make it for them, however obvious the category name
+   looks. stock_purchase is now offered in the classification screen like
+   any other category and counted as an operating expense until the owner
+   ticks it.
+
+   Historical records are never read for classification, never migrated and
+   never rewritten. The owner's list changes how records are GROUPED, not
+   what any record says. */
+function getInventoryExpenseCategories(){
+  const list=S.obj('prefs').inventoryExpenseCategories;
+  return Array.isArray(list)?list:[];
+}
+function isInventoryExpenseCategory(cat){
+  const c=cat||'miscellaneous';
+  if(DEFAULT_EXPENSE_CATEGORIES.includes(c))return false;   // tier 1
+  return getInventoryExpenseCategories().includes(c);        // tier 2, exact match, owner-declared
+}
+/* Single pass over expenses producing everything the Operating Expenses
+   report and the P&L both need. One scan, one Map bounded by category
+   count, no nested loops, no persistence, no timers.
+
+   `total` is summed from the same buckets that are displayed, so the
+   printed category lines can never disagree with the printed total. And
+   because inventory is separated in the same pass rather than by a second
+   filter, the invariant
+        raw expense total === total + inventoryTotal
+   holds by construction. */
+function computeOperatingExpenses(pred){
+  const ok=typeof pred==='function'?pred:()=>true;
+  const declared=new Set(getInventoryExpenseCategories());
+  const opMap=new Map(),unclassified=new Set();
+  let total=0,count=0,largest=0,inventoryTotal=0,inventoryCount=0,negativeCount=0;
+  for(const e of S.get('expenses')){
+    if(!ok(e.date||''))continue;
+    const cat=e.category||'miscellaneous';
+    const amt=parseFloat(e.amount||0)||0;
+    if(amt<0)negativeCount++;
+    if(isInventoryExpenseCategory(cat)){inventoryTotal+=amt;inventoryCount++;continue;}
+    if(!DEFAULT_EXPENSE_CATEGORIES.includes(cat)&&!declared.has(cat))unclassified.add(cat);
+    const cur=opMap.get(cat)||{amount:0,count:0};
+    cur.amount+=amt;cur.count++;opMap.set(cat,cur);
+    total+=amt;count++;
+    if(amt>largest)largest=amt;
+  }
+  const categories=[...opMap.entries()]
+    .map(([category,v])=>({category,amount:v.amount,count:v.count,
+      label:expenseCategoryLabel(category),icon:expenseCategoryIcon(category)}))
+    .sort((a,b)=>b.amount-a.amount);
+  return{categories,total,count,largest,
+    average:count?total/count:0,
+    inventoryTotal,inventoryCount,
+    unclassified:[...unclassified],negativeCount};
+}
+/* ── Net Profit: the authoritative calculation ──────────────────────────
+   Bizora had eleven separate Net Profit derivations. Two (P&L, Executive
+   Summary) subtracted OPERATING expenses; nine subtracted RAW expenses, and
+   two of those nine did their own inline expense filtering. When an expense
+   category is classified as an inventory/stock purchase, the raw-basis nine
+   subtract that amount a second time — COGS has already recognised it
+   inside Gross Profit — so a genuine 40,000 profit could render as a
+   20,000 loss. This function exists so there is one place that answers
+   "what is Net Profit", rather than eleven that can drift apart.
+
+   It defines NOTHING. Gross Profit comes from the existing
+   buildProfitIndex().range(pred); operating expenses from the existing
+   computeOperatingExpenses(pred). Both are the same calls the P&L already
+   makes. No revenue, COGS, expense classification or inventory rule is
+   re-derived here, and no new accounting model is introduced — this is the
+   Gross Profit − Operating Expenses formula the P&L already implements.
+
+   pred: a predicate over a date string, matching the convention already
+   used by computeOperatingExpenses() and range(). Omitted = all-time.
+
+   idx: an OPTIONAL pre-built profit index. The Daily/Monthly/Annual series
+   deliberately build the index once and query it per period; without this
+   parameter a per-day caller would rebuild it up to 31 times per render,
+   which is exactly the kind of repeated full-store scan the persistence
+   optimisation programme removed. Callers that have no index simply omit
+   it and one is built here, as every other single-period caller does.
+
+   costIncomplete is passed through from range() unchanged — it is already
+   period-scoped (per-day buckets), and several consumers depend on its
+   exact current meaning: the Today's Profit KPI shows "—" instead of a
+   number when set, and the WhatsApp end-of-day summary suppresses its
+   profit lines entirely. Recomputing or widening it would silently turn a
+   deliberate suppression into a misleading figure. */
+function computeNetProfit(pred,idx){
+  const ok=typeof pred==='function'?pred:()=>true;
+  const r=(idx||buildProfitIndex()).range(ok);
+  const exp=computeOperatingExpenses(ok);
+  return{
+    revenue:r.revenue,
+    cogs:r.cogs,
+    grossProfit:r.profit,
+    operatingExpenses:exp.total,
+    inventoryExcluded:exp.inventoryTotal,
+    netProfit:r.profit-exp.total,
+    costIncomplete:r.costIncomplete
+  };
+}
+/* Thin bridge for the callers that hold a DATE PREFIX rather than a
+   predicate. Eight of the existing Net Profit sites work in prefixes
+   ('2026', '2026-08', '2026-08-03') because that is what
+   computeExpenseTotals(datePrefix) has always taken. Rather than have each
+   of those callers build its own closure — which is how eleven parallel
+   Net Profit derivations came about in the first place — the prefix rule
+   lives here, once.
+
+   Semantics are deliberately identical to computeExpenseTotals(): a falsy
+   key (undefined, null, '') means ALL TIME, and matching is
+   (date||'').startsWith(key). Anything else would silently reinterpret a
+   caller's period.
+
+   NOT for today/yesterday. computeTodayProfit() matches its day with
+   strict equality (e.date===td), not startsWith, and those two differ on a
+   timestamped date such as '2026-08-03T09:15' — prefix matching would
+   include it, equality would not. That is a date-selection change, not a
+   Net Profit change, and this patch must not make it. Those two sites will
+   pass their own equality predicate straight to computeNetProfit(), which
+   accepts any predicate. */
+function computeNetProfitByPrefix(key,idx){
+  return computeNetProfit(key?(d=>(d||'').startsWith(key)):undefined,idx);
+}
+/* ── Owner-controlled inventory classification ──────────────────────────
+   Writes ONLY to prefs.inventoryExpenseCategories, which lives in the
+   existing 'settings' store under the already-rehydrated 'prefs' key — no
+   new store, no schema change, IDB_VERSION untouched. No expense record is
+   ever modified: classification changes how records are GROUPED in the
+   report, not what any record says.
+
+   The list offered is the union of the configured categories and every
+   distinct category value actually present in the expenses store, so
+   orphan/historical values (including ones that arrived via a restored
+   backup) can still be classified. The seven built-ins are shown but
+   locked, because tier 1 is definitional and must not depend on a stored
+   preference. Everything else is tickable, including 'stock_purchase'. */
+function openExpCatClassifier(){
+  if(!Auth.can('manageExpenses')){toast(t('perm_no_manage_expenses'),'error',4500);return;}
+  renderExpCatClassifier();
+  openModal('mExpCatClass');
+}
+function renderExpCatClassifier(){
+  const declared=new Set(getInventoryExpenseCategories());
+  const seen=new Set();
+  for(const e of S.get('expenses'))seen.add(e.category||'miscellaneous');
+  const all=[...new Set([...getExpenseCategories(),...seen,...declared])]
+    .sort((a,b)=>expenseCategoryLabel(a).localeCompare(expenseCategoryLabel(b)));
+  const rows=all.map(cat=>{
+    /* Only the seven built-ins are locked. Every other value — including
+       the retired 'stock_purchase' and any orphan or restored-backup
+       category — is the owner's to classify. */
+    const locked=DEFAULT_EXPENSE_CATEGORIES.includes(cat);
+    const on=isInventoryExpenseCategory(cat);
+    const note=locked?t('opex_lock_builtin'):'';
+    return `<label style="display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid var(--border)${locked?';opacity:.62':''}">`+
+      `<input type="checkbox" ${on?'checked':''} ${locked?'disabled':''} onchange="toggleInventoryCategory(this,${JSON.stringify(cat).replace(/"/g,'&quot;')})" style="width:18px;height:18px;flex-shrink:0">`+
+      `<span style="flex:1;font-size:14px">${expenseCategoryIcon(cat)} ${esc(expenseCategoryLabel(cat))}`+
+      (note?`<span style="display:block;font-size:11.5px;color:var(--txt3)">${note}</span>`:'')+
+      `</span></label>`;
+  }).join('');
+  document.getElementById('expCatClassList').innerHTML=rows||`<div class="empty" style="padding:18px"><p>${t('pnl_no_expenses')}</p></div>`;
+}
+function toggleInventoryCategory(el,cat){
+  const list=getInventoryExpenseCategories();
+  if(!el.checked){
+    S.setObj('prefs',{...S.obj('prefs'),inventoryExpenseCategories:list.filter(c=>c!==cat)});
+    afterInventoryClassificationChange();
+    return;
+  }
+  /* Profitability safeguard. Excluding a purchase from Operating Expenses
+     is only correct if that cost reaches the P&L through COGS instead. If
+     product costs are missing, computeRealizedProfit() already tells us so
+     via costIncomplete — reused here rather than computing anything new —
+     and excluding the purchase would make Net Profit look better than it
+     is. The owner is warned in plain language but not blocked, since only
+     they know how they record stock. */
+  el.checked=false;                       // committed only on confirmation
+  const warn=computeRealizedProfit().costIncomplete;
+  const msg=t('opex_classify_confirm_body')+(warn?('\n\n⚠️ '+t('opex_classify_cost_warn')):'');
+  confirm2(t('opex_classify_confirm_title'),msg,()=>{
+    const cur=getInventoryExpenseCategories();
+    if(!cur.includes(cat))S.setObj('prefs',{...S.obj('prefs'),inventoryExpenseCategories:[...cur,cat]});
+    afterInventoryClassificationChange();
+  },t('opex_classify_confirm_ok'),warn);
+}
+/* Classification feeds both the P&L and Operating Expenses, so any open
+   financial view is re-rendered immediately rather than showing a stale
+   total until the next navigation. */
+function afterInventoryClassificationChange(){
+  renderExpCatClassifier();
+  renderExpStats();
+  if(typeof refreshPeriodAwareDynReport==='function')refreshPeriodAwareDynReport();
+  if(typeof renderFinancialSummary==='function'&&document.getElementById('page-financial')?.classList.contains('active'))renderFinancialSummary();
+  toast(t('opex_classify_saved'),'success');
 }
 function quickPay(invId){
   const inv=S.get('sales').find(s=>s.id===invId);if(!inv)return;
@@ -8284,7 +9050,17 @@ function filterLedger(){
 }
 
 /* ═══════════════ REPORTS ═══════════════ */
-function loadReports(){generateReports();}
+function loadReports(){generateReports();refreshPeriodAwareDynReport();}
+/* The P&L is the first report in the Detailed Reports card that reads the
+   page's period selector, so it — and ONLY it — must re-render when that
+   selector changes. Guarded by an explicit type check rather than calling
+   renderDynReport() unconditionally: the other 14 reports are period-
+   independent by design, and re-rendering them here would add work and
+   change their existing behaviour for no benefit. */
+function refreshPeriodAwareDynReport(){
+  const sel=document.getElementById('dynReportType');
+  if(sel&&FINANCIAL_REPORT_TYPES.includes(sel.value))renderDynReport();
+}
 function onRptPeriodChange(){
   const period=document.getElementById('rptPeriod').value;
   const yearSel=document.getElementById('rptYear');
@@ -8305,7 +9081,7 @@ function onRptPeriodChange(){
     yearSel.innerHTML=[...years].sort((a,b)=>b-a).map(y=>`<option value="${y}">${y}</option>`).join('');
     yearSel.dataset.filled='1';
   }
-  generateReports();
+  loadReports();
 }
 /* Single source of truth for the Reports page's currently selected
    period, as a predicate over a date string ('YYYY-MM-DD'). Extracted
@@ -8334,6 +9110,273 @@ function getReportPeriodPredicate(){
   // 'all', or 'custom' with an incomplete range — matches
   // generateReports()'s existing fallthrough: no filtering applied.
   return()=>true;
+}
+/* Human-readable label for whatever getReportPeriodPredicate() just
+   selected. Presentation only — it performs no filtering and makes no
+   financial decision, so it cannot drift from the predicate in a way that
+   changes a number. It exists because a printed financial statement that
+   does not say which period it covers is worse than no statement at all.
+   Branch order mirrors the predicate above so the two stay readable
+   together. */
+function getReportPeriodLabel(){
+  const period=document.getElementById('rptPeriod').value;
+  const now=new Date();
+  const monthSpan=(y,m)=>fmtDate(localISODate(new Date(y,m,1)))+' – '+fmtDate(localISODate(new Date(y,m+1,0)));
+  if(period==='today')return fmtDate(todayStr());
+  if(period==='this-week'){const{start,end}=getWeekRange(0);return fmtDate(start)+' – '+fmtDate(end);}
+  if(period==='this-month')return monthSpan(now.getFullYear(),now.getMonth());
+  if(period==='last-month')return monthSpan(now.getFullYear(),now.getMonth()-1);
+  if(period==='this-year')return document.getElementById('rptYear').value||now.getFullYear().toString();
+  if(period==='custom'){
+    const from=document.getElementById('rptCustomFrom').value,to=document.getElementById('rptCustomTo').value;
+    if(from&&to)return fmtDate(from)+' – '+fmtDate(to);
+  }
+  return t('rpt_opt_all_time');
+}
+/* ═══════════════════════════════════════════════════
+   PROFIT & LOSS STATEMENT (read-only report)
+   ═══════════════════════════════════════════════════
+   This is a PRESENTATION layer over figures that already exist. It does not
+   define what revenue, COGS or profit mean — every number below is traceable
+   to a function that shipped before this feature:
+
+     Revenue / COGS / Gross Profit → buildProfitIndex().range(pred)
+                                     (same day buckets, same cost resolution
+                                      and same arithmetic as the unmodified
+                                      computeRealizedProfit())
+     Operating expenses            → computeExpensesByCategory(pred)
+     Net Profit                    → grossProfit − totalExpenses, the same
+                                     inline derivation the Financial Summary
+                                     already uses in seven places. No
+                                     computeNetProfit() is extracted here.
+     Invoiced (credit)             → the range rollup's creditTotal, i.e.
+                                     sum of sale.amount, the same figure the
+                                     Financial Summary calls Credit Sales.
+
+   ONE buildProfitIndex() pass + ONE expenses pass. No persistence, no cache,
+   no writes, no timers, no network. Called only when the report is selected.
+
+   Margins are reported against revenue and are deliberately suppressed (null)
+   when revenue is zero rather than shown as 0% — a business with no sales has
+   an undefined margin, not a zero one. */
+function buildProfitLossReport(pred){
+  const ok=typeof pred==='function'?pred:()=>true;
+  const r=buildProfitIndex().range(ok);
+  /* Shared classifier: the P&L and the Operating Expenses report call the
+     SAME function with the SAME predicate, so their Operating Expenses
+     figures are the same number by construction rather than by agreement
+     between two implementations. Previously this used
+     computeExpensesByCategory(), which counts every expense record;
+     with no owner classification declared the two are identical, so this
+     is a no-op until the owner explicitly marks a category as inventory. */
+  const exp=computeOperatingExpenses(ok);
+  const revenue=r.revenue,cogs=r.cogs,grossProfit=r.profit;
+  const netProfit=grossProfit-exp.total;
+  const pct=(part)=>revenue>0?(part/revenue)*100:null;
+  /* Recognition gap: value invoiced on credit in this period that carries no
+     recognised sale line. Post-F-1 this is 0 for newly created invoices;
+     a non-zero value means historical records predating the fix. Clamped at
+     0 because an over-itemised historical invoice is a different data
+     question and must not be reported as negative "missing" revenue. */
+  const recognitionGap=Math.max(0,r.invoicedCredit-r.creditRevenue);
+  return{
+    periodLabel:getReportPeriodLabel(),
+    revenue,cogs,grossProfit,
+    grossMargin:pct(grossProfit),
+    expenses:exp,
+    netProfit,
+    netMargin:pct(netProfit),
+    costIncomplete:r.costIncomplete,
+    cashSales:r.cashSales,
+    invoicedCredit:r.invoicedCredit,
+    recognisedCredit:r.creditRevenue,
+    recognitionGap
+  };
+}
+/* ═══════════════════════════════════════════════════
+   EXECUTIVE SUMMARY (read-only report)
+   ═══════════════════════════════════════════════════
+   A management view over figures that already exist. It defines nothing:
+   every financial number comes from the SAME calls buildProfitLossReport()
+   makes, so the two reports cannot disagree — they are the same functions,
+   not two implementations that happen to agree.
+
+     Revenue / COGS / Gross Profit → buildProfitIndex().range(pred)
+     Operating Expenses            → computeOperatingExpenses(pred)
+     Net Profit                    → gross − opex, the same inline
+                                     derivation the P&L and Financial
+                                     Summary already use
+     Credit position               → invBalance() / isOverdue() / daysDiff()
+
+   PERIOD SEMANTICS — the one thing worth reading before changing this.
+   Sections A, B and D are period FLOWS: they answer "what happened during
+   the selected period". Section C is a point-in-time POSITION: what a
+   customer owes is a balance as of today, and "overdue" is measured
+   against today's date, not against the report period. Filtering it by
+   period would produce a figure that looks like debt but is not — e.g.
+   "Today" would show almost no outstanding debt for a business owed
+   millions. It is therefore computed across all invoices and labelled in
+   the UI as an as-of-today position.
+
+   SCANS: buildProfitIndex() (posSales+sales), computeOperatingExpenses()
+   (expenses), plus ONE combined sweep here that does the credit position
+   and the transaction counts together rather than looping separately per
+   metric. No cache, no persistence, no writes, no timers. Runs only when
+   the report is selected.
+
+   Margins are null when revenue is zero — a business with no sales has an
+   undefined margin, not a 0% one, and must never render NaN or Infinity. */
+function buildExecutiveSummary(pred){
+  const ok=typeof pred==='function'?pred:()=>true;
+  const r=buildProfitIndex().range(ok);
+  const exp=computeOperatingExpenses(ok);
+  const revenue=r.revenue,cogs=r.cogs,grossProfit=r.profit;
+  const netProfit=grossProfit-exp.total;
+  const pct=(part)=>revenue>0?(part/revenue)*100:null;
+
+  /* One sweep for the credit position and the period transaction counts.
+     invBalance() is the unmodified source of truth and reads inv.amount,
+     so an itemless historical invoice still contributes its full value to
+     debt, debtors and overdue — correctly, because what a customer owes
+     does not depend on whether sale lines were recorded. */
+  const td=todayStr();
+  let outstanding=0,overdueAmt=0,overdue31=0,creditTxns=0;
+  const debtors=new Set();
+  for(const s of S.get('sales')){
+    if(ok(s.date||''))creditTxns++;
+    if(s.status==='cancelled')continue;
+    const bal=invBalance(s.id);
+    if(bal<=0)continue;
+    outstanding+=bal;
+    if(s.cid)debtors.add(s.cid);
+    if(isOverdue(s.due)){
+      overdueAmt+=bal;
+      if(daysDiff(s.due,td)>=31)overdue31+=bal;
+    }
+  }
+  let cashTxns=0;
+  for(const s of S.get('posSales'))if(ok(s.date||''))cashTxns++;
+
+  return{
+    periodLabel:getReportPeriodLabel(),
+    // A — financial performance
+    revenue,cogs,grossProfit,
+    grossMargin:pct(grossProfit),
+    operatingExpenses:exp.total,
+    netProfit,
+    netMargin:pct(netProfit),
+    // B — sales activity. cashSales + creditInvoiced deliberately does NOT
+    // equal revenue when a recognition gap exists; the renderer labels them
+    // so they are never read as a total and its parts.
+    cashSales:r.cashSales,
+    creditInvoiced:r.invoicedCredit,
+    creditRecognised:r.creditRevenue,
+    recognitionGap:Math.max(0,r.invoicedCredit-r.creditRevenue),
+    cashTxns,creditTxns,totalTxns:cashTxns+creditTxns,
+    avgSale:(cashTxns+creditTxns)>0?revenue/(cashTxns+creditTxns):null,
+    // C — credit position (as of today, not period-filtered; see above)
+    outstanding,debtorCount:debtors.size,overdueAmt,overdue31,
+    // D — operating expenses
+    expenses:exp,
+    topExpenseCategory:exp.categories.length?exp.categories[0]:null,
+    // data quality
+    costIncomplete:r.costIncomplete
+  };
+}
+/* ═══════════════════════════════════════════════════
+   FAST & SLOW-MOVING PRODUCTS (read-only report)
+   ═══════════════════════════════════════════════════
+   A presentation layer over computeProductSalesAggregates(), which stays
+   the sole product-movement aggregator and is not modified here.
+
+   CLASSIFICATION follows Bizora's existing precedent rather than inventing
+   thresholds. There is no absolute "fast" number anywhere in this codebase;
+   Product Analytics answers the same question by RANKING (top 10 / bottom
+   10), so this report ranks too:
+     fast       → top 20 by units sold in the selected period
+     slow       → bottom 20 among products that ACTUALLY SOLD something
+     non-moving → qtySold === 0 in the selected period, the same rule the
+                  "No Sales Recently" card already uses
+   Zero sales is deliberately its own category: a product that never sold
+   is a different business problem from one that sold slowly, and merging
+   them would bury both. Ties break on sales value, then product id, so the
+   ordering is deterministic rather than dependent on Map insertion order.
+
+   PRODUCT IDENTITY is productId only. computeProductSalesAggregates()
+   skips line items with no productId and never falls back to name, so two
+   products sharing a name can never merge. No name matching is introduced.
+
+   ATTRIBUTION GAP — the one thing an owner must not misread. Because
+   movement is productId-linked, sales recorded without a product line
+   (manual invoices, itemless invoices, CSV imports, F-1 balancing lines)
+   contribute nothing here. A product could therefore look non-moving while
+   the business was in fact selling. The gap is computed by subtracting
+   product-attributed revenue from the recognised revenue that
+   buildProfitIndex() already reports for the same period — arithmetic over
+   two existing trusted sources, not a new aggregation engine — and is
+   shown on the report rather than hidden in a footnote.
+
+   Discontinued products are excluded, matching Product Analytics. */
+const FS_SECTION_CAP=20;
+/* Render-cap toggle. Module-level rather than stored: it is a view
+   preference for the current glance, not business data, so it must not
+   be persisted and must reset when the report is left. */
+let _fspExpanded=false;
+function toggleFspExpand(){_fspExpanded=!_fspExpanded;renderDynReport();}
+function buildProductMovementReport(from,to,pred){
+  const agg=computeProductSalesAggregates(from,to);
+  const td=todayStr();
+  const products=S.get('products').filter(p=>p.status!=='discontinued');
+  const rows=products.map(p=>{
+    const r=agg.get(p.id)||{qtySold:0,revenue:0,lastSaleDate:null};
+    const stock=parseFloat(p.stock)||0;
+    const low=parseFloat(p.lowStock);
+    return{
+      id:p.id,name:p.name,sku:p.sku||'',
+      qtySold:r.qtySold||0,revenue:r.revenue||0,
+      lastSaleDate:r.lastSaleDate||null,
+      daysSinceSale:r.lastSaleDate?daysDiff(r.lastSaleDate,td):null,
+      stock,lowStock:Number.isFinite(low)?low:null,
+      outOfStock:stock<=0,
+      lowStockFlag:Number.isFinite(low)&&stock>0&&stock<=low
+    };
+  });
+  const byMovement=(a,b)=>(b.qtySold-a.qtySold)||(b.revenue-a.revenue)||(a.id<b.id?-1:a.id>b.id?1:0);
+  const sold=rows.filter(r=>r.qtySold>0).sort(byMovement);
+  const nonMoving=rows.filter(r=>r.qtySold<=0)
+    .sort((a,b)=>{
+      // longest-dormant first; never-sold (null) sorts last, it is not "older"
+      if(a.daysSinceSale===null&&b.daysSinceSale===null)return a.name.localeCompare(b.name);
+      if(a.daysSinceSale===null)return 1;
+      if(b.daysSinceSale===null)return -1;
+      return b.daysSinceSale-a.daysSinceSale;
+    });
+  const fast=sold.slice(0,FS_SECTION_CAP);
+  /* Bottom 20 among products that sold. Guarded so a short catalogue does
+     not list the same product as both fast and slow. */
+  const slowPool=sold.slice(FS_SECTION_CAP);
+  const slow=slowPool.slice(-FS_SECTION_CAP).reverse();
+
+  /* Attribution gap: recognised revenue for the same period minus what is
+     attributable to a product. Products deleted since their sales are still
+     in the aggregate but not in the catalogue, so their revenue is added
+     back via a Set lookup — a products.some() inside this loop would be
+     O(products x aggregate), which at 2,000 of each is millions of
+     comparisons on a device that cannot afford them.
+     Clamped at 0 — a negative value would mean the two sources disagree,
+     which must never be reported as a gap. */
+  const liveIds=new Set(products.map(p=>p.id));
+  let attributed=rows.reduce((a,r)=>a+r.revenue,0);
+  for(const[id,v]of agg)if(!liveIds.has(id))attributed+=v.revenue||0;
+  const recognised=buildProfitIndex().range(pred).revenue;
+  return{
+    fast,slow,nonMoving,
+    soldCount:sold.length,nonMovingCount:nonMoving.length,
+    productCount:rows.length,
+    attributedRevenue:attributed,
+    recognisedRevenue:recognised,
+    unattributedRevenue:Math.max(0,recognised-attributed)
+  };
 }
 function generateReports(){
   const periodOk=getReportPeriodPredicate();
@@ -8663,19 +9706,22 @@ function buildOwnerEndOfDaySummary(date){
       /* Profit figures use the exact same derivation as the Daily
          Financial Summary table (computeDailyFinancialSeries()):
          Gross Profit = buildProfitIndex().query(dayKey).profit, and
-         Net Profit = that gross profit minus computeExpenseTotals(dayKey),
-         the app's single expense source of truth. No formula is
-         duplicated here beyond the same one-line subtraction the Daily/
-         Monthly/Annual tables already perform, and both figures are keyed
-         on the identical `date` used by every other metric above, so the
+         Net Profit = computeNetProfitByPrefix(dayKey).netProfit — gross
+         profit minus OPERATING expenses, the shared Net Profit source of
+         truth. Operating basis means an expense the owner classified as an
+         inventory purchase is not subtracted here, because COGS inside
+         Gross Profit already carries that cost; subtracting it again would
+         double-count it. No formula is duplicated here — the Daily/Monthly/
+         Annual tables call the same helper — and both figures are keyed on
+         the identical `date` used by every other metric above, so the
          owner's WhatsApp numbers always match Financial Summary for the
          same business day. Still gated on costIncomplete so an
          understated profit is never sent silently. */
-      const expenses=computeExpenseTotals(date);
+      const npDay=computeNetProfitByPrefix(date);
       lines.push('');
       lines.push(t('eod_profit_section'));
       lines.push(`${t('eod_gross_profit')}: ${cur(profit.profit)}`);
-      lines.push(`${t('eod_net_profit')}: ${cur(profit.profit-expenses)}`);
+      lines.push(`${t('eod_net_profit')}: ${cur(npDay.netProfit)}`);
     }
   }
   return lines.join('\n');
@@ -8963,11 +10009,11 @@ function finCsvNum(v){return(typeof v==='number'&&Number.isFinite(v))?String(v):
 function finCsvRow(cells){return cells.map(finCsvText).join(',');}
 function buildFinancialCSV(section){
   if(section==='lifetime'){
-    /* Same two calls, in the same order, that _renderFinancialSummaryNow()
-       makes — including the conditional customer-credit row, which is
-       exported only when it is actually displayed. */
+    /* Same calls, in the same order, that _renderFinancialSummaryNow()
+       makes — computeFinancialSummary() here and computeNetProfit() below —
+       including the conditional customer-credit row, which is exported only
+       when it is actually displayed. */
     const f=computeFinancialSummary();
-    const totalExpenses=computeExpenseTotals();
     const rows=[
       ['fin_row_inventory_value',f.inventoryValue],
       ['fin_row_projected_revenue',f.projectedRevenue],
@@ -8981,8 +10027,12 @@ function buildFinancialCSV(section){
       ['fin_row_gross_profit',f.actualProfit]
     ];
     if(f.outstandingCustomerCredit>0)rows.push(['fin_row_customer_credit_bal',f.outstandingCustomerCredit]);
-    rows.push(['fin_total_expenses',totalExpenses]);
-    rows.push(['fin_net_profit',f.actualProfit-totalExpenses]);
+    /* Same operating basis as the Financial Summary screen, so the export
+        and the screen can never disagree. */
+    const np=computeNetProfit();
+    rows.push(['fin_total_expenses',np.operatingExpenses]);
+    if(np.inventoryExcluded>0)rows.push(['fin_inventory_excluded',np.inventoryExcluded]);
+    rows.push(['fin_net_profit',np.netProfit]);
     /* Metric name is text; every Value in this table is a money figure. */
     return[finCsvRow([t('fin_csv_metric'),t('fin_csv_value')])].concat(rows.map(r=>finCsvText(t(r[0]))+','+finCsvNum(r[1]))).join('\n');
   }
@@ -9540,7 +10590,14 @@ function buildProfitIndex(){
   const prodByName=new Map();
   for(const p of prods){if(!prodByName.has(p.name))prodByName.set(p.name,p);}
   let costIncomplete=false;
-  const findCost=(it)=>{
+  /* `entry` is optional and additive: when supplied, an unresolved cost is
+     ALSO recorded on that day's bucket. The global costIncomplete flag is
+     still set exactly as before, so query() keeps returning the identical
+     all-time value every existing caller already receives. The per-day copy
+     exists only so range() can report cost quality for the SELECTED period
+     — matching computeRealizedProfit(datePrefix)'s period-scoped semantics
+     — instead of warning about a period the owner is not looking at. */
+  const findCost=(it,entry)=>{
     if(typeof it.cost==='number'&&it.cost>0)return it.cost;
     let resolved=null;
     if(it.productId){
@@ -9551,7 +10608,7 @@ function buildProfitIndex(){
       const byName=prodByName.get(it.name);
       resolved=byName?(parseFloat(byName.cost)||0):0;
     }
-    if(resolved<=0)costIncomplete=true;
+    if(resolved<=0){costIncomplete=true;if(entry)entry.costIncomplete=true;}
     return resolved;
   };
   /* Bucket by full calendar day (YYYY-MM-DD). Any coarser period — month,
@@ -9571,7 +10628,13 @@ function buildProfitIndex(){
   const byDay=new Map();
   const ensureDay=(day)=>{
     let e=byDay.get(day);
-    if(!e){e={revenue:0,cogs:0,cashTotal:0,creditTotal:0,creditIds:[]};byDay.set(day,e);}
+    /* creditRevenue is an ADDITIVE field for the P&L's Invoiced vs Revenue
+       Recognised reconciliation. It records the same it.subtotal value the
+       pass is already summing into e.revenue, split out for credit sales
+       only, so the reconciliation needs no second scan and no second
+       recognition rule. query()/salesTotals() never read it and are
+       therefore behaviourally unchanged. */
+    if(!e){e={revenue:0,cogs:0,cashTotal:0,creditTotal:0,creditIds:[],creditRevenue:0,costIncomplete:false};byDay.set(day,e);}
     return e;
   };
   const bump=(day,rev,cog)=>{
@@ -9583,7 +10646,7 @@ function buildProfitIndex(){
     const e=ensureDay(day);
     e.cashTotal+=parseFloat(s.total)||0;
     for(const it of (s.items||[])){
-      bump(day,it.subtotal||(it.qty*it.price)||0,findCost(it)*(it.qty||0));
+      bump(day,it.subtotal||(it.qty*it.price)||0,findCost(it,e)*(it.qty||0));
     }
   };
   const ingestCredit=(s)=>{
@@ -9592,7 +10655,9 @@ function buildProfitIndex(){
     e.creditTotal+=parseFloat(s.amount)||0;
     e.creditIds.push(s.id);
     for(const it of (s.items||[])){
-      bump(day,it.subtotal||(it.qty*it.price)||0,findCost(it)*(it.qty||0));
+      const sub=it.subtotal||(it.qty*it.price)||0;
+      e.creditRevenue+=sub;
+      bump(day,sub,findCost(it,e)*(it.qty||0));
     }
   };
   for(const s of S.get('posSales'))ingestPos(s);
@@ -9637,6 +10702,40 @@ function buildProfitIndex(){
       }
       const outstandingCredit=creditIds.reduce((a,id)=>a+invBalance(id),0);
       return{cashSales,creditSales,outstandingCredit};
+    },
+    /* ── Additive range rollup (P&L) ────────────────────────────────
+       query() and salesTotals() above are UNCHANGED and remain the only
+       thing every existing caller uses. This third method exists because
+       the Reports page expresses its period as a predicate over a date
+       string (getReportPeriodPredicate()), while query()/salesTotals()
+       filter by string PREFIX — and two of the seven report periods
+       ("This Week", "Custom Range") cannot be written as a prefix at all.
+
+       No second scan and no second calculation: the day buckets were
+       already built by the single pass above, with the same arithmetic and
+       the same cost resolution, so this is purely a different way of
+       selecting which of those existing buckets to sum. Any predicate
+       works, which is what makes all seven periods reachable.
+
+       creditIds/invoicedCredit are returned so the P&L can show its
+       Invoiced vs Revenue Recognised reconciliation using the unmodified
+       invBalance() and the sale records themselves — never a second
+       revenue engine. */
+    range(pred){
+      const ok=typeof pred==='function'?pred:()=>true;
+      let revenue=0,cogs=0,cashSales=0,creditSales=0,creditRevenue=0,days=0,periodCostIncomplete=false;
+      const creditIds=[];
+      for(const[k,e]of byDay){
+        if(!ok(k))continue;
+        days++;
+        if(e.costIncomplete)periodCostIncomplete=true;
+        revenue+=e.revenue;cogs+=e.cogs;
+        cashSales+=e.cashTotal;creditSales+=e.creditTotal;
+        creditRevenue+=e.creditRevenue;
+        if(e.creditIds.length)creditIds.push(...e.creditIds);
+      }
+      return{revenue,cogs,profit:revenue-cogs,costIncomplete:periodCostIncomplete,
+             cashSales,creditSales,invoicedCredit:creditSales,creditRevenue,creditIds,days};
     }
   };
 }
@@ -9654,13 +10753,20 @@ function computeMonthlyProfitSeries(n){
    renderExpKpis() — no duplicated business logic, no new data model. */
 function computeTodayProfit(){
   const td=todayStr(),yd=yesterdayStr();
-  const exps=S.get('expenses');
-  const todayExp=exps.filter(e=>e.date===td).reduce((a,e)=>a+parseFloat(e.amount||0),0);
-  const yestExp=exps.filter(e=>e.date===yd).reduce((a,e)=>a+parseFloat(e.amount||0),0);
-  const today=computeRealizedProfit(td);
-  const yesterday=computeRealizedProfit(yd);
-  const netToday=today.profit-todayExp;
-  const netYesterday=yesterday.profit-yestExp;
+  /* STRICT EQUALITY, deliberately. Every other Net Profit site matches its
+     period with startsWith(), but this one has always compared e.date===td.
+     The two diverge on a timestamped date such as '2026-08-03T09:15' — a
+     value saveExpense() never writes, but which a restored backup could
+     carry, since expense records are not format-validated on import. Moving
+     to prefix matching would be a date-selection change, not a Net Profit
+     change, so the predicates below preserve equality exactly.
+     One index is built and shared by both days, matching the previous two
+     computeRealizedProfit() calls in cost. */
+  const idx=buildProfitIndex();
+  const today=computeNetProfit(d=>d===td,idx);
+  const yesterday=computeNetProfit(d=>d===yd,idx);
+  const netToday=today.netProfit;
+  const netYesterday=yesterday.netProfit;
   // Percentage trend only makes sense when yesterday wasn't exactly zero
   // (division by zero) — null means "don't show a trend", handled by the
   // renderer below rather than showing a misleading ∞% or 0%.
@@ -9730,18 +10836,37 @@ function _renderFinancialSummaryNow(){
     finRow('📉','var(--danger-lt)',t('fin_row_cogs'),f.actualCogs,t('fin_row_cogs_sub'))+
     finRow('🏆','var(--gold-lt)',t('fin_row_gross_profit'),f.actualProfit,t('fin_row_gross_profit_sub'))+
     (f.outstandingCustomerCredit>0?finRow('🏦','var(--warning-lt)',t('fin_row_customer_credit_bal'),f.outstandingCustomerCredit,t('fin_row_customer_credit_bal_sub')):'');
-  // Net Profit = Gross Profit − Total Expenses. Gross Profit (renamed from
-  // "Actual Profit" above) is revenue minus cost of goods sold; Net Profit
-  // takes that and subtracts everything else it costs to run the business
-  // day to day. Deliberately a separate, clearly-labeled block from Gross
+  // Net Profit = Gross Profit − Operating Expenses. Gross Profit (renamed
+  // from "Actual Profit" above) is revenue minus cost of goods sold; Net
+  // Profit takes that and subtracts what it costs to RUN the business day
+  // to day. Stock bought for resale is deliberately not part of that: its
+  // cost is already inside COGS, so subtracting it here too would count it
+  // twice. Deliberately a separate, clearly-labeled block from Gross
   // Profit — the two answer different questions ("margin on what I sold"
   // vs "am I actually making money after everything I spend").
-  const totalExpenses=computeExpenseTotals();
-  const netProfit=f.actualProfit-totalExpenses;
+  /* Operating basis for BOTH figures. Previously the Expenses row used
+     computeExpenseTotals() (every record) while Net Profit subtracted the
+     same raw total — self-consistent, but it double-subtracted any expense
+     the owner had classified as inventory, because COGS inside Gross Profit
+     already carries that cost. Both now come from one computeNetProfit()
+     call, so the block still reads Gross Profit - Expenses = Net Profit and
+     no amount is counted twice. With nothing classified the two bases are
+     identical, so this changes nothing for an owner who has not classified
+     a category. */
+  const np=computeNetProfit();
+  const totalExpenses=np.operatingExpenses;
+  const netProfit=np.netProfit;
   document.getElementById('finTableExpenses').innerHTML=
     finRow('💰','var(--navy-lt)',t('fin_row_total_sales'),f.actualRevenue,t('fin_row_total_sales_sub'))+
     finRow('💸','var(--danger-lt)',t('fin_total_expenses'),totalExpenses,t('fin_row_total_expenses_sub'))+
     finRow(netProfit>=0?'🏆':'⚠️',netProfit>=0?'var(--gold-lt)':'var(--danger-lt)',t('fin_net_profit'),netProfit,'');
+  /* Shown only when something was actually excluded, so an owner who has
+     classified nothing sees no extra text. */
+  const invNote=document.getElementById('finInventoryExcludedNote');
+  if(invNote){
+    invNote.style.display=np.inventoryExcluded>0?'':'none';
+    invNote.textContent=np.inventoryExcluded>0?tf('fin_inventory_excluded_note',{amount:cur(np.inventoryExcluded)}):'';
+  }
   // Daily Financial Summary: same computed-on-render pattern as Monthly/
   // Annual below, defaulting to the current local calendar month.
   renderFinDailyTable(computeDailyFinancialSeries());
@@ -9790,8 +10915,12 @@ function _renderFinancialSummaryNow(){
        like the Monthly column does for that month.
      - Total Sales    → computeRealizedProfit(dayKey).revenue, unchanged
      - Gross Profit   → computeRealizedProfit(dayKey).profit, unchanged
-     - Expenses       → computeExpenseTotals(dayKey), unchanged
-     - Net Profit     → Gross Profit − Expenses (arithmetic only)
+     - Expenses       → computeNetProfitByPrefix(dayKey).operatingExpenses
+                        — operating basis: categories the owner classified as
+                        inventory are excluded, because COGS already carries
+                        that cost
+     - Net Profit     → Gross Profit − Operating Expenses, from the same
+                        call, so the two displayed columns always reconcile
 
    monthKey ('YYYY-MM') defaults to the user's current LOCAL month via
    localISOMonth(new Date()) — never UTC — so the reporting period follows
@@ -9820,13 +10949,21 @@ function computeDailyFinancialSeries(monthKey){
     const dayKey=dObj.key;
     const profitData=profitIdx.query(dayKey);
     const{cashSales,creditSales,outstandingCredit}=profitIdx.salesTotals(dayKey);
-    const expenses=computeExpenseTotals(dayKey);
+    /* Operating basis, shared with the P&L: expenses classified as inventory
+        are excluded here because COGS above already carries that cost. The
+        displayed Expenses column and Net Profit therefore use the SAME basis,
+        so Gross Profit - Expenses = Net Profit still holds on screen. The
+        already-built profitIdx is passed in so this stays one index build for
+        the whole month, not one per day. */
+    const np=computeNetProfitByPrefix(dayKey,profitIdx);
+    const expenses=np.operatingExpenses;
     return{
       label:dObj.label,key:dayKey,
       cashSales,creditSales,outstandingCredit,
       ...profitData, // revenue (Total Sales), cogs, profit (Gross Profit), costIncomplete
       expenses,
-      netProfit:profitData.profit-expenses,
+      inventoryExcluded:np.inventoryExcluded,
+      netProfit:np.netProfit,
     };
   });
 }
@@ -9873,8 +11010,11 @@ function computeMonthlyFinancialSeries(){
          Credit Sale. This mirrors totalCreditSalesValue()'s definition,
          scoped to the month instead of all-time.
        - Gross Profit  → computeRealizedProfit(m.key), unchanged
-       - Expenses      → computeExpenseTotals(m.key), unchanged
-       - Net Profit    → Gross Profit − Expenses (arithmetic only)
+       - Expenses      → computeNetProfitByPrefix(m.key).operatingExpenses
+                         — operating basis, inventory-classified categories
+                         excluded (COGS already carries that cost)
+       - Net Profit    → Gross Profit − Operating Expenses, same call, so the
+                         displayed columns always reconcile
        - Outstanding Credit → sum of invBalance(s.id) — the same
          unmodified per-invoice balance function custDebt() itself is
          built on — for credit sales issued in that month. This answers
@@ -9890,13 +11030,15 @@ function computeMonthlyFinancialSeries(){
   return months.map(m=>{
     const profitData=profitIdx.query(m.key);
     const{cashSales,creditSales,outstandingCredit}=profitIdx.salesTotals(m.key);
-    const expenses=computeExpenseTotals(m.key);
+    const np=computeNetProfitByPrefix(m.key,profitIdx); // operating basis, shared index
+    const expenses=np.operatingExpenses;
     return{
       label:m.label,key:m.key,
       cashSales,creditSales,
       ...profitData, // revenue, cogs, profit, costIncomplete — unchanged shape
       expenses,
-      netProfit:profitData.profit-expenses,
+      inventoryExcluded:np.inventoryExcluded,
+      netProfit:np.netProfit,
       outstandingCredit,
     };
   });
@@ -9923,8 +11065,11 @@ function renderFinMonthlyTable(series){
    render straight from the same functions already used everywhere else
    on this page, so it can never drift out of sync or duplicate data:
      - Total Sales / Gross Profit → computeRealizedProfit(yearKey), unchanged
-     - Expenses                  → computeExpenseTotals(yearKey), unchanged
-     - Net Profit                → Gross Profit − Expenses (arithmetic only)
+     - Expenses                  → computeNetProfitByPrefix(yearKey)
+                                   .operatingExpenses — operating basis,
+                                   inventory-classified categories excluded
+     - Net Profit                → Gross Profit − Operating Expenses, same
+                                   call, so the columns always reconcile
      - Outstanding Debt          → sum of invBalance(s.id) for credit sales
        issued that year — the exact same year-scoped primitive the monthly
        table's Outstanding Credit column already uses, and the same
@@ -9950,7 +11095,7 @@ function computeAnnualFinancialSeries(){
   const profitIdx=buildProfitIndex();
   return years.map(y=>{
     const profitData=profitIdx.query(y.key);
-    const expenses=computeExpenseTotals(y.key);
+    const np=computeNetProfitByPrefix(y.key,profitIdx); // operating basis, shared index
     const cashSales=posSalesAll
       .filter(s=>(s.date||'').startsWith(y.key))
       .reduce((a,s)=>a+(parseFloat(s.total)||0),0);
@@ -9961,8 +11106,9 @@ function computeAnnualFinancialSeries(){
       label:y.label,key:y.key,
       cashSales,creditSales:creditSalesTotal,
       ...profitData, // revenue, cogs, profit, costIncomplete — unchanged shape
-      expenses,
-      netProfit:profitData.profit-expenses,
+      expenses:np.operatingExpenses,
+      inventoryExcluded:np.inventoryExcluded,
+      netProfit:np.netProfit,
       outstandingDebt,
     };
   });
@@ -11237,6 +12383,18 @@ function resolvePeriodDateRange(period,customFrom,customTo){
   if(period==='today')return{from:td,to:td};
   if(period==='this-week'){const{start,end}=getWeekRange(0);return{from:start,to:end};}
   if(period==='this-month')return{from:monthStr()+'-01',to:lastDayOfMonthStr(now.getFullYear(),now.getMonth()+1)};
+  /* 'last-month' was missing, so it fell through to {null,null} — All Time.
+     Product Analytics never exposed that option so the defect was latent,
+     but the Reports period selector does offer it, and a report showing
+     all-time figures under a "Last Month" heading is a silent wrong
+     answer. Derived here with the same Date arithmetic the branches above
+     already use: new Date(y, m-1, 1) normalises a January selection back
+     into the previous December on its own. */
+  if(period==='last-month'){
+    const lm=new Date(now.getFullYear(),now.getMonth()-1,1);
+    const y=lm.getFullYear(),m=lm.getMonth()+1;
+    return{from:`${y}-${String(m).padStart(2,'0')}-01`,to:lastDayOfMonthStr(y,m)};
+  }
   if(period==='this-year')return{from:now.getFullYear()+'-01-01',to:now.getFullYear()+'-12-31'};
   if(period==='custom')return{from:customFrom||null,to:customTo||null};
   return{from:null,to:null};
@@ -11255,7 +12413,13 @@ function closeProductAnalytics(){
   document.getElementById('prodListView').style.display='';
   _paSalesAggCache.clear(); // free the cache promptly rather than waiting for next open
 }
+/* The active topic was previously implicit — switchAnalyticsSubTab() showed a
+   panel and nothing recorded which one. Print and CSV both need to know
+   which topic the owner is actually looking at, so it is recorded here.
+   This is view state only: never persisted, never written to storage. */
+let _paActiveTab='overview';
 function switchAnalyticsSubTab(tab){
+  _paActiveTab=tab;
   document.querySelectorAll('.pa-tab-content').forEach(el=>el.style.display='none');
   document.querySelectorAll('.pa-subtab-btn').forEach(btn=>btn.classList.toggle('btn-primary',btn.dataset.tab===tab));
   document.getElementById('pa-tab-'+tab).style.display='';
@@ -11264,12 +12428,229 @@ function switchAnalyticsSubTab(tab){
   else if(tab==='slow')renderAnalyticsSlowMovers();
   else if(tab==='reorder')renderAnalyticsReorderSuggestions();
   // 'perf' and 'history' render on product selection, not on tab entry
+  updateAnalyticsPrintHeader();
 }
 function populateAnalyticsProductSelects(){
   const prods=[...S.get('products')].filter(p=>p.status!=='discontinued').sort((a,b)=>a.name.localeCompare(b.name));
   const opts='<option value="">Select a product…</option>'+prods.map(p=>`<option value="${p.id}">${esc(p.name)} (${esc(p.sku)})</option>`).join('');
   document.getElementById('paPerfProductSel').innerHTML=opts;
   document.getElementById('paHistoryProductSel').innerHTML=opts;
+}
+/* ── Product Analytics: Print + CSV ─────────────────────────────────────
+   Presentation only. Every figure below is read from the SAME call the
+   active topic already made, so the cached aggregate serves it and no
+   second sales scan happens. computeProductSalesAggregates() and every
+   render function are untouched. Nothing here writes anything. */
+/* Several existing card titles carry a decorative emoji ("🐢 Least Selling
+   Products…"). Reusing those keys keeps the CSV section names identical to
+   what is on screen — but the symbol itself must not land in a CSV cell, so
+   it is stripped here rather than duplicating the keys as plain text. */
+function paPlainLabel(sTxt){
+  return String(sTxt||'').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2190}-\u{21FF}\u{FE0F}\u{20E3}]/gu,'').replace(/\s+/g,' ').trim();
+}
+function paTopicLabel(tab){
+  return{overview:t('nav_sec_overview'),top:t('prd_tab_top_performers'),slow:t('prd_tab_slow_movers'),
+    perf:t('prd_tab_performance'),history:t('prd_tab_history'),reorder:t('prd_tab_reorder')}[tab]||tab;
+}
+/* Each topic scopes itself differently — Top Performers has a selector,
+   Slow Movers shows three windows at once, Reorder is a fixed 30 days and
+   Overview is a point-in-time stock view. The printed sheet must say which,
+   so this reports what the topic ACTUALLY used rather than assuming a
+   single global period exists. */
+function paTopicScopeLabel(tab){
+  if(tab==='top'){
+    const sel=document.getElementById('paTopPeriod');
+    const period=sel?sel.value:'this-month';
+    if(period==='custom'){
+      const f=document.getElementById('paTopFrom').value,to=document.getElementById('paTopTo').value;
+      return(f&&to)?`${fmtDate(f)} – ${fmtDate(to)}`:t('rpt_opt_all_time');
+    }
+    const opt=sel&&sel.selectedOptions[0];
+    return opt?opt.textContent.trim():period;
+  }
+  if(tab==='slow'){
+    const w=document.getElementById('paNoSalesWindow');
+    return tf('pa_scope_slow',{days:w?w.value:'30'});
+  }
+  if(tab==='reorder')return t('pa_scope_reorder');
+  if(tab==='overview')return t('pa_scope_overview');
+  if(tab==='perf'||tab==='history')return t('rpt_opt_all_time');
+  return'';
+}
+function paSelectedProductName(tab){
+  const id=tab==='perf'?document.getElementById('paPerfProductSel').value
+    :tab==='history'?document.getElementById('paHistoryProductSel').value:'';
+  if(!id)return'';
+  const p=S.get('products').find(x=>x.id===id);
+  return p?p.name:'';
+}
+/* Populates the print-only header. Hidden on screen; @media print reveals
+   it. Without this a printed analytics sheet was a bare table with no topic
+   name, no period and no product — the controls that carry that context all
+   live in .filter-bar, which print hides. */
+function updateAnalyticsPrintHeader(){
+  const el=document.getElementById('paPrintHeader');
+  if(!el)return;
+  const tab=_paActiveTab;
+  const prod=paSelectedProductName(tab);
+  const biz=(S.obj('settings').bizName)||'Bizora';
+  el.innerHTML=
+    `<div class="pah-biz">${esc(biz)}</div>`+
+    `<div class="pah-title">${esc(t('prd_btn_analytics'))} — ${esc(paTopicLabel(tab))}</div>`+
+    `<div class="pah-meta">${esc(t('pnl_period'))}: ${esc(paTopicScopeLabel(tab))}</div>`+
+    (prod?`<div class="pah-meta">${esc(t('th_product'))}: ${esc(prod)}</div>`:'')+
+    `<div class="pah-meta">${esc(t('pa_print_generated'))}: ${esc(fmtDate(todayStr()))}</div>`+
+    `<div class="pah-note">${esc(t('pa_attribution_note'))}</div>`;
+}
+/* CSV. First statement is the permission check: hiding a button is not
+   authorization, and a function reachable from the console must refuse on
+   its own. Mirrors openProductAnalytics()'s gate exactly. */
+function exportAnalyticsCSV(){
+  if(!paCanView()){toast(t('perm_no_view_product_analytics'),'error');return;}
+  const tab=_paActiveTab;
+  const L=[];
+  const row=cells=>L.push(finCsvRow(cells));
+  const blank=()=>L.push('');
+  row([paPlainLabel(t('prd_btn_analytics')),paPlainLabel(paTopicLabel(tab))]);
+  row([t('pnl_period'),paTopicScopeLabel(tab)]);
+  const prod=paSelectedProductName(tab);
+  if(prod)row([t('th_product'),prod]);
+  row([t('pa_print_generated'),fmtDate(todayStr())]);
+  row([t('pa_attribution_note')]);
+  blank();
+
+  const prods=S.get('products');
+  const active=prods.filter(p=>p.status!=='discontinued');
+  const numRow=cells=>L.push(cells.map(c=>typeof c==='number'?finCsvNum(c):finCsvText(c)).join(','));
+
+  if(tab==='overview'){
+    /* Same figures renderAnalyticsOverview() puts on screen, including its
+       documented all-products-vs-active-products distinction. */
+    const low=prods.filter(p=>stockStatus(p)==='low').length;
+    const out=prods.filter(p=>stockStatus(p)==='out').length;
+    const totalValue=prods.reduce((a,p)=>a+(parseFloat(p.cost)||0)*(parseFloat(p.stock)||0),0);
+    const withMargin=active.filter(p=>parseFloat(p.price)>0);
+    const avgMargin=withMargin.length?withMargin.reduce((a,p)=>{const pr=parseFloat(p.price)||0,c=parseFloat(p.cost)||0;return a+((pr-c)/pr)*100;},0)/withMargin.length:0;
+    row([t('fin_csv_metric'),t('fin_csv_value')]);
+    numRow([t('prd_stat_total_products'),prods.length]);
+    numRow([t('prd_stat_active_products'),active.length]);
+    numRow([t('prd_stat_low_stock'),low]);
+    numRow([t('prd_stat_out_stock'),out]);
+    numRow([t('fin_row_inventory_value'),totalValue]);
+    numRow([t('pa_csv_avg_margin'),Number(avgMargin.toFixed(1))]);
+  }else if(tab==='top'){
+    const sel=document.getElementById('paTopPeriod');
+    const{from,to}=resolvePeriodDateRange(sel?sel.value:'this-month',
+      document.getElementById('paTopFrom').value,document.getElementById('paTopTo').value);
+    const agg=computeProductSalesAggregates(from,to); // cache-served: same args the topic used
+    const byId=new Map(prods.map(p=>[p.id,p]));
+    row([t('th_product'),'SKU',t('prd_th_qty_sold'),t('fsp_th_sales_value'),t('js_lbl_cogs'),t('fin_row_gross_profit')]);
+    [...agg.entries()].map(([id,r])=>({id,p:byId.get(id),...r}))
+      .sort((a,b)=>b.qtySold-a.qtySold)
+      .forEach(r=>numRow([r.p?r.p.name:t('pa_deleted_product'),r.p?(r.p.sku||''):'',r.qtySold,r.revenue,r.cogs,r.revenue-r.cogs]));
+  }else if(tab==='slow'){
+    /* Three labelled sections mirroring the three cards on screen. Each
+       uses the exact window renderAnalyticsSlowMovers() already used. */
+    const windowDays=parseInt(document.getElementById('paNoSalesWindow').value,10);
+    const agg90=computeProductSalesAggregates(addDaysStr(-90),null);
+    const aggWindow=computeProductSalesAggregates(addDaysStr(-windowDays),null);
+    row([t('pa_csv_section'),paPlainLabel(t('prd_card_least_selling'))]);
+    row([t('th_product'),t('prd_th_qty_sold'),t('js_lbl_last_sale_date')]);
+    active.map(p=>({p,qty:(agg90.get(p.id)||{}).qtySold||0,last:(agg90.get(p.id)||{}).lastSaleDate||null}))
+      .sort((a,b)=>a.qty-b.qty).slice(0,10)
+      .forEach(r=>numRow([r.p.name,r.qty,r.last?fmtDate(r.last):t('fsp_never')]));
+    blank();
+    row([t('pa_csv_section'),paPlainLabel(t('prd_card_no_sales'))+' ('+tf('pa_scope_slow',{days:windowDays})+')']);
+    row([t('th_product'),t('prd_th_current_stock'),t('js_lbl_last_sale_date')]);
+    active.filter(p=>!(aggWindow.get(p.id)&&aggWindow.get(p.id).qtySold>0))
+      .forEach(p=>numRow([p.name,parseFloat(p.stock)||0,(agg90.get(p.id)||{}).lastSaleDate?fmtDate(agg90.get(p.id).lastSaleDate):t('fsp_never')]));
+    blank();
+    row([t('pa_csv_section'),paPlainLabel(t('prd_card_overstocked'))]);
+    row([t('th_product'),t('prd_th_current_stock'),t('prd_th_low_stock'),t('fin_row_inventory_value')]);
+    active.filter(p=>{
+      const threshold=(parseFloat(p.lowStock)||5)*5,stock=parseFloat(p.stock)||0;
+      const recentQty=(aggWindow.get(p.id)||{}).qtySold||0;
+      return stock>threshold&&recentQty<stock*0.1;
+    }).forEach(p=>numRow([p.name,parseFloat(p.stock)||0,parseFloat(p.lowStock)||5,(parseFloat(p.cost)||0)*(parseFloat(p.stock)||0)]));
+  }else if(tab==='perf'){
+    const id=document.getElementById('paPerfProductSel').value;
+    if(!id){toast(t('val_select_product_first'),'error');return;}
+    const p=prods.find(x=>x.id===id);
+    if(!p){toast(t('lbl_no_data_export'),'warning');return;}
+    const r=computeProductSalesAggregates(null,null).get(id)||{qtySold:0,cashQty:0,creditQty:0,revenue:0,cogs:0,lastSaleDate:null};
+    const gross=r.revenue-r.cogs;
+    const avgDaily=((computeProductSalesAggregates(addDaysStr(-30),null).get(id)||{}).qtySold||0)/30;
+    row([t('fin_csv_metric'),t('fin_csv_value')]);
+    numRow([t('prd_th_qty_sold'),r.qtySold]);
+    numRow([t('exec_cash_sales'),r.cashQty]);
+    numRow([t('fin_row_credit_sales'),r.creditQty]);
+    numRow([t('fin_total_sales'),r.revenue]);
+    numRow([t('js_lbl_cogs'),r.cogs]);
+    numRow([t('fin_row_gross_profit'),gross]);
+    numRow([t('js_lbl_gross_margin'),r.revenue>0?Number((gross/r.revenue*100).toFixed(1)):0]);
+    numRow([t('prd_th_current_stock'),parseFloat(p.stock)||0]);
+    numRow([t('fin_row_inventory_value'),(parseFloat(p.cost)||0)*(parseFloat(p.stock)||0)]);
+    numRow([t('pa_csv_avg_daily'),Number(avgDaily.toFixed(3))]);
+    numRow([t('js_lbl_last_sale_date'),r.lastSaleDate?fmtDate(r.lastSaleDate):t('fsp_never')]);
+  }else if(tab==='reorder'){
+    const filter=document.getElementById('paReorderFilter').value;
+    const agg30=computeProductSalesAggregates(addDaysStr(-30),null);
+    row([t('th_product'),t('prd_th_current_stock'),t('pa_csv_avg_daily'),t('pa_csv_days_left'),t('th_status')]);
+    active.map(p=>{
+      const stock=parseFloat(p.stock)||0;
+      const avgDaily=((agg30.get(p.id)||{}).qtySold||0)/30;
+      const daysRemaining=avgDaily>0?stock/avgDaily:null;
+      const lowStock=parseFloat(p.lowStock)||5;
+      let status;
+      if(stock<=0||stock<=lowStock||(daysRemaining!==null&&daysRemaining<=7))status='critical';
+      else if(daysRemaining!==null&&daysRemaining<=14)status='warning';
+      else status='healthy';
+      return{p,stock,avgDaily,daysRemaining,status};
+    }).filter(r=>!filter||r.status===filter)
+      .sort((a,b)=>(a.daysRemaining??Infinity)-(b.daysRemaining??Infinity))
+      .forEach(r=>numRow([r.p.name,r.stock,Number(r.avgDaily.toFixed(3)),
+        r.daysRemaining===null?'—':Number(r.daysRemaining.toFixed(1)),tOpt('pa_status_'+r.status,r.status)]));
+  }else{
+    /* 'history' is a launcher tab — it renders no data of its own, it opens
+       the full Product History timeline. Nothing to export from here. */
+    toast(t('lbl_no_data_export'),'warning');return;
+  }
+  /* UTF-8 BOM, matching exportFinancialCSV(), so Excel reads accented
+     French product names correctly. exportDynReportCSV() is not touched. */
+  dl('\ufeff'+L.join('\n'),`Bizora_Analytics_${tab}_${todayStr()}.csv`,'text/csv;charset=utf-8');
+  toast(t('toast_report_exported'),'success');
+}
+/* Print-only row cap. The hiding itself is done by CSS (see @media print),
+   so no row is ever mutated or removed. This only ADDS a temporary notice
+   beside any table that will be truncated, so the printed sheet never
+   implies it contains the full list, and removes it again afterwards.
+   Notices are inserted as siblings of the table wrapper — the analytics
+   tables themselves are not touched. Must stay in sync with the
+   nth-child(n+101) rule in the print stylesheet. */
+const PA_PRINT_ROW_CAP=100;
+function applyPrintRowNotices(){
+  clearPrintRowNotices();
+  const panel=document.getElementById('pa-tab-'+_paActiveTab);
+  if(!panel)return;
+  panel.querySelectorAll('table').forEach(tbl=>{
+    const body=tbl.tBodies&&tbl.tBodies[0];
+    if(!body||body.rows.length<=PA_PRINT_ROW_CAP)return;   // no message when nothing is hidden
+    const note=document.createElement('div');
+    note.className='pa-print-only pa-trunc-note';
+    note.dataset.paTrunc='1';
+    note.textContent=tf('pa_print_truncated',{shown:PA_PRINT_ROW_CAP,total:body.rows.length});
+    const anchor=tbl.closest('.tbl-wrap')||tbl;
+    anchor.parentNode.insertBefore(note,anchor.nextSibling);
+  });
+}
+function clearPrintRowNotices(){
+  document.querySelectorAll('[data-pa-trunc="1"]').forEach(n=>n.remove());
+}
+function printAnalytics(){
+  if(!paCanView()){toast(t('perm_no_view_product_analytics'),'error');return;}
+  updateAnalyticsPrintHeader();
+  applyPrintRowNotices();
+  try{window.print();}finally{clearPrintRowNotices();}
 }
 function renderAnalyticsOverview(){
   const prods=S.get('products');
@@ -11303,6 +12684,7 @@ function onPaTopPeriodChange(){
   document.getElementById('paTopFrom').style.display=custom?'':'none';
   document.getElementById('paTopTo').style.display=custom?'':'none';
   renderAnalyticsTopPerformers();
+  updateAnalyticsPrintHeader();
 }
 function renderAnalyticsTopPerformers(){
   const period=document.getElementById('paTopPeriod').value;
@@ -12906,11 +14288,42 @@ function getWeekRange(offsetWeeks=0){
   const sunday=new Date(monday);sunday.setDate(monday.getDate()+6);
   return{start:localISODate(monday),end:localISODate(sunday)};
 }
+/* ── Financial-report authorization ─────────────────────────────────────
+   The Reports PAGE is gated on 'viewReports'. That is correct for the
+   customer/sales reports, but three roles differ on financial access:
+   sales_rep has viewReports:true and viewFinancials:false, and cashier /
+   storekeeper have both false. Before this gate, renderDynReport() checked
+   nothing at all, so a sales rep could select the P&L and read Gross
+   Profit, Net Profit and the salaries expense line — figures their role is
+   explicitly denied on the Financial Summary page.
+
+   The gate is deliberately narrow: it names only the report types that
+   actually disclose profitability or expense detail, so the eleven
+   customer/sales/inventory reports keep working exactly as before for
+   every role that could already see them. Role definitions, the page-level
+   permission map and Auth itself are all untouched.
+
+   This blocks RENDERING, not just the menu entry — hiding an <option> is
+   not authorization, since the value can still be set programmatically. */
+const FINANCIAL_REPORT_TYPES=['profit-loss','operating-expenses','executive-summary','fast-slow-products'];
+function canViewFinancialReport(type){
+  return !FINANCIAL_REPORT_TYPES.includes(type)||Auth.can('viewFinancials');
+}
 function renderDynReport(){
   const type=document.getElementById('dynReportType').value;
+  if(type!=='fast-slow-products')_fspExpanded=false; // don't carry a view cap across reports
   const titleEl=document.getElementById('dynReportTitle');
   const head=document.getElementById('dynReportHead');
   const body=document.getElementById('dynReportBody');
+  /* Authorization before any data is read or rendered. Returning early
+     leaves no financial figure anywhere in the DOM, so exportDynReportCSV()
+     — which scrapes the rendered table — has nothing to export either. */
+  if(!canViewFinancialReport(type)){
+    titleEl.textContent=t('rpt_restricted_title');
+    head.innerHTML='';
+    body.innerHTML=`<tr><td colspan="8"><div class="empty" style="padding:24px"><p>${t('rpt_restricted_msg')}</p></div></td></tr>`;
+    return;
+  }
   // Performance fix: this function has ~10 report types, most of which
   // did a custs.find(x=>x.id===...) — an O(customers) linear scan — once
   // per row, or a sales.filter(s=>s.cid===c.id) per customer. Every
@@ -12989,6 +14402,225 @@ function renderDynReport(){
       const count=msCredit.length+msCash.length;
       return`<tr><td>${m.label}</td><td>${count}</td><td style="font-weight:800;color:var(--primary)">${cur(total)}</td></tr>`;
     });
+  }else if(type==='profit-loss'){
+    /* Profit & Loss Statement — read-only. Renders into the SAME
+       #dynReportTitle/#dynReportHead/#dynReportBody shell every other report
+       uses, as a two-column statement, which is why exportDynReportCSV() and
+       the existing @media print rules work on it with no changes at all.
+       Every figure comes from buildProfitLossReport(); nothing is computed
+       inline here. Unlike the 14 reports above, the title goes through t(). */
+    const pl=buildProfitLossReport(getReportPeriodPredicate());
+    title=t('rpt_pnl_title');
+    headHtml=`<tr><th>${t('pnl_th_line_item')}</th><th style="text-align:right">${t('pnl_th_amount')}</th></tr>`;
+    const money=(v)=>`<td style="text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap">${cur(v)}</td>`;
+    const pctTxt=(v)=>v===null?'—':v.toFixed(1)+'%';
+    const sectionRow=(label)=>`<tr><td colspan="2" style="padding-top:14px;font-weight:800;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--txt3)">${label}</td></tr>`;
+    const lineRow=(label,v,opt={})=>`<tr><td style="${opt.indent?'padding-left:22px;':''}${opt.bold?'font-weight:800;':''}">${label}</td>`+
+      `<td style="text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;${opt.bold?'font-weight:800;':''}${opt.color?'color:'+opt.color+';':''}">${cur(v)}</td></tr>`;
+    const noteRow=(txt,tone)=>`<tr><td colspan="2" style="padding:9px 11px;font-size:12.5px;line-height:1.5;color:${tone==='warn'?'var(--danger)':'var(--txt3)'};${tone==='warn'?'font-weight:600;':''}">${txt}</td></tr>`;
+    const ruleRow=()=>`<tr><td colspan="2" style="padding:0"><div style="border-top:1px solid var(--border)"></div></td></tr>`;
+
+    rows.push(`<tr><td colspan="2" style="padding-bottom:10px"><div style="font-weight:800;font-size:15px">${t('pnl_statement_heading')}</div><div style="font-size:13px;color:var(--txt3);margin-top:2px">${t('pnl_period')}: ${esc(pl.periodLabel)}</div></td></tr>`);
+
+    rows.push(sectionRow(t('pnl_sec_revenue')));
+    rows.push(lineRow(t('fin_total_sales'),pl.revenue));
+    rows.push(lineRow(t('fin_row_cogs'),pl.cogs));
+    rows.push(ruleRow());
+    rows.push(lineRow(t('fin_row_gross_profit'),pl.grossProfit,{bold:true,color:pl.grossProfit<0?'var(--danger)':'var(--success)'}));
+    rows.push(`<tr><td style="color:var(--txt3);font-size:12.5px">${t('pnl_gross_margin')}</td><td style="text-align:right;color:var(--txt3);font-size:12.5px;white-space:nowrap">${pctTxt(pl.grossMargin)}</td></tr>`);
+
+    rows.push(sectionRow(t('pnl_sec_opex')));
+    if(pl.expenses.categories.length){
+      pl.expenses.categories.forEach(c=>rows.push(lineRow(c.icon+' '+esc(c.label),c.amount,{indent:true})));
+    }else{
+      rows.push(`<tr><td colspan="2" style="padding-left:22px;color:var(--txt3);font-size:13px">${t('pnl_no_expenses')}</td></tr>`);
+    }
+    rows.push(lineRow(t('pnl_total_opex'),pl.expenses.total,{bold:true}));
+    /* Only rendered when there is something to explain, so a business with
+       no classified inventory sees no extra clutter. */
+    if(pl.expenses.inventoryTotal>0)
+      rows.push(noteRow(tf('opex_inventory_excluded_note',{amount:cur(pl.expenses.inventoryTotal)})));
+    rows.push(ruleRow());
+    rows.push(lineRow(pl.netProfit<0?t('pnl_net_loss'):t('fin_net_profit'),pl.netProfit,{bold:true,color:pl.netProfit<0?'var(--danger)':'var(--success)'}));
+    rows.push(`<tr><td style="color:var(--txt3);font-size:12.5px">${t('pnl_net_margin')}</td><td style="text-align:right;color:var(--txt3);font-size:12.5px;white-space:nowrap">${pctTxt(pl.netMargin)}</td></tr>`);
+
+    /* Transparency block. Shown only when it has something to say, so a
+       clean dataset produces a clean statement. */
+    if(pl.recognitionGap>0){
+      rows.push(ruleRow());
+      rows.push(sectionRow(t('pnl_sec_reconciliation')));
+      rows.push(lineRow(t('pnl_invoiced_credit'),pl.invoicedCredit,{indent:true}));
+      rows.push(lineRow(t('pnl_revenue_recognised'),pl.recognisedCredit,{indent:true}));
+      rows.push(lineRow(t('pnl_recognition_diff'),pl.recognitionGap,{indent:true,bold:true,color:'var(--danger)'}));
+      rows.push(noteRow('⚠️ '+t('pnl_recognition_warn'),'warn'));
+    }
+    if(pl.costIncomplete)rows.push(noteRow('⚠️ '+t('pnl_cost_incomplete_warn'),'warn'));
+    rows.push(noteRow(t('pnl_note_tax_inclusive')));
+    /* The inventory caveat is only true while some custom category is still
+       unclassified. Once the owner has classified everything, stock is
+       genuinely excluded and repeating the warning would contradict the
+       "stock purchases excluded" line printed just above. */
+    if(pl.expenses.unclassified&&pl.expenses.unclassified.length>0)
+      rows.push(noteRow(t('pnl_note_inventory_opex')));
+  }else if(type==='operating-expenses'){
+    /* Operating Expenses — read-only. Uses the SAME classifier and the SAME
+       predicate as the P&L, so its total is the P&L's Operating Expenses
+       line by construction. Renders into the shared report shell, so CSV
+       export and the existing print CSS work with no changes. */
+    const oe=computeOperatingExpenses(getReportPeriodPredicate());
+    title=t('rpt_opex_title');
+    headHtml=`<tr><th>${t('th_category')}</th><th style="text-align:right">${t('pnl_th_amount')}</th>`+
+             `<th style="text-align:right">${t('opex_th_pct')}</th><th style="text-align:right">${t('opex_th_txns')}</th></tr>`;
+    const money=v=>`<td style="text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap">${cur(v)}</td>`;
+    const note=(txt,tone)=>`<tr><td colspan="4" style="padding:9px 11px;font-size:12.5px;line-height:1.5;color:${tone==='warn'?'var(--danger)':'var(--txt3)'};${tone==='warn'?'font-weight:700;':''}">${txt}</td></tr>`;
+    const sect=lbl=>`<tr><td colspan="4" style="padding-top:14px;font-weight:800;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--txt3)">${lbl}</td></tr>`;
+    const kv=(lbl,val)=>`<tr><td>${lbl}</td><td colspan="3" style="text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap">${val}</td></tr>`;
+
+    rows.push(`<tr><td colspan="4" style="padding-bottom:10px"><div style="font-weight:800;font-size:15px">${t('pnl_sec_opex')}</div><div style="font-size:13px;color:var(--txt3);margin-top:2px">${t('pnl_period')}: ${esc(oe.periodLabel||getReportPeriodLabel())}</div></td></tr>`);
+
+    rows.push(sect(t('opex_sec_summary')));
+    rows.push(kv(t('pnl_total_opex'),`<strong>${cur(oe.total)}</strong>`));
+    rows.push(kv(t('opex_records'),String(oe.count)));
+    rows.push(kv(t('opex_average'),cur(oe.average)));
+    rows.push(kv(t('opex_largest'),cur(oe.largest)));
+    if(oe.inventoryTotal>0)rows.push(kv(t('opex_inventory_excluded'),cur(oe.inventoryTotal)));
+
+    rows.push(sect(t('opex_sec_breakdown')));
+    if(oe.categories.length){
+      oe.categories.forEach(c=>{
+        const pct=oe.total>0?(c.amount/oe.total*100).toFixed(1)+'%':'—';
+        /* The icon sits in its own span so exportDynReportCSV(), which reads
+           textContent, is given a clean category name without the emoji. */
+        rows.push(`<tr><td><span aria-hidden="true" class="csv-skip">${c.icon} </span>${esc(c.label)}</td>`+
+          money(c.amount)+
+          `<td style="text-align:right;white-space:nowrap">${pct}</td>`+
+          `<td style="text-align:right">${c.count}</td></tr>`);
+      });
+      rows.push(`<tr><td colspan="4" style="padding:0"><div style="border-top:1px solid var(--border)"></div></td></tr>`);
+      rows.push(`<tr><td style="font-weight:800">${t('pnl_total_opex')}</td>`+
+        `<td style="text-align:right;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap">${cur(oe.total)}</td>`+
+        `<td style="text-align:right;font-weight:800">${oe.total>0?'100.0%':'—'}</td>`+
+        `<td style="text-align:right;font-weight:800">${oe.count}</td></tr>`);
+    }else{
+      rows.push(`<tr><td colspan="4" style="padding-left:6px;color:var(--txt3);font-size:13px">${t('pnl_no_expenses')}</td></tr>`);
+    }
+    if(oe.inventoryTotal>0)rows.push(note(tf('opex_inventory_excluded_note',{amount:cur(oe.inventoryTotal)})));
+    if(oe.negativeCount>0)rows.push(note('⚠️ '+tf('opex_negative_records',{count:oe.negativeCount}),'warn'));
+    if(oe.unclassified.length>0)rows.push(note(tf('opex_unclassified_note',{count:oe.unclassified.length})));
+  }else if(type==='executive-summary'){
+    /* Executive Summary — read-only management view. Renders into the same
+       shared report shell, so exportDynReportCSV() and the existing print
+       CSS work unchanged. Every figure comes from buildExecutiveSummary();
+       nothing is computed inline here. */
+    const es=buildExecutiveSummary(getReportPeriodPredicate());
+    title=t('rpt_exec_title');
+    headHtml=`<tr><th>${t('exec_th_metric')}</th><th style="text-align:right">${t('exec_th_value')}</th></tr>`;
+    const pctTxt=v=>v===null?'—':v.toFixed(1)+'%';
+    const sect=lbl=>`<tr><td colspan="2" style="padding-top:14px;font-weight:800;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--txt3)">${lbl}</td></tr>`;
+    const row=(lbl,val,opt={})=>`<tr><td style="${opt.bold?'font-weight:800;':''}">${lbl}</td>`+
+      `<td style="text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;${opt.bold?'font-weight:800;':''}${opt.color?'color:'+opt.color+';':''}">${val}</td></tr>`;
+    const sub=(lbl,val)=>`<tr><td style="color:var(--txt3);font-size:12.5px">${lbl}</td><td style="text-align:right;color:var(--txt3);font-size:12.5px;white-space:nowrap">${val}</td></tr>`;
+    const note=(txt,tone)=>`<tr><td colspan="2" style="padding:9px 11px;font-size:12.5px;line-height:1.5;color:${tone==='warn'?'var(--danger)':'var(--txt3)'};${tone==='warn'?'font-weight:700;':''}">${txt}</td></tr>`;
+    const rule=()=>`<tr><td colspan="2" style="padding:0"><div style="border-top:1px solid var(--border)"></div></td></tr>`;
+
+    rows.push(`<tr><td colspan="2" style="padding-bottom:10px"><div style="font-weight:800;font-size:15px">${t('exec_heading')}</div><div style="font-size:13px;color:var(--txt3);margin-top:2px">${t('pnl_period')}: ${esc(es.periodLabel)}</div></td></tr>`);
+
+    rows.push(sect(t('exec_sec_financial')));
+    rows.push(row(t('fin_total_sales'),cur(es.revenue)));
+    rows.push(row(t('fin_row_cogs'),cur(es.cogs)));
+    rows.push(row(t('fin_row_gross_profit'),cur(es.grossProfit),{bold:true,color:es.grossProfit<0?'var(--danger)':'var(--success)'}));
+    rows.push(sub(t('pnl_gross_margin'),pctTxt(es.grossMargin)));
+    rows.push(row(t('pnl_sec_opex'),cur(es.operatingExpenses)));
+    rows.push(rule());
+    rows.push(row(es.netProfit<0?t('pnl_net_loss'):t('fin_net_profit'),cur(es.netProfit),{bold:true,color:es.netProfit<0?'var(--danger)':'var(--success)'}));
+    rows.push(sub(t('pnl_net_margin'),pctTxt(es.netMargin)));
+
+    rows.push(sect(t('exec_sec_sales')));
+    rows.push(row(t('exec_cash_sales'),cur(es.cashSales)));
+    rows.push(row(t('exec_credit_invoiced'),cur(es.creditInvoiced)));
+    rows.push(row(t('exec_txn_count'),String(es.totalTxns)));
+    rows.push(sub(t('exec_avg_sale'),es.avgSale===null?'—':cur(es.avgSale)));
+    if(es.recognitionGap>0){
+      rows.push(row(t('pnl_recognition_diff'),cur(es.recognitionGap),{bold:true,color:'var(--danger)'}));
+      rows.push(note('⚠️ '+t('pnl_recognition_warn'),'warn'));
+    }
+
+    rows.push(sect(t('exec_sec_credit')));
+    rows.push(note(t('exec_credit_asof')));
+    rows.push(row(t('exec_outstanding'),cur(es.outstanding)));
+    rows.push(row(t('exec_debtors'),String(es.debtorCount)));
+    rows.push(row(t('exec_overdue'),cur(es.overdueAmt),{color:es.overdueAmt>0?'var(--danger)':''}));
+    rows.push(row(t('exec_overdue_31'),cur(es.overdue31),{color:es.overdue31>0?'var(--danger)':''}));
+
+    rows.push(sect(t('pnl_sec_opex')));
+    rows.push(row(t('pnl_total_opex'),cur(es.expenses.total),{bold:true}));
+    rows.push(row(t('opex_records'),String(es.expenses.count)));
+    rows.push(sub(t('opex_average'),cur(es.expenses.average)));
+    rows.push(sub(t('opex_largest'),cur(es.expenses.largest)));
+    if(es.topExpenseCategory)
+      rows.push(row(t('exec_top_expense_cat'),`<span aria-hidden="true" class="csv-skip">${es.topExpenseCategory.icon} </span>${esc(es.topExpenseCategory.label)} — ${cur(es.topExpenseCategory.amount)}`));
+    if(es.expenses.inventoryTotal>0)
+      rows.push(note(tf('opex_inventory_excluded_note',{amount:cur(es.expenses.inventoryTotal)})));
+    if(es.expenses.unclassified.length>0)
+      rows.push(note(tf('opex_unclassified_note',{count:es.expenses.unclassified.length})));
+    if(es.expenses.negativeCount>0)
+      rows.push(note('⚠️ '+tf('opex_negative_records',{count:es.expenses.negativeCount}),'warn'));
+
+    if(es.costIncomplete)rows.push(note('⚠️ '+t('pnl_cost_incomplete_warn'),'warn'));
+    rows.push(note(t('pnl_note_tax_inclusive')));
+  }else if(type==='fast-slow-products'){
+    /* Renders into the shared report shell, so CSV export and the existing
+       print CSS work unchanged. Sections are capped at FS_SECTION_CAP rows
+       by default: at 2,000 products an uncapped render is ~2,000 DOM rows,
+       which is the real cost on a low-end Android, not the aggregation.
+       "Show all" simply flips a flag and re-renders through the same path
+       — no pagination library, no virtualisation, no new UI plumbing. */
+    const period=document.getElementById('rptPeriod').value;
+    const{from,to}=resolvePeriodDateRange(period,
+      document.getElementById('rptCustomFrom').value,
+      document.getElementById('rptCustomTo').value);
+    const fsr=buildProductMovementReport(from,to,getReportPeriodPredicate());
+    title=t('rpt_fsp_title');
+    headHtml=`<tr><th>${t('th_product')}</th><th style="text-align:right">${t('prd_th_qty_sold')}</th>`+
+             `<th style="text-align:right">${t('fsp_th_sales_value')}</th><th style="text-align:right">${t('prd_th_current_stock')}</th>`+
+             `<th style="text-align:right">${t('fsp_th_last_sale')}</th><th style="text-align:right">${t('fsp_th_days_since')}</th></tr>`;
+    const num=v=>`<td style="text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap">${v}</td>`;
+    const sect=lbl=>`<tr><td colspan="6" style="padding-top:14px;font-weight:800;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--txt3)">${lbl}</td></tr>`;
+    const note=(txt,tone)=>`<tr><td colspan="6" style="padding:9px 11px;font-size:12.5px;line-height:1.5;color:${tone==='warn'?'var(--danger)':'var(--txt3)'};${tone==='warn'?'font-weight:700;':''}">${txt}</td></tr>`;
+    const empty=msg=>`<tr><td colspan="6" style="padding-left:6px;color:var(--txt3);font-size:13px">${msg}</td></tr>`;
+    const stockCell=r=>{
+      const flag=r.outOfStock?`<span aria-hidden="true" class="csv-skip"> 🔴</span>`:(r.lowStockFlag?`<span aria-hidden="true" class="csv-skip"> 🟡</span>`:'');
+      return `<td style="text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap">${fmtQty(r.stock)}${flag}</td>`;
+    };
+    const prodRow=r=>`<tr><td style="font-weight:700">${esc(r.name)}`+
+      (r.sku?`<div style="font-size:11px;color:var(--txt3)">${esc(r.sku)}</div>`:'')+`</td>`+
+      num(fmtQty(r.qtySold))+num(cur(r.revenue))+stockCell(r)+
+      num(r.lastSaleDate?fmtDate(r.lastSaleDate):t('fsp_never'))+
+      num(r.daysSinceSale===null?'—':String(r.daysSinceSale))+`</tr>`;
+    const showAllBtn=()=>`<tr><td colspan="6" style="padding:8px 2px"><button class="btn btn-outline" style="font-size:12.5px;padding:6px 12px" onclick="toggleFspExpand()">${_fspExpanded?t('fsp_show_less'):t('fsp_show_all')}</button></td></tr>`;
+    const section=(label,list,total,emptyMsg)=>{
+      rows.push(sect(label));
+      if(!list.length){rows.push(empty(emptyMsg));return;}
+      const shown=_fspExpanded?list:list.slice(0,FS_SECTION_CAP);
+      shown.forEach(r=>rows.push(prodRow(r)));
+      if(list.length>shown.length)rows.push(note(tf('fsp_more_hidden',{count:list.length-shown.length})));
+    };
+
+    rows.push(`<tr><td colspan="6" style="padding-bottom:10px"><div style="font-weight:800;font-size:15px">${t('fsp_heading')}</div><div style="font-size:13px;color:var(--txt3);margin-top:2px">${t('pnl_period')}: ${esc(getReportPeriodLabel())}</div></td></tr>`);
+    rows.push(sect(t('opex_sec_summary')));
+    rows.push(`<tr><td colspan="4">${t('fsp_products_analysed')}</td>`+num(String(fsr.productCount))+num('')+`</tr>`);
+    rows.push(`<tr><td colspan="4">${t('fsp_with_sales')}</td>`+num(String(fsr.soldCount))+num('')+`</tr>`);
+    rows.push(`<tr><td colspan="4">${t('fsp_sec_non_moving')}</td>`+num(String(fsr.nonMovingCount))+num('')+`</tr>`);
+
+    section(t('fsp_sec_fast'),fsr.fast,null,t('fsp_empty_sold'));
+    section(t('fsp_sec_slow'),fsr.slow,null,t('fsp_empty_slow'));
+    section(t('fsp_sec_non_moving'),fsr.nonMoving,null,t('fsp_empty_non_moving'));
+    if(fsr.nonMoving.length>FS_SECTION_CAP||fsr.slow.length>FS_SECTION_CAP||fsr.fast.length>FS_SECTION_CAP||_fspExpanded)
+      rows.push(showAllBtn());
+
+    rows.push(note(t('fsp_attribution_notice')));
+    if(fsr.unattributedRevenue>0)
+      rows.push(note('⚠️ '+tf('fsp_unattributed',{amount:cur(fsr.unattributedRevenue)}),'warn'));
   }
 
   titleEl.textContent=title;
@@ -12999,7 +14631,19 @@ function exportDynReportCSV(){
   const type=document.getElementById('dynReportType').value;
   const title=document.getElementById('dynReportTitle').textContent;
   const headCells=[...document.querySelectorAll('#dynReportHead th')].map(th=>th.textContent);
-  const rows=[...document.querySelectorAll('#dynReportBody tr')].map(tr=>[...tr.querySelectorAll('td')].map(td=>'"'+csvSafe(td.textContent)+'"').join(','));
+  /* Cells may carry a decorative leading emoji inside a .csv-skip span
+     (Operating Expenses category rows). Reading textContent would pull the
+     emoji into the CSV cell, so those spans are excluded here. Every other
+     report renders no .csv-skip span, so their exported output is
+     byte-identical to before. */
+  const cellText=td=>{
+    const skip=td.querySelectorAll?td.querySelectorAll('.csv-skip'):[];
+    if(!skip||!skip.length)return td.textContent;
+    let s=td.textContent;
+    skip.forEach(el=>{s=s.replace(el.textContent,'');});
+    return s.trim();
+  };
+  const rows=[...document.querySelectorAll('#dynReportBody tr')].map(tr=>[...tr.querySelectorAll('td')].map(td=>'"'+csvSafe(cellText(td))+'"').join(','));
   if(!headCells.length||!rows.length){toast(t('lbl_no_data_export'),'warning');return;}
   const csv=headCells.map(h=>'"'+csvSafe(h)+'"').join(',')+'\n'+rows.join('\n');
   dl(csv,type+'_'+todayStr()+'.csv','text/csv');
@@ -13069,10 +14713,10 @@ function renderPagination(table,fullList,container){
     <div class="pag-info">${t('lbl_showing')} ${from}–${to} ${t('lbl_of')} ${total}</div>
     <div class="pag-controls">
       <select class="pag-size" onchange="changePageSize('${table}',this.value)">
-        <option value="10" ${st.size===10?'selected':''}>'+t('js_opt_10_per_page')+'</option>
-        <option value="25" ${st.size===25?'selected':''}>'+t('js_opt_25_per_page')+'</option>
-        <option value="50" ${st.size===50?'selected':''}>'+t('js_opt_50_per_page')+'</option>
-        <option value="100" ${st.size===100?'selected':''}>'+t('js_opt_100_per_page')+'</option>
+        <option value="10" ${st.size===10?'selected':''}>${t('js_opt_10_per_page')}</option>
+        <option value="25" ${st.size===25?'selected':''}>${t('js_opt_25_per_page')}</option>
+        <option value="50" ${st.size===50?'selected':''}>${t('js_opt_50_per_page')}</option>
+        <option value="100" ${st.size===100?'selected':''}>${t('js_opt_100_per_page')}</option>
       </select>
       <button class="pag-btn" onclick="gotoPage('${table}',1)" ${st.page===1?'disabled':''}>«</button>
       <button class="pag-btn" onclick="gotoPage('${table}',${st.page-1})" ${st.page===1?'disabled':''}>‹</button>
@@ -13224,7 +14868,7 @@ function filterSalesHistory(){
 function renderSalesHistoryTable(listIn){
   lastShList=listIn;
   const tb=document.getElementById('shTbody');
-  if(!listIn.length){tb.innerHTML=`<tr><td colspan="11"><div class="empty"><span class="empty-ic">📜</span><h3>'+t('js_empty_no_sales')+'</h3><p>'+t('js_empty_no_sales_sub')+'</p></div></td></tr>`;document.getElementById('shPagBar').innerHTML='';return;}
+  if(!listIn.length){tb.innerHTML=`<tr><td colspan="11"><div class="empty"><span class="empty-ic">📜</span><h3>${t('js_empty_no_sales')}</h3><p>${t('js_empty_no_sales_sub')}</p></div></td></tr>`;document.getElementById('shPagBar').innerHTML='';return;}
   const dateSorted=[...listIn].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
   const sorted=applySorting('sh',dateSorted,{
     date:s=>s.date||'',customer:s=>s.custName.toLowerCase(),total:s=>s.total,balance:s=>s.balance
@@ -13436,12 +15080,15 @@ function renderBizAnalyticsKpis(){
      Profit itself is untouched and remains visible in the Financial
      Summary table — this only changes what these two Dashboard cards
      display. */
-  const totalGrossProfit=computeRealizedProfit().profit;
-  const totalExpenses=computeExpenseTotals();
-  const netProfitAllTime=totalGrossProfit-totalExpenses;
-  const monthGrossProfit=computeRealizedProfit(tm).profit;
-  const monthExpenses=computeExpenseTotals(tm);
-  const monthNetProfit=monthGrossProfit-monthExpenses;
+  /* One index shared by both cards; operating basis, matching the
+     Financial Summary these cards mirror. */
+  const dashIdx=buildProfitIndex();
+  const npAll=computeNetProfit(undefined,dashIdx);
+  const npMonth=computeNetProfitByPrefix(tm,dashIdx);
+  const totalGrossProfit=npAll.grossProfit;
+  const netProfitAllTime=npAll.netProfit;
+  const monthGrossProfit=npMonth.grossProfit;
+  const monthNetProfit=npMonth.netProfit;
   const todayP=computeTodayProfit();
   const trendHtml=todayP.trendPct!==null
     ?`${todayP.trendPct>=0?'▲':'▼'} ${todayP.trendPct>=0?'+':''}${Math.round(todayP.trendPct)}% ${t('lbl_vs_yesterday')}`
@@ -14541,9 +16188,15 @@ function removeLogo(){
 }
 function renderLogoPreview(){
   const cfg=S.obj('settings');
+  const html=cfg.logo?`<img src="${cfg.logo}" alt="logo">`:'🏢';
+  /* Two preview boxes can exist in the DOM — the Settings page one
+     (logoPreviewBox) and the FirstRunWizard one (frLogoPreviewBox, added
+     for onboarding). Both read the same settings.logo value; this just
+     keeps whichever is present in sync — no second logo data path. */
   const box=document.getElementById('logoPreviewBox');
-  if(!box)return;
-  box.innerHTML=cfg.logo?`<img src="${cfg.logo}" alt="logo">`:'🏢';
+  if(box)box.innerHTML=html;
+  const frBox=document.getElementById('frLogoPreviewBox');
+  if(frBox)frBox.innerHTML=html;
 }
 
 /* ═══════════════════════════════════════════════════
@@ -15985,10 +17638,20 @@ const InstallManager = (() => {
    banner when a new version has finished caching in the background —
    never a forced reload, never an interrupted work session. The user
    taps "Update now" to activate immediately, or keeps working and
-   gets the new version on their next natural reload. */
+   gets the new version on their next natural reload.
+
+   This contract is enforced in two places, because for one release it
+   was silently broken: the worker installed, called skipWaiting() on
+   itself, claimed the page and triggered a reload before the merchant
+   ever saw the banner. The worker no longer activates itself (see
+   service-worker.js INSTALL), and the controllerchange handler below
+   reloads only when userInitiatedUpdate is set. Changing either one
+   alone would reintroduce silent updates. */
 const ServiceWorkerManager = (() => {
   let waitingWorker = null;
   let latestKnownVersion = null;
+  let userInitiatedUpdate = false;
+  let snapshotTaken = false;
   const DISMISS_KEY = 'bizora_update_dismissed_version';
 
   function showUpdateBanner(version){
@@ -16017,13 +17680,30 @@ const ServiceWorkerManager = (() => {
 
   function applyUpdate(){
     if(!waitingWorker) return;
+    /* Record that THIS reload was asked for. The controllerchange handler
+       below reloads only when this is set, so a controller change that
+       Bizora did not initiate can never reload the page underneath an
+       active sale. */
+    userInitiatedUpdate = true;
     // Phase 4: snapshot current data before the reload that activates the
     // new version. Not because SW activation touches IndexedDB (it never
     // does — see the file header), but because "automatically create
     // recovery points where practical" applies to any user-facing update
     // moment, and this is essentially free (data already lives in memory).
-    if(typeof RecoveryManager!=='undefined') RecoveryManager.snapshot('pre-update');
+    // NOTE: this captures committed IndexedDB collections only — it does
+    // NOT preserve unsaved UI state such as an open POS cart. Not
+    // reloading without consent is what protects that.
+    snapshotBeforeUpdate();
     waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+  }
+  /* Idempotent: whichever path reaches a reload, exactly one 'pre-update'
+     snapshot is taken. Kept separate from applyUpdate() so the
+     controllerchange handler can guarantee it too, rather than relying on
+     having come through the button. */
+  function snapshotBeforeUpdate(){
+    if(snapshotTaken) return;
+    snapshotTaken = true;
+    if(typeof RecoveryManager!=='undefined') RecoveryManager.snapshot('pre-update');
   }
 
   function register(){
@@ -16059,14 +17739,24 @@ const ServiceWorkerManager = (() => {
             });
           });
 
-          // Once the new worker takes control (after the user taps "Update
-          // now"), reload once to pick up the new app shell. The `refreshing`
-          // guard prevents a reload loop if controllerchange fires more than
-          // once for any reason.
+          /* Reload only for an update the merchant actually approved.
+             `controllerchange` also fires on a first-ever registration and
+             on any future path that claims this client, and a reload there
+             would discard whatever is on screen — an open POS cart lives in
+             memory only. The `refreshing` guard additionally prevents a
+             reload loop if the event fires more than once. */
           let refreshing = false;
           navigator.serviceWorker.addEventListener('controllerchange', () => {
             if(refreshing) return;
+            if(!userInitiatedUpdate){
+              /* Not approved by the user: leave the session alone. The new
+                 worker now controls the page, so surface the banner and let
+                 the merchant reload when it suits them. */
+              showUpdateBanner(latestKnownVersion);
+              return;
+            }
             refreshing = true;
+            snapshotBeforeUpdate();   // belt and braces; no-op if already taken
             PwaBanner.hide();
             window.location.reload();
           });

@@ -12,13 +12,13 @@
    owned by the app's own S.get()/S.set()/S.obj()/S.setObj() layer.
    ========================================================================== */
 
-const CACHE_VERSION = 'v101';
+const CACHE_VERSION = 'v114';
 /* Rollback safety net: the cache from this version is kept alive one
    extra deploy cycle rather than deleted the moment v3 activates. If a
    deploy turns out broken, the previous version's cached assets are
    still present for one more cycle — a real (if modest) safety margin
    for a static single-file app with no server-side rollback mechanism. */
-const PREVIOUS_CACHE_VERSION = 'v100';
+const PREVIOUS_CACHE_VERSION = 'v112';
 const CACHE_NAME = `bizora-${CACHE_VERSION}`;
 const FONT_CACHE_NAME = `bizora-fonts-${CACHE_VERSION}`;
 
@@ -119,23 +119,36 @@ const CacheManager = {
 
 /* ---------------------------------------------------------------------------
    INSTALL
-   The new worker calls skipWaiting() so it does NOT sit in `waiting` until
-   every client happens to close. That deadlock is what stranded legacy
-   users: a cache-first 3.6.1 worker stayed active and kept serving its
-   cached index.html from bizora-v56, while the newer worker waited
-   indefinitely — and the 3.6.1 page has no "Update Now" banner to release
-   it. The service-worker lifecycle, not the banner, must be what upgrades
-   a client.
+   The new worker installs and then WAITS. It does not activate itself.
 
-   skipWaiting() is deliberately called ONLY AFTER precache() resolves and
-   only when every CRITICAL_SHELL file cached successfully. Activating over
-   a half-populated cache would leave a client controlled by a worker that
-   cannot serve the app offline. If a critical asset fails (partial deploy,
-   network drop mid-install), we skip the skip: the worker stays in
-   `waiting`, the previously active worker keeps serving the app exactly as
-   before, and the existing "Update Now" banner remains available. Failing
-   safe here costs one delayed update; failing open could cost an offline
-   app shell.
+   Activation is the user's decision: the page shows the "Update available"
+   banner, and only when the merchant taps "Update now" does the page post
+   SKIP_WAITING (see the message handler at the bottom of this file) and
+   release this worker. Tapping "Remind me later" leaves the current
+   session completely untouched.
+
+   This deliberately reverses the earlier automatic self.skipWaiting()
+   call. That call was added to rescue legacy 3.6.1 clients, whose
+   cache-first worker had no way to release a waiting replacement — for
+   them the lifecycle had to do the upgrading because their page had no
+   banner. It worked, but it applied to every client, so modern
+   installations lost their consent step too: a successful update
+   activated immediately, clients.claim() took the page over, and
+   controllerchange reloaded it underneath whatever the merchant was
+   doing. A POS cart lives in memory (posItems) and does not survive a
+   reload, so this could discard a sale in progress.
+
+   Every install now in the field is 4.0.7 or newer and has a working
+   banner and SKIP_WAITING handler, so nothing depends on the automatic
+   rescue any more.
+
+   A critical-asset failure now REJECTS the install rather than returning
+   quietly. Previously the worker stayed installed-and-waiting, which was
+   harmless while the banner was unreachable — but now that the banner is
+   the normal path, a half-cached worker would be offered to the user as a
+   legitimate update and could break offline mode when activated. Throwing
+   makes the browser discard this worker; the previous one keeps serving
+   the app, and the next update check retries cleanly.
 --------------------------------------------------------------------------- */
 const CRITICAL_SHELL = ['./index.html', './manifest.json', './offline.html'];
 
@@ -145,10 +158,10 @@ self.addEventListener('install', (event) => {
       const failed = await CacheManager.precache();
       const criticalFailed = failed.filter((url) => CRITICAL_SHELL.includes(url));
       if (criticalFailed.length) {
-        console.warn('[Bizora SW] Critical asset(s) failed to precache, not activating early:', criticalFailed);
-        return; // stay in `waiting` — previous worker continues serving safely
+        console.warn('[Bizora SW] Critical asset(s) failed to precache, discarding this worker:', criticalFailed);
+        throw new Error('Critical precache failed: ' + criticalFailed.join(', '));
       }
-      await self.skipWaiting();
+      // Installed and cached successfully. Now wait for the user.
     })()
   );
 });
