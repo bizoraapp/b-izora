@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bizora — Offline</title>
+<style>
+  :root{--navy:#0B2C6B;--navy-d:#071c46;--gold:#F4B400;--bg:#F5F7FA;--txt:#1B2333;--txt2:#5B6478}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Manrope,Arial,sans-serif;
+    background:linear-gradient(160deg,var(--navy) 0%,var(--navy-d) 100%);
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    padding:24px;color:#fff;text-align:center;
+  }
+  .card{max-width:400px}
+  .logo{
+    width:88px;height:88px;border-radius:22px;background:rgba(255,255,255,.08);
+    display:flex;align-items:center;justify-content:center;margin:0 auto 24px;
+    font-size:42px;font-weight:800;color:var(--gold);border:1px solid rgba(244,180,0,.35);
+  }
+  h1{font-size:22px;font-weight:800;margin-bottom:10px;letter-spacing:.2px}
+  p{font-size:14.5px;line-height:1.6;color:rgba(255,255,255,.72);margin-bottom:28px}
+  .retry{
+    background:var(--gold);color:var(--navy-d);border:none;padding:13px 28px;
+    border-radius:12px;font-weight:700;font-size:14.5px;cursor:pointer;
+  }
+  .retry:active{transform:scale(.97)}
+  .hint{margin-top:18px;font-size:12.5px;color:rgba(255,255,255,.5)}
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">B</div>
+    <h1>You're offline</h1>
+    <p>Bizora couldn't load right now because this device hasn't cached the app yet and there's no internet connection. Once you've opened Bizora at least once with a connection, it will keep working fully offline.</p>
+    <button class="retry" onclick="location.reload()">Try Again</button>
+    <div class="hint">Your sales, inventory, and customer data are always safe on this device.</div>
+  </div>
+</body>
+</html>
