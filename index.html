@@ -693,7 +693,7 @@ tbody tr.cancelled-row td:last-child{text-decoration:none;opacity:1}
 /* REPORT */
 .report-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
 /* ITEMS TABLE */
-.items-section{border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:14px}
+.items-section{border:1px solid var(--border);border-radius:var(--r2);overflow-x:auto;overflow-y:hidden;margin-bottom:14px}
 .items-header{display:grid;grid-template-columns:1fr 80px 130px 120px 36px;background:var(--bg);padding:9px 12px;border-bottom:1px solid var(--border)}
 .items-header span{font-size:11.5px;font-weight:700;color:var(--txt2);text-transform:uppercase;letter-spacing:.4px}
 #itemsBody .item-row{display:grid;grid-template-columns:1fr 80px 130px 120px 36px;border-bottom:1px solid var(--border);align-items:stretch}
@@ -744,7 +744,7 @@ tbody tr.cancelled-row td:last-child{text-decoration:none;opacity:1}
   .kpi-grid{grid-template-columns:repeat(2,1fr)}
   .page-wrap{padding:16px 16px 100px}.topbar{padding:0 16px}.tb-date{display:none}
   .form-row,.form-row-3{grid-template-columns:1fr}
-  .items-header,.item-row{grid-template-columns:1fr 60px 100px 90px 32px}
+  .items-header,#itemsBody .item-row{grid-template-columns:minmax(100px,1fr) 60px 100px 90px 32px}
   .bottom-nav{display:flex}
   /* Bug fix (pre-existing, not introduced this session): on phones around
      390px wide, the topbar's icon buttons (search, notifications, language,
@@ -1391,7 +1391,7 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
     <div class="sb-section">
       <div class="sb-section-label" data-i18n="nav_sec_pos">Point of Sale</div>
       <div class="nav-item" onclick="go('pos')" id="nav-pos"><span class="ni">🛒</span> <span data-i18n="nav_pos">Sales (POS)</span></div>
-      <div class="nav-item" onclick="go('sales')" id="nav-sales"><span class="ni">🧾</span> <span data-i18n="nav_sales">Credit Sales</span></div>
+      <div class="nav-item" onclick="go('sales')" id="nav-sales"><span class="ni">🧾</span> <span data-i18n="nav_invoices">Invoices</span></div>
       <div class="nav-item" onclick="go('expenses')" id="nav-expenses"><span class="ni">💸</span> <span data-i18n="nav_expenses">Expenses</span></div>
       <div class="nav-item" onclick="go('financial')" id="nav-financial"><span class="ni">📊</span> <span data-i18n="nav_financial">Financial Summary</span></div>
       <div class="nav-item" onclick="go('saleshistory')" id="nav-saleshistory"><span class="ni">📜</span> <span data-i18n="nav_saleshistory">Sales History</span></div>
@@ -1936,7 +1936,14 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
         </select>
         <input type="date" class="fc" id="salesDateFrom" title="From date" onchange="filterSales()">
         <input type="date" class="fc" id="salesDateTo" title="To date" onchange="filterSales()">
+        <!-- Manual/standalone invoice creation retired from the client UI:
+             this feature moves to the separate Bizora Services product.
+             UI retirement only — saveSale(), resetSaleForm() and the mAddSale
+             modal are all deliberately left intact, and editSale() still opens
+             mAddSale so existing credit invoices remain fully editable.
+             Restore by un-commenting this single button.
         <button class="btn btn-primary" onclick="openModal('mAddSale');resetSaleForm()">➕ New Invoice</button>
+        -->
       </div>
       <div class="stats-row stats-4" id="salesStatRow"></div>
       <div class="card">
@@ -3587,7 +3594,7 @@ const APP_LOGO='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAIAAADTED
    the "Update available" banner. Purely informational at the app layer;
    the actual update *mechanism* is the service worker (see UpdateManager
    in the bottom PWA runtime script). */
-const APP_VERSION='4.2.1';
+const APP_VERSION='4.2.7';
 /* Build number — date-based, bumped by regenerating this file. Shown on
    the About page alongside the version for support/debugging purposes. */
 const BUILD_NUMBER='2026.08.02b';
@@ -5313,7 +5320,7 @@ const I18N_DICT={
     nav_sec_pos:'Point of Sale',nav_sec_analytics:'Analytics',nav_sec_system:'System',nav_sec_support:'Support',
     // Sidebar nav items
     nav_dashboard:'Dashboard',nav_customers:'Customers',nav_products:'Products',nav_inventory:'Inventory',
-    nav_pos:'Sales (POS)',nav_sales:'Credit Sales',nav_financial:'Financial Summary',nav_saleshistory:'Sales History',
+    nav_pos:'Sales (POS)',nav_sales:'Credit Sales',nav_invoices:'Credit Invoices',nav_financial:'Financial Summary',nav_saleshistory:'Sales History',
     nav_payments:'Credit Repayment',nav_collection:'Debt Collection',nav_ledger:'Debt Ledger',
     nav_reports:'Reports',nav_calendar:'Calendar',nav_settings:'Settings',nav_backup:'Backup',nav_help:'Help Center',nav_about:'About',
     sb_call:'Call',sb_whatsapp:'WhatsApp',sb_email:'Email',
@@ -5323,7 +5330,7 @@ const I18N_DICT={
     page_products_title:'Products',page_products_desc:'Manage your product catalog and pricing',
     page_inventory_title:'Inventory',page_inventory_desc:'Stock levels, adjustments and daily cash summary',
     page_pos_title:'Sales (POS)',page_pos_desc:'Ring up cash or credit sales',
-    page_sales_title:'Credit Sales',page_sales_desc:'Track credit invoices and outstanding balances',
+    page_sales_title:'Credit Invoices',page_sales_desc:'Track credit invoices and outstanding balances',
     page_financial_title:'Financial Summary',page_financial_desc:'Real-time overview of inventory, sales, credit and profit',
     page_saleshistory_title:'Sales History',page_saleshistory_desc:'Every cash and credit sale in one place',
     page_payments_title:'Credit Repayment',page_payments_desc:'Record and monitor customer debt repayments',
@@ -5703,6 +5710,7 @@ const I18N_DICT={
     val_deposit_range:'Deposit must be between 0 and the grand total!',
     val_amount_received_short:'Amount received ({received}) is less than grand total ({total})!',
     toast_receipt_downloaded:'Receipt downloaded!',
+    js_tt_view_in_invoices:'View in Invoices',
     toast_report_exported:'Report exported!',
     toast_receipt_not_found:'Receipt not found',
     toast_pin_saved_unlocked:'New PIN saved. You are unlocked.',
@@ -6157,11 +6165,19 @@ const I18N_DICT={
     js_lbl_customer_statement:'Customer Statement',
     js_th_debit:'Debit',
     js_empty_no_invoices:'No invoices found',
-    js_empty_no_invoices_sub:'Create your first credit sales invoice',
+    js_empty_no_invoices_sub:'Credit invoices from POS sales will appear here.',
     js_ph_item_name:'Item name or description',
     js_empty_no_repayments:'No repayments recorded',
     js_empty_no_repayments_sub:'Record your first customer repayment to get started',
     js_btn_print_receipt:'Print Receipt',
+    js_btn_download_receipt:'Download Receipt',
+    js_btn_print_invoice:'Print Invoice',
+    js_btn_download_invoice:'Download Invoice',
+    js_lbl_invoice_document:'Invoice',
+    js_th_item_desc:'Item / Description',
+    js_th_qty:'Qty',
+    js_th_unit_price:'Unit Price',
+    js_lbl_payments_applied:'Payments Applied',
     js_empty_no_products:'No products found',
     js_empty_no_products_sub:'Add your first product to start selling',
     js_btn_adjust_stock:'Adjust Stock',
@@ -6268,7 +6284,7 @@ const I18N_DICT={
     nav_sec_overview:'Aperçu',nav_sec_customers:'Clients',nav_sec_catalog:'Catalogue',
     nav_sec_pos:'Point de Vente',nav_sec_analytics:'Analytique',nav_sec_system:'Système',nav_sec_support:'Assistance',
     nav_dashboard:'Tableau de bord',nav_customers:'Clients',nav_products:'Produits',nav_inventory:'Inventaire',
-    nav_pos:'Ventes (PDV)',nav_sales:'Ventes à Crédit',nav_financial:'Résumé Financier',nav_saleshistory:'Historique des Ventes',
+    nav_pos:'Ventes (PDV)',nav_sales:'Ventes à Crédit',nav_invoices:'Factures à Crédit',nav_financial:'Résumé Financier',nav_saleshistory:'Historique des Ventes',
     nav_payments:'Remboursement de Crédit',nav_collection:'Recouvrement de Créances',nav_ledger:'Registre des Créances',
     nav_reports:'Rapports',nav_calendar:'Calendrier',nav_settings:'Paramètres',nav_backup:'Sauvegarde',nav_help:'Centre d\'Aide',nav_about:'À Propos',
     sb_call:'Appeler',sb_whatsapp:'WhatsApp',sb_email:'E-mail',
@@ -6277,7 +6293,7 @@ const I18N_DICT={
     page_products_title:'Produits',page_products_desc:'Gérez votre catalogue de produits et vos prix',
     page_inventory_title:'Inventaire',page_inventory_desc:'Niveaux de stock, ajustements et résumé de caisse quotidien',
     page_pos_title:'Ventes (PDV)',page_pos_desc:'Enregistrez une vente au comptant ou à crédit',
-    page_sales_title:'Ventes à Crédit',page_sales_desc:'Suivez les factures à crédit et soldes impayés',
+    page_sales_title:'Factures à Crédit',page_sales_desc:'Suivez les factures à crédit et soldes impayés',
     page_financial_title:'Résumé Financier',page_financial_desc:'Aperçu en temps réel de l\u2019inventaire, des ventes, du crédit et du profit',
     page_saleshistory_title:'Historique des Ventes',page_saleshistory_desc:'Toutes les ventes au comptant et à crédit réunies',
     page_payments_title:'Remboursement de Crédit',page_payments_desc:'Enregistrez et suivez les remboursements des clients',
@@ -6635,6 +6651,7 @@ const I18N_DICT={
     val_deposit_range:'L\u2019acompte doit être compris entre 0 et le total général\u00A0!',
     val_amount_received_short:'Le montant reçu ({received}) est inférieur au total général ({total})\u00A0!',
     toast_receipt_downloaded:'Reçu téléchargé\u00A0!',
+    js_tt_view_in_invoices:'Voir dans Factures',
     toast_report_exported:'Rapport exporté\u00A0!',
     toast_receipt_not_found:'Reçu introuvable',
     toast_pin_saved_unlocked:'Nouveau code PIN enregistré. Vous êtes déverrouillé.',
@@ -7089,11 +7106,19 @@ const I18N_DICT={
     js_lbl_customer_statement:'Relevé de compte client',
     js_th_debit:'Débit',
     js_empty_no_invoices:'Aucune facture trouvée',
-    js_empty_no_invoices_sub:'Créez votre première facture de vente à crédit',
+    js_empty_no_invoices_sub:'Les factures à crédit issues des ventes POS apparaîtront ici.',
     js_ph_item_name:'Nom ou description de l\u2019article',
     js_empty_no_repayments:'Aucun remboursement enregistré',
     js_empty_no_repayments_sub:'Enregistrez votre premier remboursement client pour commencer',
     js_btn_print_receipt:'Imprimer le reçu',
+    js_btn_download_receipt:'Télécharger le reçu',
+    js_btn_print_invoice:'Imprimer la facture',
+    js_btn_download_invoice:'Télécharger la facture',
+    js_lbl_invoice_document:'Facture',
+    js_th_item_desc:'Article / Description',
+    js_th_qty:'Qté',
+    js_th_unit_price:'Prix Unitaire',
+    js_lbl_payments_applied:'Paiements effectués',
     js_empty_no_products:'Aucun produit trouvé',
     js_empty_no_products_sub:'Ajoutez votre premier produit pour commencer à vendre',
     js_btn_adjust_stock:'Ajuster le stock',
@@ -8023,6 +8048,111 @@ td{padding:9px 12px;border-bottom:1px solid #EEF1F6;font-size:14px}tr:nth-child(
   w.document.close();
 }
 
+/* ── Invoice Print / Download ──
+   Read-only document generation for a single credit-sale invoice, modeled
+   directly on printStatement()'s markup/CSS above (same header, customer-box,
+   summary-card and table classes) rather than inventing a new visual
+   language, per the reuse-first policy.
+
+   One document builder, returning HTML; printInvoice()/downloadInvoice()
+   both render from it, so print and download can never drift apart — same
+   pattern already proven for repayment receipts (buildPaymentReceiptDocument
+   / printPaymentReceipt / downloadPaymentReceipt).
+
+   Every figure is read from the existing source-of-truth functions —
+   invPaidAmt(), invBalance(), invNum(), invStatusLabel() — nothing here
+   recalculates anything. No writes anywhere in this function.
+
+   Cancelled invoices remain fully document-retrievable (per spec) but are
+   unmistakably marked: a CANCELLED banner, the original invoice amount is
+   still shown, and the Balance Due card is suppressed (invBalance() returns
+   0 for a cancelled invoice by design — showing that 0 next to "Balance Due"
+   would misleadingly read as "fully paid", so it is shown as "—" instead).
+   Payments Applied lists every payment chronologically — the original POS
+   deposit, if any, naturally appears as the earliest entry; no special
+   "deposit" detection or labeling is attempted, since the only reliable hook
+   for that would be string-matching a free-text notes field. */
+function buildInvoiceDocument(saleId){
+  const s=S.get('sales').find(x=>x.id===saleId);if(!s)return null;
+  const cfg=S.obj('settings');
+  const doc=S.obj('docSettings');
+  const cust=s.cid?S.get('customers').find(c=>c.id===s.cid):null;
+  const cancelled=s.status==='cancelled';
+  const paidAmt=invPaidAmt(saleId);
+  const balance=invBalance(saleId);
+  const pays=S.get('payments').filter(p=>p.invId===saleId).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  const items=Array.isArray(s.items)?s.items:[];
+  const footerMsg=doc.statementFooter||'Thank you for your continued trust.';
+  const mLabel={cash:'Cash','mobile-money':'Mobile Money','bank-transfer':'Bank Transfer',cheque:'Cheque',card:'Card',other:'Other'};
+  return`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${esc(invNum(saleId))} — ${esc(cust?.name||'')}</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:15px;color:#1B2333;padding:28px}
+.hdr{display:flex;justify-content:space-between;margin-bottom:22px;padding-bottom:14px;border-bottom:3px solid #0B2C6B}
+.hdr-left{display:flex;align-items:center;gap:12px}
+.hdr-logo{width:48px;height:48px;object-fit:contain}
+.biz-name{font-size:25.5px;font-weight:900;color:#0B2C6B}.biz-info{font-size:14px;color:#5B6478;margin-top:4px;line-height:1.7}
+.stmt-lbl{font-size:23px;font-weight:800;color:#CE9500;text-align:right}.stmt-meta{font-size:14px;color:#5B6478;text-align:right;line-height:1.7;margin-top:4px}
+.cancel-banner{background:#FEE2E2;border:2px solid #DC2626;border-radius:10px;padding:10px 16px;margin-bottom:18px;text-align:center;font-size:16px;font-weight:900;color:#DC2626;letter-spacing:1px}
+.cust-box{background:#F5F7FA;border:1px solid #EAECF2;border-radius:10px;padding:14px 18px;margin-bottom:18px}
+.cust-box h2{font-size:18.5px;font-weight:800;margin-bottom:6px;color:#0B2C6B}.cust-box p{font-size:14px;color:#5B6478;line-height:1.8}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+.sum-card{border:1px solid #EAECF2;border-radius:10px;padding:12px 14px}
+.sum-card:nth-child(1){border-top:3px solid #0B2C6B}.sum-card:nth-child(2){border-top:3px solid #16A34A}
+.sum-card:nth-child(3){border-top:3px solid ${(!cancelled&&balance>0)?'#DC2626':'#16A34A'}}
+.sum-card label{font-size:11.5px;font-weight:700;color:#98A2B3;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px}
+.sum-card span{font-size:20.5px;font-weight:900}
+table{width:100%;border-collapse:collapse;margin-bottom:18px}th{background:#0B2C6B;color:#fff;padding:9px 12px;text-align:left;font-size:12.5px;font-weight:700;text-transform:uppercase}
+td{padding:9px 12px;border-bottom:1px solid #EEF1F6;font-size:14px}tr:nth-child(even)td{background:#F5F7FA}
+.sec-lbl{font-size:13px;font-weight:800;color:#0B2C6B;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.bp{color:#DC2626;font-weight:800}.bz{color:#16A34A;font-weight:800}
+.footer{margin-top:28px;text-align:center;font-size:12.5px;color:#98A2B3;border-top:1px solid #EAECF2;padding-top:14px}
+@media print{button{display:none}}</style></head><body>
+<div class="hdr">
+  <div class="hdr-left">
+    <img class="hdr-logo" src="${cfg.logo||APP_LOGO}" alt="logo">
+    <div><div class="biz-name">${esc(cfg.businessName||'BIZORA')}</div>
+    <div class="biz-info">${esc(cfg.address||'')}${cfg.phone?'<br>📞 '+esc(cfg.phone):''}${cfg.email?' · 📧 '+esc(cfg.email):''}</div></div>
+  </div>
+  <div><div class="stmt-lbl">${t('js_lbl_invoice_document')}</div>
+  <div class="stmt-meta">${invNum(saleId)}<br>${fmtDate(s.date)}${s.due?' · Due '+fmtDate(s.due):''}<br>${invStatusLabel(invStatus(s))}</div></div>
+</div>
+${cancelled?`<div class="cancel-banner">⛔ ${t('status_cancelled').toUpperCase()}</div>`:''}
+<div class="cust-box">
+  <h2>${esc(cust?.name||'—')}${cust?.businessName?' &nbsp;·&nbsp; '+esc(cust.businessName):''}</h2>
+  <p>${cust?.phone?'📞 '+esc(cust.phone):''}${cust?.email?' &nbsp;·&nbsp; 📧 '+esc(cust.email):''}${cust?.addr?'<br>📍 '+esc(cust.addr):''}</p>
+</div>
+<div class="summary">
+  <div class="sum-card"><label>${t('th_total_invoiced')}</label><span>${cur(s.amount)}</span></div>
+  <div class="sum-card"><label>${t('th_total_paid')}</label><span>${cur(paidAmt)}</span></div>
+  <div class="sum-card"><label>${t('pos_outstanding_balance')}</label><span class="${cancelled?'':(balance>0?'bp':'bz')}">${cancelled?'—':cur(balance)}</span></div>
+</div>
+<div class="sec-lbl">${t('js_th_item_desc')}</div>
+<table><thead><tr><th>${t('js_th_item_desc')}</th><th>${t('js_th_qty')}</th><th>${t('js_th_unit_price')}</th><th>${t('th_total')}</th></tr></thead>
+<tbody>${items.length?items.map(it=>{const qty=parseFloat(it.qty)||1,price=parseFloat(it.price)||0,line=parseFloat(it.subtotal)||(qty*price);
+return`<tr><td>${esc(it.name||'—')}</td><td>${fmtQty(qty)}</td><td>${cur(price)}</td><td style="font-weight:700">${cur(line)}</td></tr>`;}).join(''):
+`<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:18px">—</td></tr>`}
+</tbody></table>
+<div class="sec-lbl">${t('js_lbl_payments_applied')}</div>
+<table><thead><tr><th>${t('lbl_date')}</th><th>${t('th_method')}</th><th>${t('th_reference')}</th><th>${t('th_amount')}</th></tr></thead>
+<tbody>${pays.length?pays.map(p=>`<tr><td>${fmtDate(p.date)}</td><td>${esc(mLabel[p.method]||p.method||'—')}</td><td>${esc(p.ref||'—')}</td><td style="font-weight:700;color:#16A34A">${cur(p.amount)}</td></tr>`).join(''):
+`<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:18px">—</td></tr>`}
+</tbody></table>
+<div class="footer">${esc(footerMsg)}<br>Generated by <strong>BIZORA</strong> &nbsp;·&nbsp; ${new Date().toLocaleString()}<br>${esc(cfg.phone||'')} ${esc(cfg.email||'')}</div>
+</body></html>`;
+}
+function printInvoice(id){
+  const html=buildInvoiceDocument(id);
+  if(!html)return;
+  const w=window.open('','_blank','width=900,height=700');
+  w.document.write(html.replace('</body>','<script>setTimeout(()=>window.print(),400);<\/script></body>'));
+  w.document.close();
+}
+function downloadInvoice(id){
+  const html=buildInvoiceDocument(id);
+  if(!html)return;
+  dl(html,invNum(id).replace(/[^a-zA-Z0-9-_]/g,'')+'.html','text/html');
+  toast(t('toast_receipt_downloaded'),'success');
+}
+
 /* ═══════════════ SALES / INVOICES ═══════════════ */
 function loadSales(){renderSalesStats();renderSalesTable(S.get('sales'));populateAllDropdowns();}
 function renderSalesStats(){
@@ -8070,6 +8200,8 @@ function renderSalesTable(salesIn){
         ${bal>0&&!cancelled?`<button class="btn btn-success btn-xs" onclick="quickPay('${s.id}')">💳</button>`:''}
         ${!cancelled?`<button class="btn btn-outline btn-xs" onclick="editSale('${s.id}')">✏️</button>`:''}
         ${!cancelled?`<button class="btn btn-warning btn-xs" onclick="cancelSale('${s.id}')" title="Cancel">🚫</button>`:''}
+        <button class="btn btn-outline btn-xs" onclick="printInvoice('${s.id}')" title="${t('js_btn_print_invoice')}">🖨️</button>
+        <button class="btn btn-outline btn-xs" onclick="downloadInvoice('${s.id}')" title="${t('js_btn_download_invoice')}">📥</button>
         <button class="btn btn-ghost btn-xs" onclick="delSale('${s.id}')">🗑️</button>
       </div></td>
     </tr>`;
@@ -8856,6 +8988,7 @@ function renderPayTable(paysIn){
       <td style="font-size:14px;color:var(--txt2);max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.notes||'—')}</td>
       <td><div style="display:flex;gap:4px">
         <button class="btn btn-outline btn-xs" onclick="printPaymentReceipt('${p.id}')" title="${t('js_btn_print_receipt')}">🖨️</button>
+        <button class="btn btn-outline btn-xs" onclick="downloadPaymentReceipt('${p.id}')" title="${t('js_btn_download_receipt')}">📥</button>
         <button class="btn btn-ghost btn-xs" onclick="delPay('${p.id}')">🗑️</button>
       </div></td>
     </tr>`;
@@ -14182,8 +14315,24 @@ document.addEventListener('click',e=>{
 /* ═══════════════════════════════════════════════════
    PHASE 3: PRINTABLE PAYMENT RECEIPT
    ═══════════════════════════════════════════════════ */
-function printPaymentReceipt(paymentId){
-  const p=S.get('payments').find(x=>x.id===paymentId);if(!p)return;
+/* Builds the repayment receipt as a complete, standalone HTML document and
+   RETURNS it, so both the print window and the download button render from
+   one definition rather than each maintaining its own copy of the layout.
+   This mirrors the pattern already proven for sales receipts by
+   buildReceiptDocument() / printReceipt() / downloadReceipt().
+
+   Presentation only: every figure comes from the same reads
+   printPaymentReceipt() already made — S.get('payments'/'customers'/'sales'),
+   S.obj('settings'/'docSettings') and the authoritative invBalance(). Nothing
+   is recalculated here and nothing is written.
+
+   Known behaviour, unchanged from the original: balRemaining is evaluated
+   live via invBalance() at generation time, NOT as of the payment date, so a
+   re-generated receipt reflects the invoice's balance today. Preserved
+   deliberately — changing it would alter savePay()/invBalance(), which are
+   out of scope. */
+function buildPaymentReceiptDocument(paymentId){
+  const p=S.get('payments').find(x=>x.id===paymentId);if(!p)return null;
   const cfg=S.obj('settings');
   const doc=S.obj('docSettings');
   const footerMsg=doc.receiptFooter||'Thank you for your payment!';
@@ -14191,8 +14340,7 @@ function printPaymentReceipt(paymentId){
   const inv=S.get('sales').find(s=>s.id===p.invId);
   const balRemaining=inv?invBalance(inv.id):0;
   const mLabel={cash:'Cash','mobile-money':'Mobile Money','bank-transfer':'Bank Transfer',cheque:'Cheque',card:'Card',other:'Other'};
-  const w=window.open('','_blank','width=420,height=620');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Receipt ${esc(recNum(p.id))}</title>
+  return`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Receipt ${esc(recNum(p.id))}</title>
 <style>body{font-family:'Courier New',monospace;font-size:14px;padding:16px;color:#1e293b}
 hr{border:none;border-top:1px dashed #999;margin:8px 0}
 .rc-center{text-align:center}.rc-row{display:flex;justify-content:space-between;padding:2px 0}.rc-bold{font-weight:800}
@@ -14219,8 +14367,29 @@ ${p.notes?`<div class="rc-row"><span>Remarks</span><span>${esc(p.notes)}</span><
 <hr>
 <div class="rc-center">${esc(footerMsg)}</div>
 <div class="rc-center" style="font-size:11.5px;color:#888">${t('js_lbl_powered_by')}</div>
-<script>setTimeout(()=>window.print(),300);<\/script></body></html>`);
+</body></html>`;
+}
+/* Unchanged public contract: same name, same single paymentId argument, same
+   observable behaviour (opens a print window that auto-prints). savePay()'s
+   post-save auto-print call site and the global-search call site therefore
+   need no modification at all. The auto-print script is injected here rather
+   than baked into the document, exactly as printReceipt() does for sales, so
+   the downloaded file does not carry a print trigger. */
+function printPaymentReceipt(paymentId){
+  const html=buildPaymentReceiptDocument(paymentId);
+  if(!html)return;
+  const w=window.open('','_blank','width=420,height=620');
+  w.document.write(html.replace('</body>','<script>setTimeout(()=>window.print(),300);<\/script></body>'));
   w.document.close();
+}
+/* Download counterpart. Reuses the generic dl() helper (10 existing call
+   sites) and the existing toast_receipt_downloaded translation key — no new
+   i18n key, no new download mechanism, no writes. */
+function downloadPaymentReceipt(paymentId){
+  const html=buildPaymentReceiptDocument(paymentId);
+  if(!html)return;
+  dl(html,recNum(paymentId).replace(/[^a-zA-Z0-9-_]/g,'')+'.html','text/html');
+  toast(t('toast_receipt_downloaded'),'success');
 }
 
 /* ═══════════════════════════════════════════════════
@@ -14893,7 +15062,7 @@ function renderSalesHistoryTable(listIn){
       <td><span class="badge ${invStatusBadgeClass(s.status)}">${invStatusLabel(s.status)}</span></td>
       <td><div style="display:flex;gap:4px">
         ${s.type==='cash'?`<button class="btn btn-outline btn-xs" onclick="reprintCashReceipt('${s.rawId}')" title="Reprint Receipt">🖨️</button>`:''}
-        ${s.type==='credit'?`<button class="btn btn-outline btn-xs" onclick="closeModal('mSearch');go('sales');setTimeout(()=>{document.getElementById('salesSearch').value='${esc(s.docNum)}';filterSales();},80)" title="View in Credit Sales">🔎</button>`:''}
+        ${s.type==='credit'?`<button class="btn btn-outline btn-xs" onclick="closeModal('mSearch');go('sales');setTimeout(()=>{document.getElementById('salesSearch').value='${esc(s.docNum)}';filterSales();},80)" title="${t('js_tt_view_in_invoices')}">🔎</button>`:''}
         ${s.cid?`<button class="btn btn-outline btn-xs" onclick="viewCust('${s.cid}')" title="View Customer">👤</button>`:''}
         ${s.status!=='cancelled'?`<button class="btn btn-ghost btn-xs" onclick="openReverseSale('${s.type}','${s.rawId}')" title="${esc(t('rev_action_title'))}">↩</button>`:''}
       </div></td>
@@ -17708,6 +17877,15 @@ const ServiceWorkerManager = (() => {
 
   function register(){
     if(!('serviceWorker' in navigator)) return;
+    /* Captured synchronously, BEFORE register() is called, so it records the
+       state at the moment registration began — not after the new worker may
+       already have claimed the page. On a first-ever visit there is no
+       controller yet, so this is false; on any later visit an active worker
+       already controls the page, so it is true. The controllerchange handler
+       below uses it to tell "a genuinely newer worker took over" apart from
+       "the very first worker just claimed an uncontrolled page", which is
+       not an update and must not raise the update banner. */
+    const hadControllerAtRegistration = !!navigator.serviceWorker.controller;
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./service-worker.js')
         .then((reg) => {
@@ -17749,6 +17927,15 @@ const ServiceWorkerManager = (() => {
           navigator.serviceWorker.addEventListener('controllerchange', () => {
             if(refreshing) return;
             if(!userInitiatedUpdate){
+              /* First-ever registration: clients.claim() in the worker's
+                 activate step fires controllerchange on a page that had no
+                 controller at all. Nothing was replaced and nothing is
+                 waiting (reg.waiting/reg.installing are both null), so there
+                 is no update to offer — returning here keeps the banner from
+                 appearing on a brand-new visitor's first launch. Returning
+                 visitors always have a controller, so their update path below
+                 is untouched. */
+              if(!hadControllerAtRegistration) return;
               /* Not approved by the user: leave the session alone. The new
                  worker now controls the page, so surface the banner and let
                  the merchant reload when it suits them. */

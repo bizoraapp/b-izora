@@ -12,13 +12,13 @@
    owned by the app's own S.get()/S.set()/S.obj()/S.setObj() layer.
    ========================================================================== */
 
-const CACHE_VERSION = 'v114';
+const CACHE_VERSION = 'v120';
 /* Rollback safety net: the cache from this version is kept alive one
    extra deploy cycle rather than deleted the moment v3 activates. If a
    deploy turns out broken, the previous version's cached assets are
    still present for one more cycle — a real (if modest) safety margin
    for a static single-file app with no server-side rollback mechanism. */
-const PREVIOUS_CACHE_VERSION = 'v112';
+const PREVIOUS_CACHE_VERSION = 'v114';
 const CACHE_NAME = `bizora-${CACHE_VERSION}`;
 const FONT_CACHE_NAME = `bizora-fonts-${CACHE_VERSION}`;
 
