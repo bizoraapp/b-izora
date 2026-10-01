@@ -45,8 +45,7 @@
       "Edit(tests/tools/**)",
       "Write(tests/tools/**)",
       "Edit(engineering/decisions/**)",
-      "Write(engineering/decisions/**)",
-      "Edit(docs/product/PRO-00_Product_Constitution.md)"
+      "Write(engineering/decisions/**)"
     ]
   },
   "hooks": {
