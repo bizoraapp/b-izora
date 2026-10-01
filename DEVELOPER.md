@@ -1,6 +1,6 @@
 # Bizora — Developer Documentation
 
-**Version:** 4.3.7 · **Build:** 2026.09.30f · **Database schema:** v8
+**Version:** 4.3.8 · **Build:** 2026.10.01a · **Database schema:** v8
 **Maintainer:** Ngwe Lesley Mbom
 
 This document exists so future work on Bizora can extend it without needing to re-read all ~10,400 lines to understand how the pieces fit together. It reflects the app as of Phase 6 (production hardening) of the PWA conversion.
@@ -134,6 +134,13 @@ New optional fields: `creditLedger[].method`, `expenses[].payMethod` (both writt
 Approval kinds `overpay` and `creditRefund` reuse the existing `OwnerApproval` single-use slot (`bindKey`, `requestOwnerActionApproval`, `submitPriceApproval`).
 
 ## 10. Changelog
+
+### 4.3.8 — build 2026.10.01a (cache v131, previous v120 = live production 4.2.7)
+- **Fixed (backup restore):** every real backup failed silently after "read started". `BackupValidator.validate()` passed `ValidationService` methods detached, so `this._req` threw inside the FileReader callback. The validators are now called on `ValidationService`; credit invoices are checked on `amount`; a validation or import error is shown as an error (never as success); the warning text no longer claims records "will be skipped" (the merge never skipped any). Backup format and merge-by-id unchanged.
+- **Added (payment-method integrity):** one canonical list `PAYMENT_METHODS` (+ `DEPOSIT_METHODS` without Cheque, `isPaymentMethod()`); POS credit deposit and new-invoice deposit get a "Deposit paid with" selector (shown only when deposit > 0, no default, cleared on reset / deposit 0 / customer change); `finalizeCreditSale()` (optional 7th argument `depositMethod`), `saveSale()`, `savePay()`, refunds and expenses validate against the canonical list at the save function, before any write; deposits and repayments audited with method and invoice; credit receipts (screen/print, PDF, WhatsApp text) show the deposit method; missing/unknown stored methods shown as "Not recorded" (never Cash) and reported in the cash-drawer note; payments filter gains Other and Account Credit.
+- **Files:** `index.html`, `service-worker.js` (CACHE_VERSION v131), `DEVELOPER.md`.
+- **Database:** no schema/IDB version change, no migration, no historical record rewritten.
+- **Breaking changes:** a credit sale or new invoice with a deposit now requires choosing the deposit method (intended).
 
 ### 4.3.7 — build 2026.09.30f (cache v130)
 - **Added:** G1–G4 money controls (section 9); expense "Paid with" field; refund-method screen; three drawer lines (Cash Payments Received, Cash Expenses, Cash Refunds) and a cash-only note; 31 EN/FR strings.

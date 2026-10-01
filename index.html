@@ -1909,7 +1909,15 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
 
             <!-- Credit fields -->
             <div class="credit-fields" id="posCreditFields">
-              <div class="form-group"><label class="form-label" data-i18n="pos_deposit_paid">Deposit Paid</label><input type="text" inputmode="decimal" class="fc fw num-fmt" id="posDeposit" value="0" oninput="calcPosTotals()"></div>
+              <div class="form-group"><label class="form-label" data-i18n="pos_deposit_paid">Deposit Paid</label><input type="text" inputmode="decimal" class="fc fw num-fmt" id="posDeposit" value="0" oninput="calcPosTotals();syncDepositMethod('pos')"></div>
+              <!-- 4.3.8 (B2): shown only when a deposit is entered; no default — the cashier must choose -->
+              <div class="form-group" id="posDepositMethodWrap" style="display:none"><label class="form-label" data-i18n="dep_method_label">Deposit paid with *</label>
+                <select class="fc fw" id="posDepositMethod">
+                  <option value="" data-i18n="refund_method_choose">— Choose —</option>
+                  <option value="cash" data-i18n="pos_opt_cash">💵 Cash</option><option value="mobile-money" data-i18n="pos_opt_mobile">📱 Mobile Money</option>
+                  <option value="bank-transfer" data-i18n="pos_opt_bank">🏦 Bank Transfer</option><option value="card" data-i18n="pos_opt_card">💳 Card</option><option value="other" data-i18n="pos_opt_other">💰 Other</option>
+                </select>
+              </div>
               <div class="form-group"><label class="form-label" data-i18n="pos_credit_period">Credit Period (days)</label>
                 <select class="fc fw" id="posCreditPeriod" onchange="applyPosCreditPeriod()">
                   <option value="7" data-i18n="pos_days_7">7 days</option><option value="15" data-i18n="pos_days_15">15 days</option><option value="30" selected data-i18n="pos_days_30">30 days</option>
@@ -2111,6 +2119,7 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
           <option value="">All Methods</option><option value="cash">Cash</option>
           <option value="mobile-money">Mobile Money</option><option value="bank-transfer">Bank Transfer</option>
           <option value="cheque">Cheque</option><option value="card">Card</option>
+          <option value="other" data-i18n="method_other">Other</option><option value="account credit" data-i18n="method_account_credit">Account Credit</option>
         </select>
         <select class="fc" id="payCollectorSel" onchange="filterPayments()"><option value="">All Collectors</option></select>
         <input type="date" class="fc" id="payDateFrom" title="From date" onchange="filterPayments()">
@@ -3018,7 +3027,15 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
       <!-- Totals -->
       <div class="totals-box">
         <div class="tot-row"><label>Invoice Total</label><span class="tot-val" id="invTotalDisplay" style="color:var(--txt)">—</span></div>
-        <div class="tot-row"><label>Deposit / Advance Paid</label><input type="text" inputmode="decimal" class="tot-input num-fmt" id="sInitPay" value="0" oninput="calcInvTotal()"></div>
+        <div class="tot-row"><label>Deposit / Advance Paid</label><input type="text" inputmode="decimal" class="tot-input num-fmt" id="sInitPay" value="0" oninput="calcInvTotal();syncDepositMethod('inv')"></div>
+        <!-- 4.3.8 (B3): shown only when a deposit is entered; no default -->
+        <div class="tot-row" id="sDepositMethodWrap" style="display:none"><label data-i18n="dep_method_label">Deposit paid with *</label>
+          <select class="fc" id="sDepositMethod" style="max-width:190px">
+                  <option value="" data-i18n="refund_method_choose">— Choose —</option>
+                  <option value="cash" data-i18n="pos_opt_cash">💵 Cash</option><option value="mobile-money" data-i18n="pos_opt_mobile">📱 Mobile Money</option>
+                  <option value="bank-transfer" data-i18n="pos_opt_bank">🏦 Bank Transfer</option><option value="card" data-i18n="pos_opt_card">💳 Card</option><option value="other" data-i18n="pos_opt_other">💰 Other</option>
+          </select>
+        </div>
         <div class="tot-row tot-highlight"><label style="font-weight:800">Outstanding Balance</label><span class="tot-val" id="invOutDisplay" style="color:var(--danger)">—</span></div>
       </div>
       <div class="form-row">
@@ -3678,10 +3695,10 @@ const APP_LOGO='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAIAAADTED
    the "Update available" banner. Purely informational at the app layer;
    the actual update *mechanism* is the service worker (see UpdateManager
    in the bottom PWA runtime script). */
-const APP_VERSION='4.3.7';
+const APP_VERSION='4.3.8';
 /* Build number — date-based, bumped by regenerating this file. Shown on
    the About page alongside the version for support/debugging purposes. */
-const BUILD_NUMBER='2026.09.30f';
+const BUILD_NUMBER='2026.10.01a';
 const IDB_NAME='CreditBossDB';
 const IDB_VERSION=8;
 /* Schema: object store name -> {keyPath, indexes:[{name,keyPath,options}]} */
@@ -4489,17 +4506,26 @@ const SecurityManager = {
       if(!hasAnyKnownArray){
         return {valid:false, corrupt:true, errors:['File does not contain any recognizable Bizora business data.'], warnings, skipCounts};
       }
+      /* 4.3.8 restore fix: the ValidationService methods use `this`, so they
+         must be CALLED on ValidationService — passing them detached made
+         `this` undefined and every real backup threw before the confirm
+         step (restore silently stopped after "read started"). Credit
+         invoices store their total in `amount`, which the shared sale
+         validator reads as `total`. The import itself (merge by id, every
+         record imported) is unchanged; this check only produces warnings. */
+      const V = (typeof ValidationService!=='undefined') ? ValidationService : null;
+      const obj = r => (r && typeof r==='object') ? r : {}; // a null/garbage row is reported as incomplete, never thrown on
       const checks = {
-        customers: (typeof ValidationService!=='undefined') ? ValidationService.validateCustomer : null,
-        sales: (typeof ValidationService!=='undefined') ? ValidationService.validateSale : null,
-        products: (typeof ValidationService!=='undefined') ? ValidationService.validateProduct : null
+        customers: V ? rec=>V.validateCustomer(obj(rec)) : null,
+        sales: V ? rec=>{const s=obj(rec);return V.validateSale(s.total===undefined?{...s,total:s.amount}:s);} : null,
+        products: V ? rec=>V.validateProduct(obj(rec)) : null
       };
       for(const key in checks){
         const validator = checks[key];
         if(!validator || !Array.isArray(data[key])) continue;
         let bad=0;
         data[key].forEach(rec => { if(!validator(rec).valid) bad++; });
-        if(bad>0){ skipCounts[key]=bad; warnings.push(`${bad} ${key} record(s) look malformed and will be skipped.`); }
+        if(bad>0){ skipCounts[key]=bad; warnings.push(`${bad} ${key} record(s) look incomplete — they will still be imported as they are.`); }
       }
       return {valid:true, corrupt:false, errors, warnings, skipCounts};
     }
@@ -5763,7 +5789,7 @@ const I18N_DICT={
     exp_paid_with:'Paid with',exp_method_not_recorded:'Not recorded',exp_method_invalid:'Choose how this expense was paid',
     cd_lbl_cash_in:'Cash Payments Received',cd_lbl_cash_expenses:'Cash Expenses',cd_lbl_cash_refunds:'Cash Refunds',
     cd_note_cash_only:'Expected Cash counts physical cash only: mobile money, bank, card and account credit are not included, and change given back is not counted.',
-    cd_note_unrecorded:'{count} record(s) from today have no payment method (saved before this update) and are not included.',
+    cd_note_unrecorded:'{count} record(s) from today were left out because their payment method is missing or not recognised.',
     cd_invalid_amount:'Enter a cash amount of 0 or more',
     val_item_row_required:'At least one item row is required',
     toast_customer_blocked_warning:'⚠️ This customer is BLOCKED and cannot receive new credit sales!',
@@ -5815,6 +5841,12 @@ const I18N_DICT={
     toast_backup_exported:'Backup exported!',
     toast_entity_exported:'{entity} exported!',
     toast_backup_read_failed:'Could not read backup file!',
+    toast_backup_restore_failed:'Restore failed: {error}. A recovery point was saved before the import started.',
+    // 4.3.8 — payment-method integrity
+    dep_method_label:'Deposit paid with *',dep_method_receipt:'Deposit paid with',
+    val_deposit_method_required:'Choose how the deposit was paid: Cash, Mobile Money, Bank Transfer, Card or Other',
+    val_payment_method_invalid:'Choose a valid payment method',
+    pm_not_recorded:'Not recorded',method_account_credit:'Account Credit',
     toast_backup_invalid:'Invalid backup file!',
     toast_import_summary:'Imported {c} customers, {s} invoices, {p} payments, {pr} products, {exp} expenses, and {inv} inventory records',
     entity_customers:'Customers',
@@ -6789,7 +6821,7 @@ const I18N_DICT={
     exp_paid_with:'Payé par',exp_method_not_recorded:'Non enregistré',exp_method_invalid:'Choisissez comment cette dépense a été payée',
     cd_lbl_cash_in:'Paiements reçus en espèces',cd_lbl_cash_expenses:'Dépenses en espèces',cd_lbl_cash_refunds:'Remboursements en espèces',
     cd_note_cash_only:'Les espèces attendues ne comptent que l\u2019argent liquide\u00A0: mobile money, banque, carte et avoirs ne sont pas inclus, et la monnaie rendue n\u2019est pas comptée.',
-    cd_note_unrecorded:'{count} enregistrement(s) d\u2019aujourd\u2019hui n\u2019ont pas de mode de paiement (saisis avant cette mise à jour) et ne sont pas inclus.',
+    cd_note_unrecorded:'{count} enregistrement(s) d\u2019aujourd\u2019hui ont été exclus car leur mode de paiement est absent ou non reconnu.',
     cd_invalid_amount:'Saisissez un montant en espèces de 0 ou plus',
     val_item_row_required:'Au moins une ligne d\u2019article est obligatoire',
     toast_customer_blocked_warning:'⚠️ Ce client est BLOQUÉ et ne peut pas recevoir de nouvelles ventes à crédit\u00A0!',
@@ -6841,6 +6873,12 @@ const I18N_DICT={
     toast_backup_exported:'Sauvegarde exportée\u00A0!',
     toast_entity_exported:'Export terminé\u00A0: {entity}',
     toast_backup_read_failed:'Impossible de lire le fichier de sauvegarde\u00A0!',
+    toast_backup_restore_failed:'La restauration a échoué\u00A0: {error}. Un point de récupération a été enregistré avant le début de l\u2019importation.',
+    // 4.3.8 — intégrité du mode de paiement
+    dep_method_label:'Acompte payé par *',dep_method_receipt:'Acompte payé par',
+    val_deposit_method_required:'Choisissez comment l\u2019acompte a été payé\u00A0: Comptant, Mobile Money, Virement Bancaire, Carte ou Autre',
+    val_payment_method_invalid:'Choisissez un mode de paiement valide',
+    pm_not_recorded:'Non enregistré',method_account_credit:'Avoir client',
     toast_backup_invalid:'Fichier de sauvegarde invalide\u00A0!',
     toast_import_summary:'{c} clients, {s} factures, {p} paiements, {pr} produits, {exp} dépenses et {inv} enregistrements d\u2019inventaire importés',
     entity_customers:'Clients',
@@ -8215,7 +8253,7 @@ function promptApplyCredit(cid){
    boundary — it re-checks permission, amount, method and (for employees)
    a single-use Owner approval every time it runs, including when it is
    called directly. Nothing is written unless every check passes. */
-const REFUND_METHODS=['cash','mobile-money','bank-transfer','cheque','card','other'];
+// 4.3.8: refund methods = the one canonical PAYMENT_METHODS list (was a separate copy here).
 let _rcCid=null,_rcAmount=0;
 function promptRefundCredit(cid){
   if(!Auth.can('manageCustomers')){toast(t('perm_no_manage_customers'),'error');return;}
@@ -8248,7 +8286,7 @@ function refundAccountCredit(cid,amount,method){
     return false;
   }
   if(!c){toast(t('refund_amount_invalid'),'error');return false;}
-  if(!REFUND_METHODS.includes(method)){toast(t('refund_method_required'),'error');return false;}
+  if(!isPaymentMethod(method)){toast(t('refund_method_required'),'error');return false;} // 4.3.8: canonical list
   if(!isFinite(amount)||amount<=0){toast(t('refund_amount_invalid'),'error');return false;}
   const credit=Math.round(custCreditBalance(cid)*100)/100;
   if(amount>credit+0.005){
@@ -8484,7 +8522,7 @@ return`<tr><td>${esc(it.name||'—')}</td><td>${fmtQty(qty)}</td><td>${cur(price
 </tbody></table>
 <div class="sec-lbl">${t('js_lbl_payments_applied')}</div>
 <table><thead><tr><th>${t('lbl_date')}</th><th>${t('th_method')}</th><th>${t('th_reference')}</th><th>${t('th_amount')}</th></tr></thead>
-<tbody>${pays.length?pays.map(p=>`<tr><td>${fmtDate(p.date)}</td><td>${esc(mLabel[p.method]||p.method||'—')}</td><td>${esc(p.ref||'—')}</td><td style="font-weight:700;color:#16A34A">${cur(p.amount)}</td></tr>`).join(''):
+<tbody>${pays.length?pays.map(p=>`<tr><td>${fmtDate(p.date)}</td><td>${esc(_payMethodDisplay(p.method))}</td><td>${esc(p.ref||'—')}</td><td style="font-weight:700;color:#16A34A">${cur(p.amount)}</td></tr>`).join(''):
 `<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:18px">—</td></tr>`}
 </tbody></table>
 <div class="footer">${esc(footerMsg)}<br>Generated by <strong>BIZORA</strong> &nbsp;·&nbsp; ${new Date().toLocaleString()}<br>${esc(cfg.phone||'')} ${esc(cfg.email||'')}</div>
@@ -8707,6 +8745,13 @@ function saveSale(){
   if(amount<=0){toast(t('val_invoice_total_zero'),'error');return;}
   if(initPay<0){toast(t('val_deposit_negative'),'error');return;}
   if(initPay>amount+0.01){toast(t('val_deposit_exceeds_total'),'error');return;}
+  /* 4.3.8 (B3): a new invoice's deposit must carry a real method, read now,
+     refused before any write or approval. Deposit date behaviour unchanged. */
+  let depMethod=null;
+  if(!eid&&initPay>0){
+    depMethod=readDepositMethod('inv');
+    if(!isPaymentMethod(depMethod,DEPOSIT_METHODS)){toast(t('val_deposit_method_required'),'error',6000);const _s=document.getElementById('sDepositMethod');if(_s)_s.focus();return;}
+  }
   const cust=S.get('customers').find(c=>c.id===cid);
   if(cust&&cust.status==='blocked'){toast(t('val_invoice_blocked_customer'),'error');return;}
   let approval=null,apprSpec=null;
@@ -8746,8 +8791,8 @@ function saveSale(){
     const nid=uid();sales.push({...data,id:nid,docNum:invNum(nid)});
     if(initPay>0){
       const pays=S.get('payments');
-      pays.push({id:uid(),invId:nid,cid,amount:initPay,date,method:'cash',ref:'',notes:'Deposit at time of sale'});
-      S.set('payments',pays);log('payment','Deposit '+cur(initPay)+' from '+(cust?.name||'?'));
+      pays.push({id:uid(),invId:nid,cid,amount:initPay,date,method:depMethod,ref:'',notes:'Deposit at time of sale'}); // 4.3.8: chosen method, never a hard-coded 'cash'
+      S.set('payments',pays);log('payment',`Deposit ${cur(initPay)} (${_payMethodEn(depMethod)}) from ${cust?.name||'?'} on ${invNum(nid)}`);
     }
     log('add',invNum(nid)+' '+cur(amount)+' for '+(cust?.name||'?'));
   }
@@ -8761,6 +8806,7 @@ function resetSaleForm(){
   document.getElementById('editSaleId').value='';
   document.getElementById('sAmount').value='';
   document.getElementById('sInitPay').value='0';
+  syncDepositMethod('inv',true); // 4.3.8: no method survives into the next invoice
   document.getElementById('sPriority').value='normal';
   document.getElementById('sPayTerms').value='30';
   document.getElementById('sNotes').value='';
@@ -9049,7 +9095,7 @@ function saveExpense(skipInventoryWarn){
   }
   if(!category){toast(t('exp_category_required'),'error');return;}
   const payMethod=document.getElementById('expPayMethod').value; // 4.3.7 ('' = not recorded, older expense)
-  if(payMethod&&!_PAY_METHOD_KEY[payMethod]){toast(t('exp_method_invalid'),'error');return;}
+  if(payMethod&&!isPaymentMethod(payMethod)){toast(t('exp_method_invalid'),'error');return;} // 4.3.8: canonical list
   saveExpenseBtn.disabled=true;
   /* Incremental persistence. Note the S.get('expenses') read is now scoped to
      the edit branch only: the add branch previously spread the entire array
@@ -9397,7 +9443,7 @@ function renderPayTable(paysIn){
       <td><div style="font-weight:600">${esc(c?.name||'?')}</div>${c?.businessName?`<div style="font-size:11.5px;color:var(--txt3)">${esc(c.businessName)}</div>`:''}</td>
       <td style="color:var(--primary)">${invNum(p.invId)}</td>
       <td style="font-weight:900;color:var(--success)">${cur(p.amount)}</td>
-      <td>${mIcons[p.method]||'💰'} <span style="text-transform:capitalize">${esc(p.method||'cash')}</span></td>
+      <td>${mIcons[p.method]||'💰'} <span>${esc(_payMethodDisplay(p.method))}</span></td>
       <td style="font-size:14px;color:var(--txt2)">${esc(p.ref||'—')}</td>
       <td style="font-size:14px;color:var(--txt2)">${esc(p.collector||'—')}</td>
       <td style="font-size:14px">${fmtDate(p.date)}</td>
@@ -9474,8 +9520,17 @@ function savePay(){
   // 4.3.7 (G1): the invoice must exist, belong to this customer and be open.
   _ensureFinanceIndices();const _payInv=_salesById.get(invId); // existing O(1) index (invBalance builds the same one)
   if(!_payInv||_payInv.cid!==cid||_payInv.status==='cancelled'){toast(t('val_payment_invoice_invalid'),'error');return;}
+  /* 4.3.8 (B4): the method is read here, at save time, and must be on the one
+     canonical list — before any approval, write or status change. Nothing is
+     ever turned into Cash. The refusal is audited (same policy as 4.3.7). */
+  const method=document.getElementById('pMethod').value;
+  if(!isPaymentMethod(method)){
+    toast(t('val_payment_method_invalid'),'error',6000);
+    logAuditEvent('security',`Payment refused — invalid payment method "${String(method).slice(0,40)}": ${(S.get('customers').find(c=>c.id===cid)||{}).name||'?'} (${cur(amount)} on ${invNum(invId)})`,{recordType:'payment',recordId:invId,..._actorMeta()});
+    return;
+  }
   const bal=invBalance(invId);
-  const method=document.getElementById('pMethod').value,ref=document.getElementById('pRef').value.trim(),collector=document.getElementById('pCollector').value.trim(),notes=document.getElementById('pNotes').value.trim();
+  const ref=document.getElementById('pRef').value.trim(),collector=document.getElementById('pCollector').value.trim(),notes=document.getElementById('pNotes').value.trim();
   const cust=S.get('customers').find(c=>c.id===cid);
   /* Overpayment: apply what's actually owed to the invoice and bank the
      rest as account credit instead of rejecting the entry or letting the
@@ -9533,7 +9588,7 @@ function savePay(){
     logAuditEvent('payment',`Overpayment ${cur(amount)} from ${cust?.name||'?'} on ${invNum(invId)} (${_payMethodEn(method)}): ${cur(appliedAmt)} applied, ${cur(creditAmt)} kept as account credit${_overpayBy?`, approved by ${_overpayBy}`:''}`,{recordType:'payment',recordId:paymentId||invId,prevValue:_creditBefore,newValue:Math.round((_creditBefore+creditAmt)*100)/100,..._actorMeta()}); // 4.3.7
     toast(tf('toast_payment_applied_overpay',{applied:cur(appliedAmt),invoice:invNum(invId),extra:cur(creditAmt),customer:cust?.name||t('toast_fallback_customer'),balance:cur(custCreditBalance(cid))}),'success',5000);
   }else{
-    log('payment','Payment '+cur(amount)+' from '+(cust?.name||'?'));
+    log('payment',`Payment ${cur(amount)} (${_payMethodEn(method)}) from ${cust?.name||'?'} on ${invNum(invId)}`); // 4.3.8: method + invoice in the audit
     toast(t('toast_payment_recorded'),'success');
   }
   closeModal('mAddPay');loadPayments();renderNotifBadgeOnly();
@@ -10692,17 +10747,26 @@ function handleFile(file,srcInput){
       : (()=>{ try{ return JSON.parse(ev.target.result); }catch{ return null; } })();
     if(!data){ toast(t('toast_backup_read_failed'),'error'); return; }
 
-    const check = (typeof SecurityManager!=='undefined')
-      ? SecurityManager.BackupValidator.validate(data)
-      : {valid:true, corrupt:false, errors:[], warnings:[]};
+    // 4.3.8: an unexpected validation error is shown, never swallowed (it used to stop the restore silently).
+    let check;
+    try{
+      check = (typeof SecurityManager!=='undefined')
+        ? SecurityManager.BackupValidator.validate(data)
+        : {valid:true, corrupt:false, errors:[], warnings:[]};
+    }catch(err){
+      toast(tf('toast_backup_restore_failed',{error:String(err&&err.message||err)}),'error',8000);
+      if(typeof ErrorManager!=='undefined')ErrorManager.log('BackupImport','Backup validation crashed: '+String(err&&err.stack||err),'Error');
+      return;
+    }
     if(!check.valid){
       toast(check.errors[0]||t('toast_backup_invalid'),'error');
       ErrorManager.log('BackupImport', 'Rejected corrupt backup: '+check.errors.join('; '), 'Warning');
       return;
     }
     if(!data.customers&&!data.sales){toast(t('toast_backup_invalid'),'error');return;}
-    const warnMsg = check.warnings.length ? `<br><span style="color:var(--danger,#DC2626)">⚠ ${check.warnings.join(' ')}</span>` : '';
+    const warnMsg = check.warnings.length ? ` ⚠ ${check.warnings.join(' ')}` : ''; // 4.3.8: confirm2 shows plain text (HTML tags were printed literally)
     confirm2('Import Backup?',`Import ${data.customers?.length||0} customers, ${data.sales?.length||0} invoices, ${data.payments?.length||0} payments, ${data.products?.length||0} products?${warnMsg}`,()=>{
+      try{ // 4.3.8: a failure part-way is reported as a failure, never as success
         /* Automatic recovery point — snapshots current data before any
            write below touches it, so an import gone wrong is recoverable
            via RecoveryManager.restoreSnapshot() even though the merge
@@ -10723,6 +10787,11 @@ function handleFile(file,srcInput){
         if(data.auditLog)merge('auditLog',data.auditLog);
         syncStatuses();log('system',`Backup restored: ${imp.c} customers, ${imp.s} invoices, ${imp.p} payments, ${imp.pr} products, ${imp.exp} expenses, ${imp.emp} employees, ${imp.sm} stock movements, ${imp.sr} reconciliations`);
         toast(tf('toast_import_summary',{c:imp.c,s:imp.s,p:imp.p,pr:imp.pr,exp:imp.exp,inv:imp.sm+imp.sr}),'success');loadBackup();renderNotifBadgeOnly();
+      }catch(err){
+        toast(tf('toast_backup_restore_failed',{error:String(err&&err.message||err)}),'error',8000);
+        if(typeof ErrorManager!=='undefined')ErrorManager.log('BackupImport','Backup import failed part-way: '+String(err&&err.stack||err),'Error');
+        try{log('system','Backup restore FAILED part-way: '+String(err&&err.message||err));}catch(_){}
+      }
       });
   };impDiag('read started (JSON)');r.readAsText(file);
 }
@@ -13555,7 +13624,8 @@ function computeDrawerCash(td,opening){
   const n=v=>{const x=parseFloat(v);return isFinite(x)?x:0;};
   const r={opening:n(opening),cashSales:0,creditSales:0,collections:0,cashCollections:0,cashCreditIn:0,cashExpenses:0,cashRefunds:0,unrecorded:0,expected:0};
   for(const s of S.get('posSales')){
-    if(s.date!==td||s.method!=='cash')continue;
+    if(s.date!==td)continue;
+    if(s.method!=='cash'){if(!isPaymentMethod(s.method))r.unrecorded++;continue;} // 4.3.8 (B9): unknown methods are reported, never counted
     const paid=parseFloat(s.paid),ch=parseFloat(s.change);
     r.cashSales+=(isFinite(paid)&&isFinite(ch))?paid-ch:n(s.total);
   }
@@ -13563,17 +13633,17 @@ function computeDrawerCash(td,opening){
   for(const p of S.get('payments')){
     if(p.date!==td)continue;
     r.collections+=n(p.amount);
-    if(p.method==='cash')r.cashCollections+=n(p.amount);else if(!p.method)r.unrecorded++;
+    if(p.method==='cash')r.cashCollections+=n(p.amount);else if(!isKnownStoredMethod(p.method))r.unrecorded++; // 4.3.8 (B9)
   }
   for(const e of S.get('creditLedger')){
     if(e.date!==td||e.type==='applied')continue;
-    if(!e.method){r.unrecorded++;continue;}
+    if(!isPaymentMethod(e.method)){r.unrecorded++;continue;} // 4.3.8 (B9)
     if(e.method!=='cash')continue;
     if(e.type==='earned')r.cashCreditIn+=n(e.amount);else if(e.type==='refunded')r.cashRefunds+=n(e.amount);
   }
   for(const x of S.get('expenses')){
     if(x.date!==td)continue;
-    if(!x.payMethod)r.unrecorded++;else if(x.payMethod==='cash')r.cashExpenses+=n(x.amount);
+    if(!isPaymentMethod(x.payMethod))r.unrecorded++;else if(x.payMethod==='cash')r.cashExpenses+=n(x.amount); // 4.3.8 (B9)
   }
   r.expected=Math.round((r.opening+r.cashSales+r.cashCollections+r.cashCreditIn-r.cashExpenses-r.cashRefunds)*100)/100;
   return r;
@@ -13681,6 +13751,7 @@ function resetPosForm(){
   document.getElementById('posSalesperson').value='';
   document.getElementById('posReceived').value='';
   document.getElementById('posDeposit').value='0';
+  syncDepositMethod('pos',true); // 4.3.8: no method survives into the next sale
   document.getElementById('posCreditPeriod').value='30';
   document.getElementById('posMethod').value='cash';
   document.getElementById('posProdSearch').value='';
@@ -13856,9 +13927,48 @@ function _actorMeta(){return Auth.isEmployeeMode()?{}:{actorLabel:'Unidentified 
    written to the Audit Log (stored text is never translated);
    _payMethodLabel() is the translated form for the screen. */
 const _PAY_METHOD_EN={cash:'Cash','mobile-money':'Mobile Money','bank-transfer':'Bank Transfer',cheque:'Cheque',card:'Card',other:'Other','account credit':'Account Credit'};
-const _PAY_METHOD_KEY={cash:'method_cash','mobile-money':'method_mobile_money','bank-transfer':'method_bank_transfer',cheque:'method_cheque',card:'method_card',other:'method_other'};
+const _PAY_METHOD_KEY={cash:'method_cash','mobile-money':'method_mobile_money','bank-transfer':'method_bank_transfer',cheque:'method_cheque',card:'method_card',other:'method_other','account credit':'method_account_credit'};
 function _payMethodEn(m){return _PAY_METHOD_EN[m]||String(m||'Not recorded');}
 function _payMethodLabel(m){return _PAY_METHOD_KEY[m]?t(_PAY_METHOD_KEY[m]):_payMethodEn(m);}
+/* ═══ 4.3.8 (B1): THE ONE LIST OF PAYMENT METHODS ═══
+   Every NEW money movement (repayment, deposit, refund, expense) is
+   validated against PAYMENT_METHODS at its save function — never only in
+   the UI. payment.method==='cash' means physical notes and coins; a sale's
+   type 'cash' only means "settled now" and says nothing about the method.
+   Deposits taken with a sale use the same list without Cheque.
+   'account credit' is a stored value written only by Apply Credit — it is
+   recognised when reading history but can never be chosen for new money. */
+const PAYMENT_METHODS=Object.freeze(['cash','mobile-money','bank-transfer','cheque','card','other']);
+const DEPOSIT_METHODS=Object.freeze(PAYMENT_METHODS.filter(m=>m!=='cheque'));
+function isPaymentMethod(m,allowed=PAYMENT_METHODS){return typeof m==='string'&&allowed.includes(m);}
+function isKnownStoredMethod(m){return isPaymentMethod(m)||m==='account credit';}
+/* 4.3.8 (B8): screen label for a STORED method. Missing/empty is "Not
+   recorded"; a non-standard old value is shown as "Not recorded (value)".
+   Display only — the stored record is never changed, never shown as Cash. */
+function _payMethodDisplay(m){
+  if(m===undefined||m===null||m==='')return t('pm_not_recorded');
+  return isKnownStoredMethod(m)?_payMethodLabel(m):`${t('pm_not_recorded')} (${String(m)})`;
+}
+/* 4.3.8 (B2/B3): deposit-method selector next to a deposit field. It is shown
+   only while the deposit is above 0 and has NO default: hiding it (deposit
+   back to 0), a form reset or a customer change clears the choice, so a
+   method from an earlier transaction can never be saved by accident. */
+const _DEP_UI={pos:{amt:'posDeposit',wrap:'posDepositMethodWrap',sel:'posDepositMethod'},inv:{amt:'sInitPay',wrap:'sDepositMethodWrap',sel:'sDepositMethod'}};
+function syncDepositMethod(k,reset){
+  const u=_DEP_UI[k];if(!u)return;
+  const a=document.getElementById(u.amt),w=document.getElementById(u.wrap),s=document.getElementById(u.sel);
+  if(!a||!w||!s)return;
+  const show=(parseFloat(a.value)||0)>0;
+  w.style.display=show?'':'none';
+  if(!show||reset)s.value='';
+}
+function readDepositMethod(k){ // '' when the selector is hidden or unset
+  const u=_DEP_UI[k];if(!u)return'';
+  const w=document.getElementById(u.wrap),s=document.getElementById(u.sel);
+  return(!w||!s||w.style.display==='none')?'':s.value;
+}
+// A different customer means a different payment: the deposit method must be chosen again.
+document.addEventListener('change',e=>{const id=e.target&&e.target.id;if(id==='posCustomer')syncDepositMethod('pos',true);else if(id==='sCustomer')syncDepositMethod('inv',true);});
 function overpayFigures(sp){return`invoice ${invNum(sp.invId)} balance ${cur(sp.bal)}, payment ${cur(sp.amount)} (${_payMethodEn(sp.method)}), excess ${cur(r2c(sp.amount-sp.bal))} to account credit`;}
 function refundFigures(sp){return`credit ${cur(sp.credit)}, refund ${cur(sp.amount)} (${_payMethodEn(sp.method)}), credit after ${cur(r2c(sp.credit-sp.amount))}`;}
 function _overrideByLabel(tok){
@@ -14313,6 +14423,8 @@ function checkoutPos(){
     }
     const deposit=parseFloat(document.getElementById('posDeposit').value)||0;
     if(deposit<0||deposit>grand){toast(t('val_deposit_range'),'error');return;}
+    // 4.3.8 (B2): ask for the deposit method before any approval request (finalizeCreditSale re-checks it).
+    if(deposit>0&&!isPaymentMethod(readDepositMethod('pos'),DEPOSIT_METHODS)){toast(t('val_deposit_method_required'),'error',6000);const _s=document.getElementById('posDepositMethod');if(_s)_s.focus();return;}
     const due=document.getElementById('posDueDate').value;
     if(!due){toast(t('toast_due_date_required_credit'),'error');return;}
     /* 4.3.6: credit-limit authorization. Non-owners need a single-use Owner
@@ -14379,7 +14491,7 @@ function finalizeCashSale(cid,date,grand,recv,salesperson){
   renderNotifBadgeOnly();
   refreshLiveStats();
 }
-function finalizeCreditSale(cid,date,grand,deposit,due,salesperson){
+function finalizeCreditSale(cid,date,grand,deposit,due,salesperson,depositMethod){
   /* 4.3.6: the save path enforces the credit rules itself, so a direct call
      obeys the same rules as the checkout button. */
   const _free=()=>{const b=document.getElementById('posCheckoutBtn');if(b)b.disabled=false;};
@@ -14400,6 +14512,19 @@ function finalizeCreditSale(cid,date,grand,deposit,due,salesperson){
     _free();return;
   }
   if(!(deposit>=0)||deposit>grand+0.005){toast(t('val_deposit_range'),'error');_free();return;}
+  /* 4.3.8 (B2): a deposit must carry a real method, read NOW (an explicit
+     argument for direct callers, otherwise the visible selector). Missing or
+     invalid is refused here — before the credit-limit approval is used and
+     before any sale, payment or stock write. It never becomes Cash. */
+  let _depMethod=null;
+  if(deposit>0){
+    _depMethod=depositMethod!==undefined?depositMethod:readDepositMethod('pos');
+    if(!isPaymentMethod(_depMethod,DEPOSIT_METHODS)){
+      toast(t('val_deposit_method_required'),'error',6000);
+      logAuditEvent('security',`Credit sale refused — deposit payment method ${_depMethod?`"${String(_depMethod).slice(0,40)}" is not valid`:'not chosen'}: ${_custName} (sale ${cur(grand)}, deposit ${cur(deposit)})`,{recordType:'creditSale',recordId:cid,..._actorMeta()});
+      _free();return;
+    }
+  }
   const _cc=creditCheck(cid,grand,deposit);
   if(!_cc.cust){toast(t('toast_customer_required_credit'),'error');_free();return;}
   if(_cc.blocked){
@@ -14425,8 +14550,10 @@ function finalizeCreditSale(cid,date,grand,deposit,due,salesperson){
   S.add('sales',saleRec);
   if(deposit>0){
     const pays=S.get('payments');
-    pays.push({id:uid(),invId:sid,cid,amount:deposit,date,method:'cash',ref:'',notes:'Deposit at POS checkout'});
+    const _depId=uid();
+    pays.push({id:_depId,invId:sid,cid,amount:deposit,date,method:_depMethod,ref:'',notes:'Deposit at POS checkout'}); // 4.3.8: the method chosen, never a hard-coded 'cash'
     S.set('payments',pays);
+    logAuditEvent('payment',`Deposit ${cur(deposit)} (${_payMethodEn(_depMethod)}) from ${_custName} on ${invNum(sid)}`,{recordType:'payment',recordId:_depId,newValue:deposit,..._actorMeta()}); // 4.3.8 (B5)
   }
   /* Targeted status recompute: adding a brand-new sale cannot change the
      status of any OTHER invoice, so a full syncStatuses() sweep of every
@@ -14442,7 +14569,7 @@ function finalizeCreditSale(cid,date,grand,deposit,due,salesperson){
   log('add',`Credit sale ${invNum(sid)} ${cur(grand)} for ${cust?.name||'?'}`);
   if(_cc.over)logAuditEvent('add',`Credit sale over limit: ${invNum(sid)} ${_cc.cust.name} — debt ${cur(_cc.prevDebt)} → ${cur(_cc.resultingDebt)}, limit ${cur(_cc.limit)}, sale ${cur(grand)}, deposit ${cur(deposit)}, approved by ${_overrideByLabel(_overTok)}`,{recordType:'creditSale',recordId:sid,prevValue:_cc.prevDebt,newValue:_cc.resultingDebt,..._actorMeta()}); // (D)
   toast(t('toast_credit_sale_recorded'),'success');
-  const receiptData={id:sid,receiptNum:invNum(sid),date,cid,items:buildSaleLineItems(posItems),subtotal:posItems.reduce((a,i)=>a+i.qty*i.price,0),total:grand,paid:deposit,change:0,method:'credit',salesperson,type:'credit',due};
+  const receiptData={id:sid,receiptNum:invNum(sid),date,cid,items:buildSaleLineItems(posItems),subtotal:posItems.reduce((a,i)=>a+i.qty*i.price,0),total:grand,paid:deposit,change:0,method:'credit',salesperson,type:'credit',due,depositMethod:_depMethod};
   showReceipt(receiptData,'credit');
   queueOwnerSaleNotification(receiptData,'credit');
   resetPosForm();
@@ -14472,7 +14599,8 @@ function showReceipt(sale,type){
     <div class="rc-row rc-bold" style="font-size:15px"><span>${t('js_lbl_grand_total')}</span><span>${cur(sale.total)}</span></div>
     <div class="rc-row"><span>${type==='cash'?'Amount Paid':'Deposit Paid'}</span><span>${cur(sale.paid)}</span></div>
     ${type==='cash'?`<div class="rc-row"><span>Change</span><span>${cur(sale.change)}</span></div>`:`<div class="rc-row rc-bold"><span>Balance Due</span><span>${cur(sale.total-sale.paid)}</span></div><div class="rc-row"><span>Due Date</span><span>${fmtDate(sale.due)}</span></div>`}
-    <div class="rc-row"><span>${t('js_lbl_payment')}</span><span style="text-transform:capitalize">${type==='cash'?esc(sale.method):'Credit Sale'}</span></div>
+    <div class="rc-row"><span>${t('js_lbl_payment')}</span><span>${type==='cash'?esc(_payMethodDisplay(sale.method)):'Credit Sale'}</span></div>
+    ${type!=='cash'&&sale.paid>0&&sale.depositMethod?`<div class="rc-row"><span>${t('dep_method_receipt')}</span><span>${esc(_payMethodLabel(sale.depositMethod))}</span></div>`:''}
     <hr>
     <div class="rc-center">${esc(footerMsg)}</div>
     <div class="rc-center" style="font-size:11.5px;color:#888">${t('js_lbl_powered_by')}</div>`;
@@ -14552,6 +14680,7 @@ function _buildReceiptShareText(sale,type){
   if(type==='credit'){
     lines.push(`${t('th_balance')}: ${cur(sale.total-sale.paid)}`);
     if(sale.due)lines.push(`${t('th_due_date')}: ${fmtDate(sale.due)}`);
+    if(sale.paid>0&&sale.depositMethod)lines.push(`${t('dep_method_receipt')}: ${_payMethodLabel(sale.depositMethod)}`); // 4.3.8 (B11)
   }
   lines.push('',t('wa_msg_closing'));
   return lines.join('\n');
@@ -14649,7 +14778,8 @@ function _buildReceiptPdfLines(sale,type){
     L.push({l:'Balance Due',r:cur(sale.total-sale.paid),b:1});
     L.push({l:'Due Date',r:fmtDate(sale.due)});
   }
-  L.push({l:t('js_lbl_payment'),r:type==='cash'?(sale.method||'Cash'):'Credit Sale'});
+  L.push({l:t('js_lbl_payment'),r:type==='cash'?_payMethodDisplay(sale.method):'Credit Sale'});
+  if(type!=='cash'&&sale.paid>0&&sale.depositMethod)L.push({l:t('dep_method_receipt'),r:_payMethodLabel(sale.depositMethod)}); // 4.3.8 (B11)
   L.push({hr:1});
   L.push({c:footerMsg});
   L.push({c:t('js_lbl_powered_by')});
@@ -15437,7 +15567,7 @@ ${cfg.logo?`<div class="rc-center"><img src="${cfg.logo}" style="max-width:70px;
 <div class="rc-row"><span>${t('th_invoice_num')}</span><span>${esc(invNum(p.invId))}</span></div>
 <hr>
 <div class="rc-row rc-bold" style="font-size:15px"><span>${t('js_lbl_amount_paid')}</span><span>${cur(p.amount)}</span></div>
-<div class="rc-row"><span>${t('pos_payment_method')}</span><span>${esc(mLabel[p.method]||p.method||'Cash')}</span></div>
+<div class="rc-row"><span>${t('pos_payment_method')}</span><span>${esc(_payMethodDisplay(p.method))}</span></div>
 ${p.ref?`<div class="rc-row"><span>Reference</span><span>${esc(p.ref)}</span></div>`:''}
 <div class="rc-row rc-bold"><span>${t('js_lbl_balance_remaining')}</span><span>${cur(balRemaining)}</span></div>
 <hr>
@@ -15518,7 +15648,7 @@ function runGlobalSearch(){
   if(payMatches.length){
     html+=`<div class="gsearch-section-lbl">💳 Receipts / Payments (${payMatches.length})</div>`;
     html+=payMatches.map(p=>{const c=custs.find(x=>x.id===p.cid);return`<div class="gsearch-result" onclick="closeModal('mSearch');printPaymentReceipt('${p.id}')">
-      <span class="gr-ic">🧾</span><div class="gr-txt"><strong>${esc(recNum(p.id))}</strong><span>${esc(c?.name||'?')} · ${esc(p.method||'cash')}${p.collector?' · by '+esc(p.collector):''} · ${fmtDate(p.date)}</span></div>
+      <span class="gr-ic">🧾</span><div class="gr-txt"><strong>${esc(recNum(p.id))}</strong><span>${esc(c?.name||'?')} · ${esc(_payMethodDisplay(p.method))}${p.collector?' · by '+esc(p.collector):''} · ${fmtDate(p.date)}</span></div>
       <span class="gr-val">${cur(p.amount)}</span></div>`;}).join('');
   }
 
@@ -16009,7 +16139,7 @@ function buildUnifiedSalesList(){
       uid:'cash-'+s.id,rawId:s.id,type:'cash',date:s.date,docNum:s.receiptNum||recNum(s.id),
       custName:cust?cust.name:t('lbl_walkin_customer'),cid:s.cid||null,
       items:s.items||[],total:s.total,paid:s.paid,balance:0,
-      method:s.method||'cash',status:'paid',salesperson:s.salesperson||''
+      method:s.method||'',status:'paid',salesperson:s.salesperson||'' // 4.3.8: a missing method is not assumed to be cash
     };
   });
   const credit=S.get('sales').map(s=>{
@@ -16138,7 +16268,7 @@ function renderSalesHistoryTable(listIn){
       <td style="font-weight:700">${cur(s.total)}</td>
       <td style="color:var(--success);font-weight:600">${cur(s.paid)}</td>
       <td style="font-weight:800;color:${s.balance>0?'var(--danger)':'var(--success)'}">${cur(s.balance)}</td>
-      <td>${mIcons[s.method]||'💰'} ${esc(t(mKey[s.method])||s.method)}</td>
+      <td>${mIcons[s.method]||'💰'} ${esc(s.method==='credit'?t('method_credit'):_payMethodDisplay(s.method))}</td>
       <td><span class="badge ${invStatusBadgeClass(s.status)}">${invStatusLabel(s.status)}</span></td>
       <td><div style="display:flex;gap:4px">
         ${s.type==='cash'?`<button class="btn btn-outline btn-xs" onclick="reprintCashReceipt('${s.rawId}')" title="Reprint Receipt">🖨️</button>`:''}

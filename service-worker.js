@@ -12,7 +12,7 @@
    owned by the app's own S.get()/S.set()/S.obj()/S.setObj() layer.
    ========================================================================== */
 
-const CACHE_VERSION = 'v130';
+const CACHE_VERSION = 'v131';
 /* Rollback safety net: the cache from this version is kept alive one
    extra deploy cycle rather than deleted the moment v3 activates. If a
    deploy turns out broken, the previous version's cached assets are
