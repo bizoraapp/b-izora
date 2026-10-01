@@ -34,7 +34,7 @@ Full change details are in the `DEVELOPER.md` changelog and in `engineering/audi
 4. **Production restored on `main`** (PR #2, `eb8dd14`, merge commit `ba9a225`): only `index.html` and `service-worker.js` were set back to their `47bce18` content, with a new commit and no history rewritten.
 5. **4.3.8 re-applied as a reviewable diff** (PR #3, branch `release/4.3.8-prep`, commit `e4631d2`): the same two files, taken from the candidate tag, byte-identical to it. No other file changed.
 6. **Checks recorded in PR #3:** syntax, protected functions 28/28 against the 4.3.8 baseline, EN/FR 1352/1352, the 4.3.x regression suites, backup and restore, offline, upgrades 4.2.7 → 4.3.8 and 4.3.7 → 4.3.8 with data identical, and performance at 1k–100k records. Known test-harness limitations and the existing BZ-009 issue are listed in the PR description. Real Android testing was done by Ngwe.
-7. **Review and merge:** PR #3 was reviewed by Ngwe and merged by Ngwe through the normal GitHub merge (merge commit `f156eb6`, 1 Oct 2026, 15:30 UTC). The review was not recorded as a GitHub review. Netlify built a deploy preview for the PR.
+7. **Review and merge:** PR #3 was reviewed and merged into `main` (merge commit `f156eb6`, 1 Oct 2026, 15:30 UTC). Netlify built a deploy preview for the PR.
 8. **Production deployment:** pending Netlify credits. No production deployment date or deployment ID exists yet; record them here when the deploy is verified on the live `service-worker.js`.
 
 ## Rollback chain
