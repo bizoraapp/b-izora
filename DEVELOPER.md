@@ -136,6 +136,8 @@ Approval kinds `overpay` and `creditRefund` reuse the existing `OwnerApproval` s
 ## 10. Changelog
 
 ### 4.3.8 — build 2026.10.01a (cache v131, previous v120 = live production 4.2.7)
+- **Status:** merged into `main` (PR #3, merge commit `f156eb6`). Production deployment is pending Netlify credits, so 4.3.8 is not confirmed live. See `engineering/release/RELEASE_HISTORY.md`.
+- **Also in this build (carried from earlier work, documented here for the first time):** dashboard Smart Insights (section 11) and WhatsApp PDF receipts opening the native share sheet directly (section 12). The 4.3.0–4.3.6 changes are summarised in `RELEASE_HISTORY.md`; they have no separate entries in this changelog.
 - **Fixed (backup restore):** every real backup failed silently after "read started". `BackupValidator.validate()` passed `ValidationService` methods detached, so `this._req` threw inside the FileReader callback. The validators are now called on `ValidationService`; credit invoices are checked on `amount`; a validation or import error is shown as an error (never as success); the warning text no longer claims records "will be skipped" (the merge never skipped any). Backup format and merge-by-id unchanged.
 - **Added (payment-method integrity):** one canonical list `PAYMENT_METHODS` (+ `DEPOSIT_METHODS` without Cheque, `isPaymentMethod()`); POS credit deposit and new-invoice deposit get a "Deposit paid with" selector (shown only when deposit > 0, no default, cleared on reset / deposit 0 / customer change); `finalizeCreditSale()` (optional 7th argument `depositMethod`), `saveSale()`, `savePay()`, refunds and expenses validate against the canonical list at the save function, before any write; deposits and repayments audited with method and invoice; credit receipts (screen/print, PDF, WhatsApp text) show the deposit method; missing/unknown stored methods shown as "Not recorded" (never Cash) and reported in the cash-drawer note; payments filter gains Other and Account Credit.
 - **Files:** `index.html`, `service-worker.js` (CACHE_VERSION v131), `DEVELOPER.md`.
@@ -149,3 +151,27 @@ Approval kinds `overpay` and `creditRefund` reuse the existing `OwnerApproval` s
 - **Database:** no schema/IDB version change; additive optional fields only; no migration; historical records untouched.
 - **Breaking changes:** none. Employees now need Owner approval for overpayments and credit refunds (intended).
 - **Release step:** set `PREVIOUS_CACHE_VERSION` to `'v129'` once 4.3.6 is confirmed live, before 4.3.7 is deployed.
+
+## 11. Dashboard Smart Insights (in the 4.3.8 build)
+
+The Dashboard shows an insights feed grouped as **Requires Action** and **Review**. The code is tagged v4.2.9 in `index.html`; it reaches production for the first time with 4.3.8. It is read-only: no new store, no new financial calculation, no new timer.
+
+| Piece | Behaviour |
+|---|---|
+| `renderInsights()` | Renders into the existing `#insightsFeed` container, positioned after Quick Actions. Keeps at most 6 of the original insights; the "everything looks healthy" fallback line is replaced by the dashboard empty state (`ins_all_good`). **Requires Action** = urgent (danger/warn) original insights + Open loss records. **Review** = the product-activity alerts + the non-urgent original insights. |
+| `generateInsights()` | Still the engine for the original insights, and still read by the Collection page (`renderCollInsights`). Two additive markers only: `nav:'overdue'` on the overdue summary and `empty:true` on the fallback line. |
+| `generateActionInsights()` | Adds the new alerts. **Open loss records:** `collectLossRecords()` rows with `lossStatus` `'Open'`, shown only when `canViewLossRegister()`. **Review alerts:** products not sold in 30 days, never sold, inactive 6+ months. |
+| `computeProductActivityBuckets()` | One pass over products using the existing `computeProductSalesAggregates(null,null)` (cached; invalidated when sales or products change). Buckets are mutually exclusive: never sold → inactive 6+ months → not sold in 30 days. Discontinued products are excluded. "Never sold" waits 30 days from the product's `added` date (a future or missing/unparseable `added` is handled as documented in the code). `_isoMonthsAgo()` clamps month-end dates. |
+| Tap-through | `INSIGHT_NAV` maps a card to a page: overdue → Collection; loss → Inventory Loss Register filtered to Open; the three product alerts → Products with the new **Sales activity** filter (`#prodActivitySel`, applied in `filterProducts()` via `computeProductActivityBuckets().byId`). `openInsight()` and `_insightNavAllowed()` use `NAV_PERMISSION_MAP` and `Auth.can()`: a card is a link only for users who may open the target page. |
+| Filter reset | `loadProducts()` clears the Sales activity filter on a normal visit to Products; `_openProductsActivity()` calls `go('products')` first and sets the filter after. |
+| Dashboard chart | The Monthly Cash Sales card is hidden from the UI only (`#dashMonthlyCashCard`). Its canvas, the `drawAllCharts()` block and its data are untouched; remove the `display:none` and the grid override on that row to restore it. |
+
+Notes: `loadProducts` and `drawAllCharts` are protected functions; `loadProducts` differs from 4.2.7 only by the filter reset above. Regression coverage lives in `tests/suites-4.3.x/` (`fin_r436_r435_r434_ins_qa13.py`, `fin_r436_r435_r434_grace13.py`); see `tests/README.md` for the known limitations of those scripts.
+
+## 12. WhatsApp PDF receipt sharing (in the 4.3.8 build)
+
+- **Now:** `shareReceiptPdfWhatsApp()` calls `_shareReceiptPdfFile(sale, type)` directly for every sale (linked customer with a phone number, customer without one, walk-in). There is no Bizora number-entry step. The call is made synchronously from the tap so the browser keeps the user activation that sharing needs.
+- **How the share works:** `_shareReceiptPdfFile()` builds the PDF with `_generateReceiptPdfBlob()` and, when `navigator.canShare({files})` and `navigator.share` are available, opens the **native share sheet**; the recipient is chosen inside WhatsApp (the Web Share API cannot address a file to a phone number). Closing the sheet is not an error and the sale stands. If the platform cannot share files, the PDF is downloaded and a warning toast (`wa_pdf_unsupported`) says so.
+- **Before (4.2.7):** a customer with a valid stored phone number went straight to sharing; every other sale first asked for a number in the `#mWaShare` prompt (`_waShareMode='pdf'`).
+- **Unchanged:** the **text** receipt (`shareReceiptWhatsApp()` → `wa.me`, with the `#mWaShare` prompt for unknown numbers) still behaves as before. `confirmWaShareNumber()` still contains a `_waShareMode==='pdf'` branch, but no code path sets that mode any more, so it is not reached.
+- `shareReceiptPdfWhatsApp` and `_generateReceiptPdfBlob` are protected functions; `shareReceiptPdfWhatsApp` differs from 4.2.7 as described here.
