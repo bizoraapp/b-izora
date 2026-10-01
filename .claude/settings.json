@@ -38,13 +38,15 @@
       "Write(.claude/**)",
       "Edit(CLAUDE.md)",
       "Write(CLAUDE.md)",
-      "Edit(qa/baselines/**)",
-      "Write(qa/baselines/**)",
-      "Edit(qa/approved_protected_changes.txt)",
-      "Write(qa/approved_protected_changes.txt)",
-      "Edit(qa/tools/**)",
-      "Write(qa/tools/**)",
-      "Edit(docs/DECISIONS.md)"
+      "Edit(tests/baselines/**)",
+      "Write(tests/baselines/**)",
+      "Edit(tests/approved_protected_changes.txt)",
+      "Write(tests/approved_protected_changes.txt)",
+      "Edit(tests/tools/**)",
+      "Write(tests/tools/**)",
+      "Edit(engineering/decisions/**)",
+      "Write(engineering/decisions/**)",
+      "Edit(docs/product/PRO-00_Product_Constitution.md)"
     ]
   },
   "hooks": {

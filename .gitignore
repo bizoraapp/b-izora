@@ -7,8 +7,8 @@
 # Local tooling output
 __pycache__/
 *.pyc
-qa/out/
-qa/tmp/
+tests/out/
+tests/tmp/
 dist/
 node_modules/
 .claude/settings.local.json

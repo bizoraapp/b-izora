@@ -6,11 +6,14 @@ Read this whole file before touching anything. It is the contract between the pr
 
 | Doc | Read it when |
 |---|---|
-| `docs/PRODUCT.md` | Always, once per session: users, modules, roles, money vocabulary, workflows, design principles |
-| `docs/BUG_HISTORY.md` | Before changing any area. Every past bug, its root cause and the rule it left behind |
-| `docs/I18N.md` | Before adding or changing any visible text (EN/FR rules, French typography, glossary) |
-| `docs/DECISIONS.md` | Before proposing a change to existing behaviour. Decided questions stay closed |
-| `qa/README.md` | Before testing |
+| `docs/product/PRODUCT.md` | Always, once per session: users, modules, roles, money vocabulary, workflows, design principles |
+| `engineering/BUG_HISTORY.md` | Before changing any area. Every past bug, its root cause and the rule it left behind |
+| `docs/architecture/I18N.md` | Before adding or changing any visible text (EN/FR rules, French typography, glossary) |
+| `engineering/decisions/` (ADR files) | Before proposing a change to existing behaviour. Decided questions stay closed |
+| `docs/architecture/PRO-*.md`, `docs/product/PRO-00_Product_Constitution.md`, `docs/implementation/PRO-12_*.md` | When present: the **Bizora Pro** target architecture. They describe the future product, **not** the live app. Never use them to justify changing Bizora Basic code; if they conflict with the live code or `docs/product/PRODUCT.md`, stop and report |
+| `engineering/release/RELEASE_CHECKLIST.md` | Before declaring any release ready |
+| `engineering/audits/<version>/` | For the plan, implementation report and audit of a past release |
+| `tests/README.md` | Before testing |
 
 Bizora is a **production** app. Real shops in Cameroon record their sales, debts and cash in it every day, often offline, on 2–4 GB Android phones. A broken release can lose a shop's records or show the wrong cash figure. **Being careful matters more than being fast.**
 
@@ -21,7 +24,7 @@ Bizora is a **production** app. Real shops in Cameroon record their sales, debts
 - **Every push or merge to `main` deploys to production** (GitHub → Netlify) and reaches every user.
 - **You never push to `main`, merge into `main`, force-push, rewrite history, delete branches or tags, or run any deploy command.** Ngwe merges, and only after a review and a real-Android test.
 - Work only on a branch: `release/<version>` for a release, `fix/<short-name>` or `investigate/<short-name>` otherwise. Open a pull request. Netlify builds a **deploy preview** for it; that preview URL is what Ngwe tests on the phone.
-- Only these files are deployed (`netlify.toml` copies exactly these into `dist/`): `index.html`, `service-worker.js`, `manifest.json`, `offline.html`, `icons/`. **If you add a file the app needs at runtime, you must add it to the `netlify.toml` allowlist and say so in the PR.** Everything else (this file, `docs/`, `qa/`) is never published.
+- Only these files are deployed (`netlify.toml` copies exactly these into `dist/`): `index.html`, `service-worker.js`, `manifest.json`, `offline.html`, `icons/`. **If you add a file the app needs at runtime, you must add it to the `netlify.toml` allowlist and say so in the PR.** Everything else (this file, `docs/`, `engineering/`, `tests/`) is never published.
 - **This repository is public.** Never commit secrets, real customer data, backups, exported JSON or ZIP builds. Never describe an unfixed vulnerability in detail in a commit message or PR. Say "security fix, details in the project tracker" instead.
 
 ### Automatic guardrails (hooks in `.claude/`)
@@ -33,7 +36,7 @@ These run on every session. **Never disable, bypass or edit them**; changing `.c
 - **After editing `index.html`:** runs the syntax check, the 28 protected-function hashes and EN/FR parity; it also warns about known traps (`.toISOString()` date keys, hard-coded `method:'cash'`, new timers, `S.set` on large stores, translated text in audit entries).
 - **Before you finish:** re-runs the checks if app files changed.
 
-If a hook blocks you, **stop and report**. Don't look for another way to run the command. If a protected function must change, that needs Ngwe's explicit approval: he adds its name to `qa/approved_protected_changes.txt`, and you say so in the PR.
+If a hook blocks you, **stop and report**. Don't look for another way to run the command. If a protected function must change, that needs Ngwe's explicit approval: he adds its name to `tests/approved_protected_changes.txt`, and you say so in the PR.
 
 ## 2. How work is done (non-negotiable)
 
@@ -76,7 +79,7 @@ If a hook blocks you, **stop and report**. Don't look for another way to run the
 
 ## 5. Protected code
 
-These functions must stay **byte-identical** unless Ngwe explicitly approves a change. They are checked with `python3 qa/tools/protected_hash.py index.html auto`, which picks `qa/baselines/protected-<APP_VERSION>.json` (or the newest older one). After a release with an approved change is merged, a new baseline is committed for that version and the approval list is emptied:
+These functions must stay **byte-identical** unless Ngwe explicitly approves a change. They are checked with `python3 tests/tools/protected_hash.py index.html auto`, which picks `tests/baselines/protected-<APP_VERSION>.json` (or the newest older one). After a release with an approved change is merged, a new baseline is committed for that version and the approval list is emptied:
 
 `computeRealizedProfit, buildProfitIndex, computeExpenseTotals, computeNetProfit, computeProductSalesAggregates, collectLossRecords, computeShortageChainStatus, filterCollection, loadCollection, renderCollInsights, filterCustomers, drawAllCharts, loadDashboard, custDebt, invBalance, invStatus, stockStatus, openLossRegisterView, filterLossRegister, loadProducts, renderProdTable, saveProduct, resetProdForm, go, shareReceiptPdfWhatsApp, downloadReceipt, printReceipt, _generateReceiptPdfBlob`
 
@@ -89,11 +92,11 @@ These functions must stay **byte-identical** unless Ngwe explicitly approves a c
 
 ## 7. Validation before any PR is ready
 
-1. `python3 qa/tools/check_syntax.py index.html`. Every `<script>` block passes `node --check`; block 0 is a known false alarm (a `<script>` tag inside an HTML comment).
-2. `python3 qa/tools/protected_hash.py index.html auto`: 28/28 unchanged against the baseline for the current version (`qa/baselines/`), except names Ngwe approved in `qa/approved_protected_changes.txt`.
-3. `node qa/tools/i18n_parity.js index.html`: EN and FR key counts equal, none missing.
+1. `python3 tests/tools/check_syntax.py index.html`. Every `<script>` block passes `node --check`; block 0 is a known false alarm (a `<script>` tag inside an HTML comment).
+2. `python3 tests/tools/protected_hash.py index.html auto`: 28/28 unchanged against the baseline for the current version (`tests/baselines/`), except names Ngwe approved in `tests/approved_protected_changes.txt`.
+3. `node tests/tools/i18n_parity.js index.html`: EN and FR key counts equal, none missing.
 4. **Diff confinement:** every changed line belongs to the approved scope. List the changed functions.
-5. **Regression suites** in `qa/suites-4.3.x/` (Playwright + Chromium against a local HTTP server; IndexedDB needs a real origin). New behaviour gets new tests; existing tests are never weakened. If an existing test must change because of an approved behaviour change, report the exact diff and why.
+5. **Regression suites** in `tests/suites-4.3.x/` (Playwright + Chromium against a local HTTP server; IndexedDB needs a real origin). New behaviour gets new tests; existing tests are never weakened. If an existing test must change because of an approved behaviour change, report the exact diff and why.
 6. **Performance:** consider 1k, 10k, 50k and 100k transactions for anything that processes data. Report complexity, scans, memory and low-end Android impact. **No new timers, polling or startup scans.**
 7. **Mobile:** a 360 px layout check, plus EN and FR.
 8. **Upgrade safety:** data stays identical after upgrading from the live version.
@@ -110,7 +113,7 @@ These functions must stay **byte-identical** unless Ngwe explicitly approves a c
 
 ## 9. Product decisions already made (don't reopen without being asked)
 
-See `docs/DECISIONS.md`. Example: sale reversal keeps its current deletion behaviour (decided 2026-10-01). Open items and priorities are in the PM's backlog. Work only on what a brief assigns.
+See `engineering/decisions/` (one ADR file per decision). Example: sale reversal keeps its current deletion behaviour (decided 2026-10-01). Open items and priorities are in the PM's backlog. Work only on what a brief assigns.
 
 ## 10. Report format (end of every task)
 

@@ -1,5 +1,5 @@
 """node --check every inline <script> block of index.html.
-Usage: python3 qa/tools/check_syntax.py index.html
+Usage: python3 tests/tools/check_syntax.py index.html
 Block 0 is a known false positive (a literal <script> tag inside an HTML comment); it fails identically in every version.
 Errors are reported with the matching index.html line number."""
 import re, sys, subprocess, tempfile, os

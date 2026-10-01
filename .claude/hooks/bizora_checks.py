@@ -4,13 +4,13 @@
 Runs fast (< 2 s on the 19k-line index.html):
   1. syntax      every inline <script> block passes `node --check`
   2. protected   the 28 protected functions match the baseline for this APP_VERSION
-                 (minus names listed in qa/approved_protected_changes.txt)
+                 (minus names listed in tests/approved_protected_changes.txt)
   3. i18n        EN and FR dictionaries have identical keys
 plus warnings for known traps that newly appear compared with HEAD."""
 import os, re, subprocess, sys, json
 
 ROOT = os.environ.get('CLAUDE_PROJECT_DIR') or os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.insert(0, os.path.join(ROOT, 'qa', 'tools'))
+sys.path.insert(0, os.path.join(ROOT, 'tests', 'tools'))
 
 
 def _run(args, timeout=60):
@@ -35,22 +35,22 @@ def check_app(index='index.html'):
     if not os.path.exists(path):
         return ['index.html is missing'], [], 'index.html missing'
 
-    rc, out = _run([sys.executable, 'qa/tools/check_syntax.py', index])
+    rc, out = _run([sys.executable, 'tests/tools/check_syntax.py', index])
     lines.append('syntax: ' + ('OK' if rc == 0 else 'FAIL'))
     if rc != 0:
         fails.append('JavaScript syntax error:\n' + '\n'.join(l for l in out.splitlines() if 'ERR' in l and 'known false positive' not in l))
 
-    rc, out = _run([sys.executable, 'qa/tools/protected_hash.py', index, 'auto'])
+    rc, out = _run([sys.executable, 'tests/tools/protected_hash.py', index, 'auto'])
     lines.append(out.splitlines()[-1] if out else 'protected: ?')
     if rc != 0:
         fails.append('Protected function changed without approval: ' + out +
                      '\nRevert it, unless Ngwe explicitly approved this exact function change; then add its name to '
-                     'qa/approved_protected_changes.txt (asks permission) and state the approval in the report.')
+                     'tests/approved_protected_changes.txt (asks permission) and state the approval in the report.')
 
-    rc, out = _run(['node', 'qa/tools/i18n_parity.js', index])
+    rc, out = _run(['node', 'tests/tools/i18n_parity.js', index])
     lines.append('i18n: ' + (out.splitlines()[0] if out else '?'))
     if rc != 0:
-        fails.append('EN/FR dictionary mismatch: ' + out + '\nEvery key needs both English and French (see docs/I18N.md).')
+        fails.append('EN/FR dictionary mismatch: ' + out + '\nEvery key needs both English and French (see docs/architecture/I18N.md).')
 
     warns.extend(trap_warnings(path, index))
     return fails, warns, ' | '.join(lines)

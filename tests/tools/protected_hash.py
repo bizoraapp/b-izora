@@ -1,11 +1,11 @@
 """Protected-function integrity check.
 
 Usage:
-  python3 qa/tools/protected_hash.py index.html                      print the hashes (JSON)
-  python3 qa/tools/protected_hash.py index.html BASELINE.json        compare; exit 1 if any differ
-  python3 qa/tools/protected_hash.py index.html auto                 pick the baseline for the file's APP_VERSION
+  python3 tests/tools/protected_hash.py index.html                      print the hashes (JSON)
+  python3 tests/tools/protected_hash.py index.html BASELINE.json        compare; exit 1 if any differ
+  python3 tests/tools/protected_hash.py index.html auto                 pick the baseline for the file's APP_VERSION
 
-The approved-change list (qa/approved_protected_changes.txt) names functions that
+The approved-change list (tests/approved_protected_changes.txt) names functions that
 Ngwe has explicitly approved changing for the current release. They are reported
 but do not fail the check. Prints the 16-char SHA-256 of each protected function."""
 import re, sys, hashlib, json, os
@@ -17,9 +17,9 @@ NAMES = ['computeRealizedProfit', 'buildProfitIndex', 'computeExpenseTotals', 'c
          'filterLossRegister', 'loadProducts', 'renderProdTable', 'saveProduct', 'resetProdForm', 'go',
          'shareReceiptPdfWhatsApp', 'downloadReceipt', 'printReceipt', '_generateReceiptPdfBlob']
 
-QA_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-BASELINE_DIR = os.path.join(QA_DIR, 'baselines')
-APPROVED_FILE = os.path.join(QA_DIR, 'approved_protected_changes.txt')
+TESTS_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASELINE_DIR = os.path.join(TESTS_DIR, 'baselines')
+APPROVED_FILE = os.path.join(TESTS_DIR, 'approved_protected_changes.txt')
 
 
 def extract(src, name):
@@ -99,7 +99,7 @@ def main():
     if path == 'auto':
         path = pick_baseline(app_version(src))
         if not path:
-            print('no baseline found in qa/baselines/')
+            print('no baseline found in tests/baselines/')
             return 1
     bad, approved = compare(src, path)
     total = len(NAMES)
