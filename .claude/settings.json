@@ -23,16 +23,66 @@
       "Bash(rm -rf:*)",
       "Bash(gh pr merge:*)",
       "Bash(gh repo edit:*)",
-      "Bash(gh api -X DELETE:*)"
+      "Bash(gh api -X DELETE:*)",
+      "Edit(.git/**)",
+      "Write(.git/**)"
     ],
     "ask": [
       "Bash(git push:*)",
       "Bash(gh pr create:*)",
       "Edit(netlify.toml)",
+      "Write(netlify.toml)",
       "Edit(service-worker.js)",
       "Edit(manifest.json)",
-      "Edit(.claude/settings.json)",
-      "Edit(CLAUDE.md)"
+      "Edit(.claude/**)",
+      "Write(.claude/**)",
+      "Edit(CLAUDE.md)",
+      "Write(CLAUDE.md)",
+      "Edit(qa/baselines/**)",
+      "Write(qa/baselines/**)",
+      "Edit(qa/approved_protected_changes.txt)",
+      "Write(qa/approved_protected_changes.txt)",
+      "Edit(qa/tools/**)",
+      "Write(qa/tools/**)",
+      "Edit(docs/DECISIONS.md)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/session_start.py\"", "timeout": 20 }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard_bash.py\"", "timeout": 20 }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/guard_edit.py\"", "timeout": 20 }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/post_edit_checks.py\"", "timeout": 90 }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/stop_checks.py\"", "timeout": 90 }
+        ]
+      }
     ]
   }
 }

@@ -1,0 +1,4 @@
+# Protected functions Ngwe has explicitly approved changing in the CURRENT release.
+# One function name per line. Empty means: no protected function may change.
+# Reset this file to empty (comments only) when the release is merged and its
+# new baseline (qa/baselines/protected-<version>.json) is committed.

@@ -1,0 +1,14 @@
+# Never commit builds, backups, exports or secrets (this repository is public)
+*.zip
+*.bizora
+*backup*.json
+.env
+.env.*
+# Local tooling output
+__pycache__/
+*.pyc
+qa/out/
+qa/tmp/
+dist/
+node_modules/
+.claude/settings.local.json
