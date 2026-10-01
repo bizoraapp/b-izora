@@ -16,7 +16,7 @@ FORBIDDEN_COMMIT = [
     (re.compile(r'\.(pem|key|p12|jks|keystore)$', re.I), 'key or certificate'),
     (re.compile(r'(^|/)node_modules/'), 'node_modules'),
 ]
-SAFE_RM_TARGETS = re.compile(r'^(/tmp/|dist/?$|dist/|qa/out/?|qa/tmp/?|\.pytest_cache)')
+SAFE_RM_TARGETS = re.compile(r'^(/tmp/|dist/?$|dist/|tests/out/?|tests/tmp/?|\.pytest_cache)')
 
 
 def block(reason):
@@ -266,11 +266,11 @@ def main():
             if exe == 'shred':
                 block('"shred" destroys files.')
             if recursive and not all(SAFE_RM_TARGETS.match(x) for x in targets):
-                block(f'recursive delete of {targets}. Only /tmp, dist/ and qa/out may be removed recursively.')
+                block(f'recursive delete of {targets}. Only /tmp, dist/ and tests/out may be removed recursively.')
             for x in targets:
                 base = x.rstrip('/').split('/')[-1]
                 if base in ('index.html', 'service-worker.js', 'manifest.json', 'offline.html', 'icons',
-                            '.git', 'CLAUDE.md', '.claude', 'qa', 'docs', 'netlify.toml') and not x.startswith('/tmp/'):
+                            '.git', 'CLAUDE.md', '.claude', 'tests', 'docs', 'engineering', 'netlify.toml') and not x.startswith('/tmp/'):
                     block(f'deleting "{x}" (an app, guardrail or history file).')
         if exe in ('mv',) and any(x.rstrip('/').split('/')[-1] in ('index.html', 'service-worker.js', '.git') for x in t[1:-1] if not x.startswith('-')):
             block('moving / renaming core app files is not allowed.')

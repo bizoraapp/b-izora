@@ -1,4 +1,4 @@
-// EN/FR dictionary parity. Usage: node qa/tools/i18n_parity.js index.html  (exit 1 on mismatch)
+// EN/FR dictionary parity. Usage: node tests/tools/i18n_parity.js index.html  (exit 1 on mismatch)
 const fs=require('fs');const s=fs.readFileSync(process.argv[2],'utf8');
 const i=s.indexOf('const I18N_DICT={');let d=0,j=s.indexOf('{',i);const st=j;
 for(;;j++){if(s[j]==='{')d++;else if(s[j]==='}'){d--;if(d===0)break;}}
