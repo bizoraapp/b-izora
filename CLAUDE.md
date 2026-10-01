@@ -10,7 +10,6 @@ Read this whole file before touching anything. It is the contract between the pr
 | `engineering/BUG_HISTORY.md` | Before changing any area. Every past bug, its root cause and the rule it left behind |
 | `docs/architecture/I18N.md` | Before adding or changing any visible text (EN/FR rules, French typography, glossary) |
 | `engineering/decisions/` (ADR files) | Before proposing a change to existing behaviour. Decided questions stay closed |
-| `docs/architecture/PRO-*.md`, `docs/product/PRO-00_Product_Constitution.md`, `docs/implementation/PRO-12_*.md` | When present: the **Bizora Pro** target architecture. They describe the future product, **not** the live app. Never use them to justify changing Bizora Basic code; if they conflict with the live code or `docs/product/PRODUCT.md`, stop and report |
 | `engineering/release/RELEASE_CHECKLIST.md` | Before declaring any release ready |
 | `engineering/audits/<version>/` | For the plan, implementation report and audit of a past release |
 | `tests/README.md` | Before testing |
