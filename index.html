@@ -1731,13 +1731,17 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
       <div class="card" style="margin-bottom:14px">
         <div class="card-title">💰 Daily Cash Summary — <span id="cashSummaryDate"></span></div>
         <div class="cash-summary">
-          <div class="cd-card"><label data-i18n="inv_lbl_opening_cash">Opening Cash</label><input type="text" inputmode="decimal" class="num-fmt" id="cdOpening" oninput="saveCashDrawer()"></div>
+          <div class="cd-card"><label data-i18n="inv_lbl_opening_cash">Opening Cash</label><input type="text" inputmode="decimal" class="num-fmt" id="cdOpening" oninput="saveCashDrawer()" onchange="commitCashDrawerEdit()"></div>
           <div class="cd-card"><label data-i18n="kpi_cash_sales_today">Cash Sales Today</label><div class="cd-static" id="cdCashSales">—</div></div>
           <div class="cd-card"><label data-i18n="kpi_credit_sales_today">Credit Sales Today</label><div class="cd-static" id="cdCreditSales">—</div></div>
           <div class="cd-card"><label data-i18n="inv_lbl_collections_received">Collections Received</label><div class="cd-static" id="cdCollections">—</div></div>
+          <div class="cd-card"><label data-i18n="cd_lbl_cash_in">Cash Payments Received</label><div class="cd-static" id="cdCashIn">—</div></div>
+          <div class="cd-card"><label data-i18n="cd_lbl_cash_expenses">Cash Expenses</label><div class="cd-static" id="cdCashExpenses">—</div></div>
+          <div class="cd-card"><label data-i18n="cd_lbl_cash_refunds">Cash Refunds</label><div class="cd-static" id="cdCashRefunds">—</div></div>
           <div class="cd-card"><label data-i18n="inv_lbl_expected_cash">Expected Cash</label><div class="cd-static" id="cdExpected" style="color:var(--primary)">—</div></div>
-          <div class="cd-card"><label data-i18n="inv_lbl_closing_cash">Closing Cash (count)</label><input type="text" inputmode="decimal" class="num-fmt" id="cdClosing" oninput="saveCashDrawer()"></div>
+          <div class="cd-card"><label data-i18n="inv_lbl_closing_cash">Closing Cash (count)</label><input type="text" inputmode="decimal" class="num-fmt" id="cdClosing" oninput="saveCashDrawer()" onchange="commitCashDrawerEdit()"></div>
         </div>
+        <div id="cdNote" style="margin-top:8px;font-size:13px;color:var(--txt3);line-height:1.5"></div>
         <div style="margin-top:12px;padding:12px 14px;border-radius:var(--r2);background:var(--bg);border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
           <strong style="font-size:15px" data-i18n="inv_lbl_variance">Variance</strong>
           <span id="cdVariance" style="font-size:19.5px;font-weight:900">—</span>
@@ -3054,6 +3058,15 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
         </div>
       </div>
       <div class="form-group"><label class="form-label" data-i18n="exp_date">Expense Date</label><input type="date" class="fc fw" id="expDate"></div>
+      <!-- 4.3.7 (G3): only expenses paid in cash reduce Expected Cash in the drawer -->
+      <div class="form-group"><label class="form-label" data-i18n="exp_paid_with">Paid with</label>
+        <select class="fc fw" id="expPayMethod">
+          <option value="cash" data-i18n="pos_opt_cash">💵 Cash</option><option value="mobile-money" data-i18n="pos_opt_mobile">📱 Mobile Money</option>
+          <option value="bank-transfer" data-i18n="pos_opt_bank">🏦 Bank Transfer</option><option value="card" data-i18n="pos_opt_card">💳 Card</option>
+          <option value="other" data-i18n="pos_opt_other">💰 Other</option>
+          <option value="" id="expPayMethodUnknown" data-i18n="exp_method_not_recorded">Not recorded</option>
+        </select>
+      </div>
       <div class="form-group"><label class="form-label"><span data-i18n="exp_notes">Notes</span> <span style="color:var(--txt3);font-weight:400" data-i18n="lbl_optional">(optional)</span></label><input type="text" class="fc fw" id="expNotes" placeholder="What was this for?" data-i18n-ph="exp_notes_ph"></div>
     </div>
     <div class="modal-ftr">
@@ -3597,6 +3610,34 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
   </div>
 </div>
 
+<!-- 4.3.7 (G2): account-credit refund — the refund method is recorded -->
+<div class="modal-bg" id="mRefundCredit">
+  <div class="modal modal-sm">
+    <div class="modal-hdr">
+      <div class="modal-title">🏦 <span data-i18n="refund_title">Refund Account Credit</span></div>
+      <button class="modal-close" onclick="closeModal('mRefundCredit')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:15px;color:var(--txt2);line-height:1.6;margin-bottom:12px" data-i18n="refund_intro">This zeroes the customer's credit balance. Only continue once the money has actually been handed back.</p>
+      <div class="form-group"><label class="form-label" data-i18n="pa_lbl_customer">Customer</label><div id="rcCust" style="font-weight:700"></div></div>
+      <div class="form-group"><label class="form-label" data-i18n="pa_lbl_refund">Refund</label><div id="rcAmount" style="font-weight:800;font-size:18px"></div></div>
+      <div class="form-group"><label class="form-label" data-i18n="refund_method_label">How was the money handed back? *</label>
+        <select class="fc fw" id="rcMethod" onchange="document.getElementById('rcError').textContent=''">
+          <option value="" data-i18n="refund_method_choose">— Choose —</option>
+          <option value="cash" data-i18n="pos_opt_cash">💵 Cash</option><option value="mobile-money" data-i18n="pos_opt_mobile">📱 Mobile Money</option>
+          <option value="bank-transfer" data-i18n="pos_opt_bank">🏦 Bank Transfer</option><option value="cheque" data-i18n="method_cheque">Cheque</option>
+          <option value="card" data-i18n="pos_opt_card">💳 Card</option><option value="other" data-i18n="pos_opt_other">💰 Other</option>
+        </select>
+      </div>
+      <div id="rcError" style="color:var(--danger);font-size:14px;min-height:18px"></div>
+    </div>
+    <div class="modal-ftr">
+      <button class="btn btn-outline" onclick="closeModal('mRefundCredit')" data-i18n="btn_cancel">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmRefundCredit()" data-i18n="refund_btn">Record Refund</button>
+    </div>
+  </div>
+</div>
+
 <!-- 4.3.2: Owner approval for selling-price changes (non-owner employees only) -->
 <div class="modal-bg" id="mPriceApproval">
   <div class="modal modal-sm">
@@ -3637,10 +3678,10 @@ const APP_LOGO='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAIAAADTED
    the "Update available" banner. Purely informational at the app layer;
    the actual update *mechanism* is the service worker (see UpdateManager
    in the bottom PWA runtime script). */
-const APP_VERSION='4.3.6';
+const APP_VERSION='4.3.7';
 /* Build number — date-based, bumped by regenerating this file. Shown on
    the About page alongside the version for support/debugging purposes. */
-const BUILD_NUMBER='2026.09.30e';
+const BUILD_NUMBER='2026.09.30f';
 const IDB_NAME='CreditBossDB';
 const IDB_VERSION=8;
 /* Schema: object store name -> {keyPath, indexes:[{name,keyPath,options}]} */
@@ -5702,6 +5743,28 @@ const I18N_DICT={
     toast_no_open_invoice_for_credit:'This customer has no outstanding invoice to apply credit to — try Refund instead',
     toast_credit_applied:'{amount} applied to {invoice}',
     toast_refund_recorded:'{amount} refund recorded',
+    // 4.3.7 — money controls (G1–G4)
+    val_payment_amount_invalid:'Enter a valid payment amount',
+    val_payment_invoice_invalid:'This payment can\u2019t be recorded on that invoice \u2014 choose an open invoice of the selected customer',
+    overpay_confirm_title:'Payment is more than the balance',
+    overpay_confirm_msg:'{amount} is more than the {balance} still owed on {invoice}. {extra} will be kept as account credit that the business owes {customer}. Continue?',
+    overpay_confirm_btn:'Record Payment',
+    pa_intro_overpay:'This payment is more than the invoice balance. The extra becomes account credit the business owes the customer. The Business Owner must approve it with their password.',
+    pa_lbl_inv_balance:'Invoice balance',pa_lbl_payment:'Payment',pa_lbl_extra_credit:'Extra kept as account credit',
+    pa_intro_credit_refund:'Refunding account credit hands money back to the customer. The Business Owner must approve it with their password.',
+    pa_lbl_account_credit:'Account credit',pa_lbl_refund:'Refund',pa_lbl_credit_after:'Credit after refund',
+    refund_title:'Refund Account Credit',
+    refund_intro:'This zeroes the customer\u2019s credit balance. Only continue once the money has actually been handed back.',
+    refund_method_label:'How was the money handed back? *',refund_method_choose:'\u2014 Choose \u2014',refund_btn:'Record Refund',
+    refund_method_required:'Choose how the money was handed back',
+    refund_amount_invalid:'Invalid refund amount',
+    refund_exceeds_credit:'Refund refused \u2014 it is more than the customer\u2019s account credit ({credit})',
+    refund_changed:'The customer\u2019s account credit has changed \u2014 open Refund again to see the current balance',
+    exp_paid_with:'Paid with',exp_method_not_recorded:'Not recorded',exp_method_invalid:'Choose how this expense was paid',
+    cd_lbl_cash_in:'Cash Payments Received',cd_lbl_cash_expenses:'Cash Expenses',cd_lbl_cash_refunds:'Cash Refunds',
+    cd_note_cash_only:'Expected Cash counts physical cash only: mobile money, bank, card and account credit are not included, and change given back is not counted.',
+    cd_note_unrecorded:'{count} record(s) from today have no payment method (saved before this update) and are not included.',
+    cd_invalid_amount:'Enter a cash amount of 0 or more',
     val_item_row_required:'At least one item row is required',
     toast_customer_blocked_warning:'⚠️ This customer is BLOCKED and cannot receive new credit sales!',
     perm_no_record_sales:'🔒 You don\u2019t have permission to record sales. Ask the Business Owner.',
@@ -6706,6 +6769,28 @@ const I18N_DICT={
     toast_no_open_invoice_for_credit:'Ce client n\u2019a aucune facture impayée sur laquelle appliquer l\u2019avoir — essayez plutôt Remboursement',
     toast_credit_applied:'{amount} appliqué à {invoice}',
     toast_refund_recorded:'Remboursement de {amount} enregistré',
+    // 4.3.7 — contrôles de l\u2019argent (G1–G4)
+    val_payment_amount_invalid:'Saisissez un montant de paiement valide',
+    val_payment_invoice_invalid:'Ce paiement ne peut pas être enregistré sur cette facture \u2014 choisissez une facture ouverte du client sélectionné',
+    overpay_confirm_title:'Le paiement dépasse le solde',
+    overpay_confirm_msg:'{amount} dépasse les {balance} encore dus sur {invoice}. {extra} sera conservé comme avoir que l\u2019entreprise doit à {customer}. Continuer\u00A0?',
+    overpay_confirm_btn:'Enregistrer le paiement',
+    pa_intro_overpay:'Ce paiement dépasse le solde de la facture. L\u2019excédent devient un avoir que l\u2019entreprise doit au client. Le propriétaire doit l\u2019approuver avec son mot de passe.',
+    pa_lbl_inv_balance:'Solde de la facture',pa_lbl_payment:'Paiement',pa_lbl_extra_credit:'Excédent conservé comme avoir',
+    pa_intro_credit_refund:'Rembourser un avoir rend de l\u2019argent au client. Le propriétaire doit l\u2019approuver avec son mot de passe.',
+    pa_lbl_account_credit:'Avoir du compte',pa_lbl_refund:'Remboursement',pa_lbl_credit_after:'Avoir après remboursement',
+    refund_title:'Rembourser l\u2019avoir',
+    refund_intro:'Cela remet l\u2019avoir du client à zéro. Ne continuez qu\u2019une fois l\u2019argent réellement rendu.',
+    refund_method_label:'Comment l\u2019argent a-t-il été rendu\u00A0? *',refund_method_choose:'\u2014 Choisir \u2014',refund_btn:'Enregistrer le remboursement',
+    refund_method_required:'Choisissez comment l\u2019argent a été rendu',
+    refund_amount_invalid:'Montant de remboursement invalide',
+    refund_exceeds_credit:'Remboursement refusé \u2014 il dépasse l\u2019avoir du client ({credit})',
+    refund_changed:'L\u2019avoir du client a changé \u2014 rouvrez Remboursement pour voir le solde actuel',
+    exp_paid_with:'Payé par',exp_method_not_recorded:'Non enregistré',exp_method_invalid:'Choisissez comment cette dépense a été payée',
+    cd_lbl_cash_in:'Paiements reçus en espèces',cd_lbl_cash_expenses:'Dépenses en espèces',cd_lbl_cash_refunds:'Remboursements en espèces',
+    cd_note_cash_only:'Les espèces attendues ne comptent que l\u2019argent liquide\u00A0: mobile money, banque, carte et avoirs ne sont pas inclus, et la monnaie rendue n\u2019est pas comptée.',
+    cd_note_unrecorded:'{count} enregistrement(s) d\u2019aujourd\u2019hui n\u2019ont pas de mode de paiement (saisis avant cette mise à jour) et ne sont pas inclus.',
+    cd_invalid_amount:'Saisissez un montant en espèces de 0 ou plus',
     val_item_row_required:'Au moins une ligne d\u2019article est obligatoire',
     toast_customer_blocked_warning:'⚠️ Ce client est BLOQUÉ et ne peut pas recevoir de nouvelles ventes à crédit\u00A0!',
     perm_no_record_sales:'🔒 Vous n\u2019avez pas la permission d\u2019enregistrer des ventes. Demandez au propriétaire de l\u2019entreprise.',
@@ -7547,13 +7632,19 @@ function custPaid(cid){_ensureFinanceIndices();return(_paymentsByCid.get(cid)||[
 function custCreditBalance(cid){
   return S.get('creditLedger').filter(e=>e.cid===cid).reduce((a,e)=>a+(e.type==='earned'?parseFloat(e.amount||0):-parseFloat(e.amount||0)),0);
 }
-function addCreditEntry(cid,type,amount,note,relatedInvId){
+function addCreditEntry(cid,type,amount,note,relatedInvId,method){
   /* Incremental append: creditLedger is append-only in production (corrections
      are recorded as new offsetting entries, never edits), so a single new entry
      no longer rewrites the whole store. Record contents, uid() generation and
      the 2dp rounding are byte-for-byte unchanged — only persistence differs.
-     Stamping and the FIN_WATCH_KEYS financial watcher are preserved by S.add(). */
-  S.add('creditLedger',{id:uid(),cid,type,amount:Math.round(parseFloat(amount||0)*100)/100,date:todayStr(),note:note||'',relatedInvId:relatedInvId||null});
+     Stamping and the FIN_WATCH_KEYS financial watcher are preserved by S.add().
+     4.3.7: optional `method` (how money physically moved: 'cash',
+     'mobile-money', …) is stored only when given, so callers that pass no
+     method (apply-credit, older builds) write exactly the same record shape.
+     Only entries tagged 'cash' ever touch the cash drawer. */
+  const rec={id:uid(),cid,type,amount:Math.round(parseFloat(amount||0)*100)/100,date:todayStr(),note:note||'',relatedInvId:relatedInvId||null};
+  if(method)rec.method=String(method);
+  S.add('creditLedger',rec);
 }
 function syncStatuses(){
   const sales=S.get('sales').map(s=>{
@@ -8118,15 +8209,72 @@ function promptApplyCredit(cid){
     renderCustOverview(cid);loadPayments();
   });
 }
+/* ═══ 4.3.7 (G2): ACCOUNT-CREDIT REFUND CONTROL ═══
+   promptRefundCredit() is only the screen: it shows the full credit and asks
+   HOW the money is handed back. refundAccountCredit() is the operation
+   boundary — it re-checks permission, amount, method and (for employees)
+   a single-use Owner approval every time it runs, including when it is
+   called directly. Nothing is written unless every check passes. */
+const REFUND_METHODS=['cash','mobile-money','bank-transfer','cheque','card','other'];
+let _rcCid=null,_rcAmount=0;
 function promptRefundCredit(cid){
+  if(!Auth.can('manageCustomers')){toast(t('perm_no_manage_customers'),'error');return;}
   const credit=custCreditBalance(cid);
   if(credit<=0){toast(t('toast_no_account_credit'),'warning');return;}
   const c=S.get('customers').find(x=>x.id===cid);
-  confirm2('Refund Account Credit?',`Record a refund of ${cur(credit)} to ${c?.name||'this customer'}? This zeroes their credit balance — make sure the cash/mobile money has actually been handed back first.`,()=>{
-    addCreditEntry(cid,'refunded',credit,'Refunded to customer');
-    toast(tf('toast_refund_recorded',{amount:cur(credit)}),'success');
-    renderCustOverview(cid);
-  });
+  _rcCid=cid;_rcAmount=Math.round(credit*100)/100;
+  document.getElementById('rcCust').textContent=c?.name||'?';
+  document.getElementById('rcAmount').textContent=cur(_rcAmount);
+  document.getElementById('rcMethod').value='';
+  document.getElementById('rcError').textContent='';
+  openModal('mRefundCredit');
+}
+function confirmRefundCredit(){
+  const method=document.getElementById('rcMethod').value;
+  if(!method){document.getElementById('rcError').textContent=t('refund_method_required');return;}
+  const cid=_rcCid,amount=_rcAmount;
+  // The balance must still be exactly what was shown — never refund a stale figure.
+  if(!cid||Math.abs(custCreditBalance(cid)-amount)>0.005){closeModal('mRefundCredit');toast(t('refund_changed'),'warning',6000);return;}
+  closeModal('mRefundCredit');
+  refundAccountCredit(cid,amount,method);
+}
+function refundAccountCredit(cid,amount,method){
+  const c=S.get('customers').find(x=>x.id===cid);
+  const name=c?.name||'?';
+  amount=Math.round((parseFloat(amount)||0)*100)/100;
+  if(!Auth.can('manageCustomers')){
+    toast(t('perm_no_manage_customers'),'error');
+    logAuditEvent('security',`Unauthorized account-credit refund refused (no Manage Customers permission): ${name} (${cur(amount)})`,{recordType:'creditRefund',recordId:cid||''});
+    return false;
+  }
+  if(!c){toast(t('refund_amount_invalid'),'error');return false;}
+  if(!REFUND_METHODS.includes(method)){toast(t('refund_method_required'),'error');return false;}
+  if(!isFinite(amount)||amount<=0){toast(t('refund_amount_invalid'),'error');return false;}
+  const credit=Math.round(custCreditBalance(cid)*100)/100;
+  if(amount>credit+0.005){
+    toast(tf('refund_exceeds_credit',{credit:cur(credit)}),'error',6000);
+    logAuditEvent('security',`Account-credit refund refused — amount exceeds credit: ${name} (refund ${cur(amount)}, credit ${cur(credit)})`,{recordType:'creditRefund',recordId:cid,..._actorMeta()});
+    return false;
+  }
+  const spec={kind:'creditRefund',cid,amount,credit,method};
+  let approvedBy=null;
+  if(priceApprovalRequired()){
+    const r=consumeApproval(spec); // single-use; a stale/non-matching approval is discarded
+    if(!r.token){
+      if(r.hadToken)toast(t('refund_changed'),'warning',6000);
+      logAuditEvent('security',`Account-credit refund — Owner approval required: ${name} (${refundFigures(spec)})`,{recordType:'creditRefund',recordId:cid});
+      requestOwnerActionApproval(spec);
+      return false;
+    }
+    approvedBy=r.token.by;
+  }
+  const after=Math.round((credit-amount)*100)/100;
+  addCreditEntry(cid,'refunded',amount,'Refunded to customer',null,method);
+  logAuditEvent('payment',`Account credit refunded to ${name}: ${cur(amount)} (${_payMethodEn(method)}), credit ${cur(credit)} → ${cur(after)}${approvedBy?`, approved by ${approvedBy}`:''}`,{recordType:'creditRefund',recordId:cid,prevValue:credit,newValue:after,..._actorMeta()});
+  toast(tf('toast_refund_recorded',{amount:cur(amount)}),'success');
+  renderCustOverview(cid);
+  refreshLiveStats();
+  return true;
 }
 function renderCustLedger(id){
   const el=document.getElementById('ctabp-ledger');
@@ -8840,10 +8988,19 @@ function openAddExpense(){
   document.getElementById('expNewCategory').value='';
   document.getElementById('expDate').value=todayStr();
   document.getElementById('expNotes').value='';
+  _setExpPayMethod('cash'); // 4.3.7: new expenses default to Cash (one tap to change)
   openModal('mAddExpense');
   const saveExpenseBtnReset=document.getElementById('saveExpenseBtn');
   if(saveExpenseBtnReset)saveExpenseBtnReset.disabled=false;
   setTimeout(()=>document.getElementById('expAmount').focus(),80);
+}
+/* 4.3.7: "Not recorded" is offered only when editing an older expense that
+   has no method, so a new expense always gets a real method. */
+function _setExpPayMethod(m){
+  const sel=document.getElementById('expPayMethod'),unk=document.getElementById('expPayMethodUnknown');
+  if(!sel)return;
+  if(unk){unk.hidden=!!m;unk.disabled=!!m;}
+  sel.value=m||'';
 }
 function editExpense(id){
   if(!Auth.can('manageExpenses')){toast(t('exp_no_permission_edit'),'error');return;}
@@ -8857,6 +9014,7 @@ function editExpense(id){
   document.getElementById('expNewCategory').style.display='none';
   document.getElementById('expDate').value=e.date;
   document.getElementById('expNotes').value=e.notes||'';
+  _setExpPayMethod(e.payMethod||''); // 4.3.7: older expenses show "Not recorded" — never guessed
   openModal('mAddExpense');
   const saveExpenseBtnEditReset=document.getElementById('saveExpenseBtn');
   if(saveExpenseBtnEditReset)saveExpenseBtnEditReset.disabled=false;
@@ -8890,6 +9048,8 @@ function saveExpense(skipInventoryWarn){
     return;
   }
   if(!category){toast(t('exp_category_required'),'error');return;}
+  const payMethod=document.getElementById('expPayMethod').value; // 4.3.7 ('' = not recorded, older expense)
+  if(payMethod&&!_PAY_METHOD_KEY[payMethod]){toast(t('exp_method_invalid'),'error');return;}
   saveExpenseBtn.disabled=true;
   /* Incremental persistence. Note the S.get('expenses') read is now scoped to
      the edit branch only: the add branch previously spread the entire array
@@ -8902,13 +9062,15 @@ function saveExpense(skipInventoryWarn){
     const list=S.get('expenses');
     const prev=list.find(x=>x.id===id);
     const updated={...prev,amount,category,date,notes};
+    if(payMethod)updated.payMethod=payMethod; // 4.3.7: an older expense keeps no method unless one is chosen
     S.update('expenses',updated);
-    logAuditEvent('edit',`Expense updated: ${expenseCategoryLabel(category)} ${cur(amount)}`,{recordType:'expense',recordId:id,prevValue:cur(prev.amount),newValue:cur(amount)});
+    logAuditEvent('edit',`Expense updated: ${expenseCategoryLabel(category)} ${cur(amount)}${payMethod?` (${_payMethodEn(payMethod)})`:''}`,{recordType:'expense',recordId:id,prevValue:cur(prev.amount),newValue:cur(amount)});
     toast(t('exp_updated'),'success');
   }else{
     const exp={id:uid(),amount,category,date,notes,createdAt:new Date().toISOString()};
+    if(payMethod)exp.payMethod=payMethod; // 4.3.7
     S.add('expenses',exp);
-    logAuditEvent('add',`Expense logged: ${expenseCategoryLabel(category)} ${cur(amount)}`,{recordType:'expense',recordId:exp.id,newValue:cur(amount)});
+    logAuditEvent('add',`Expense logged: ${expenseCategoryLabel(category)} ${cur(amount)}${payMethod?` (${_payMethodEn(payMethod)})`:''}`,{recordType:'expense',recordId:exp.id,newValue:cur(amount)});
     toast(t('exp_logged'),'success');
   }
   closeModal('mAddExpense');
@@ -9296,6 +9458,7 @@ function onPayInvChange(){
   document.getElementById('balDue').textContent=cur(bal);
   setFmtVal('pAmount',bal>0?bal:'');
 }
+let _overpayConfirmedKey=null; // 4.3.7: set only by the Owner's overpayment confirm, cleared on use
 function savePay(){
   const savePayBtn=document.getElementById('savePayBtn');
   if(savePayBtn.disabled)return; // prevent a rapid double-tap from recording the payment twice
@@ -9307,7 +9470,10 @@ function savePay(){
   const date=document.getElementById('pDate').value;
   if(!cid||!invId||!date){toast(t('toast_payment_fields_required'),'error');return;}
   if(amount<=0){toast(t('val_payment_amount_zero'),'error');return;}
-  savePayBtn.disabled=true;
+  if(!isFinite(amount)){toast(t('val_payment_amount_invalid'),'error');return;} // 4.3.7
+  // 4.3.7 (G1): the invoice must exist, belong to this customer and be open.
+  _ensureFinanceIndices();const _payInv=_salesById.get(invId); // existing O(1) index (invBalance builds the same one)
+  if(!_payInv||_payInv.cid!==cid||_payInv.status==='cancelled'){toast(t('val_payment_invoice_invalid'),'error');return;}
   const bal=invBalance(invId);
   const method=document.getElementById('pMethod').value,ref=document.getElementById('pRef').value.trim(),collector=document.getElementById('pCollector').value.trim(),notes=document.getElementById('pNotes').value.trim();
   const cust=S.get('customers').find(c=>c.id===cid);
@@ -9316,6 +9482,34 @@ function savePay(){
      excess vanish through invBalance's zero-floor. */
   const appliedAmt=Math.min(amount,bal);
   const creditAmt=Math.round((amount-appliedAmt)*100)/100;
+  /* 4.3.7 (G1): an excess becomes money the business owes the customer (and
+     can later be refunded), so it is never created silently. Employees need
+     a single-use Owner approval bound to customer/invoice/amount/balance/
+     method; the Owner (or Access Control off) confirms the exact figures.
+     Exact and partial payments are unchanged — no extra step. */
+  let _overpayBy=null;
+  if(creditAmt>0){
+    const spec={kind:'overpay',cid,invId,amount,bal,method};
+    if(priceApprovalRequired()){
+      if(!peekApproval(spec)){
+        consumeApproval(spec); // discard any stale/non-matching approval
+        logAuditEvent('security',`Overpayment — Owner approval required: ${cust?.name||'?'} (${overpayFigures(spec)})`,{recordType:'payment',recordId:invId});
+        requestOwnerActionApproval(spec);
+        return;
+      }
+      _overpayBy=consumeApproval(spec).token.by;
+    }else{
+      const key=JSON.stringify([cid,invId,amount,bal,method]);
+      if(_overpayConfirmedKey!==key){
+        _overpayConfirmedKey=null;
+        confirm2(t('overpay_confirm_title'),tf('overpay_confirm_msg',{amount:cur(amount),invoice:invNum(invId),balance:cur(bal),extra:cur(creditAmt),customer:cust?.name||t('toast_fallback_customer')}),()=>{_overpayConfirmedKey=key;savePay();},t('overpay_confirm_btn'));
+        return;
+      }
+      _overpayConfirmedKey=null;
+    }
+  }
+  savePayBtn.disabled=true;
+  const _creditBefore=creditAmt>0?Math.round(custCreditBalance(cid)*100)/100:0;
   let paymentId=null;
   if(appliedAmt>0){
     paymentId=uid();
@@ -9335,7 +9529,8 @@ function savePay(){
     }
   }
   if(creditAmt>0){
-    addCreditEntry(cid,'earned',creditAmt,`Overpayment on ${invNum(invId)}`,invId);
+    addCreditEntry(cid,'earned',creditAmt,`Overpayment on ${invNum(invId)}`,invId,method);
+    logAuditEvent('payment',`Overpayment ${cur(amount)} from ${cust?.name||'?'} on ${invNum(invId)} (${_payMethodEn(method)}): ${cur(appliedAmt)} applied, ${cur(creditAmt)} kept as account credit${_overpayBy?`, approved by ${_overpayBy}`:''}`,{recordType:'payment',recordId:paymentId||invId,prevValue:_creditBefore,newValue:Math.round((_creditBefore+creditAmt)*100)/100,..._actorMeta()}); // 4.3.7
     toast(tf('toast_payment_applied_overpay',{applied:cur(appliedAmt),invoice:invNum(invId),extra:cur(creditAmt),customer:cust?.name||t('toast_fallback_customer'),balance:cur(custCreditBalance(cid))}),'success',5000);
   }else{
     log('payment','Payment '+cur(amount)+' from '+(cust?.name||'?'));
@@ -9359,6 +9554,7 @@ function savePay(){
   if(paymentId)setTimeout(()=>printPaymentReceipt(paymentId),250);
 }
 function resetPayForm(){
+  clearApprovalKind('overpay');_overpayConfirmedKey=null; // 4.3.7: a fresh form never inherits an overpayment approval
   ['pCustomer','pInvoice','pAmount','pDate','pRef','pCollector','pNotes'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   document.getElementById('pMethod').value='cash';
   document.getElementById('pDate').value=todayStr();
@@ -13343,6 +13539,45 @@ function renderInvGrid(prods){
     </div>`;
   }).join('');
 }
+/* ═══ 4.3.7 (G3): PHYSICAL CASH IN THE DRAWER ═══
+   Expected Cash = Opening
+                 + cash kept from POS cash sales (sale total — change handed
+                   back is not kept)
+                 + cash payments received (payments with method 'cash', incl.
+                   deposits) + cash overpayments kept as account credit
+                 − expenses paid in cash − account credit refunded in cash
+   Mobile money, bank, card, cheque, "other" and account-credit payments are
+   not physical cash and never count. Account credit by itself is not cash.
+   Records saved before 4.3.7 without a method are NOT guessed: they are left
+   out of Expected Cash and counted in `unrecorded` so the screen can say so.
+   Read-only; one pass per store, today's records only; writes nothing. */
+function computeDrawerCash(td,opening){
+  const n=v=>{const x=parseFloat(v);return isFinite(x)?x:0;};
+  const r={opening:n(opening),cashSales:0,creditSales:0,collections:0,cashCollections:0,cashCreditIn:0,cashExpenses:0,cashRefunds:0,unrecorded:0,expected:0};
+  for(const s of S.get('posSales')){
+    if(s.date!==td||s.method!=='cash')continue;
+    const paid=parseFloat(s.paid),ch=parseFloat(s.change);
+    r.cashSales+=(isFinite(paid)&&isFinite(ch))?paid-ch:n(s.total);
+  }
+  for(const s of S.get('sales'))if(s.date===td&&s.status!=='cancelled')r.creditSales+=n(s.amount);
+  for(const p of S.get('payments')){
+    if(p.date!==td)continue;
+    r.collections+=n(p.amount);
+    if(p.method==='cash')r.cashCollections+=n(p.amount);else if(!p.method)r.unrecorded++;
+  }
+  for(const e of S.get('creditLedger')){
+    if(e.date!==td||e.type==='applied')continue;
+    if(!e.method){r.unrecorded++;continue;}
+    if(e.method!=='cash')continue;
+    if(e.type==='earned')r.cashCreditIn+=n(e.amount);else if(e.type==='refunded')r.cashRefunds+=n(e.amount);
+  }
+  for(const x of S.get('expenses')){
+    if(x.date!==td)continue;
+    if(!x.payMethod)r.unrecorded++;else if(x.payMethod==='cash')r.cashExpenses+=n(x.amount);
+  }
+  r.expected=Math.round((r.opening+r.cashSales+r.cashCollections+r.cashCreditIn-r.cashExpenses-r.cashRefunds)*100)/100;
+  return r;
+}
 function renderCashDrawer(){
   if(!document.getElementById('cdCashSales'))return;
   const td=todayStr();
@@ -13351,14 +13586,15 @@ function renderCashDrawer(){
   const today=drawer[td]||{opening:0,closing:''};
   setFmtVal('cdOpening',today.opening||0);
   setFmtVal('cdClosing',today.closing||'');
-  const posSales=S.get('posSales').filter(s=>s.date===td);
-  const cashSales=posSales.filter(s=>s.method==='cash').reduce((a,s)=>a+s.paid,0);
-  const creditSalesToday=S.get('sales').filter(s=>s.date===td&&s.status!=='cancelled').reduce((a,s)=>a+parseFloat(s.amount||0),0);
-  const collections=S.get('payments').filter(p=>p.date===td).reduce((a,p)=>a+parseFloat(p.amount||0),0);
-  const expected=(parseFloat(today.opening)||0)+cashSales+collections;
-  document.getElementById('cdCashSales').textContent=cur(cashSales);
-  document.getElementById('cdCreditSales').textContent=cur(creditSalesToday);
-  document.getElementById('cdCollections').textContent=cur(collections);
+  const dc=computeDrawerCash(td,today.opening); // 4.3.7 (G3)
+  const expected=dc.expected;
+  document.getElementById('cdCashSales').textContent=cur(dc.cashSales);
+  document.getElementById('cdCreditSales').textContent=cur(dc.creditSales);
+  document.getElementById('cdCollections').textContent=cur(dc.collections);
+  document.getElementById('cdCashIn').textContent=cur(dc.cashCollections+dc.cashCreditIn);
+  document.getElementById('cdCashExpenses').textContent=cur(dc.cashExpenses);
+  document.getElementById('cdCashRefunds').textContent=cur(dc.cashRefunds);
+  document.getElementById('cdNote').textContent=t('cd_note_cash_only')+(dc.unrecorded?' '+tf('cd_note_unrecorded',{count:dc.unrecorded}):'');
   document.getElementById('cdExpected').textContent=cur(expected);
   const closing=parseFloat(today.closing);
   const varEl=document.getElementById('cdVariance');
@@ -13368,14 +13604,47 @@ function renderCashDrawer(){
     varEl.className=variance>=0?'cd-variance-pos':'cd-variance-neg';
   }else{varEl.textContent=t('js_txt_enter_closing_cash');varEl.className='';}
 }
+/* 4.3.7 (G4): drawer edits are traceable. The fields still save on every
+   keystroke exactly as before (nothing is lost if the phone dies mid-count),
+   but the Audit Log gets ONE entry per finished edit — the value before the
+   edit started and the value it ended on — written when the field is left
+   (change), or when the app is hidden/closed with an edit still open.
+   The drawer record keeps its existing shape {opening, closing}. */
+let _cdEditBase=null; // {date, opening, closing} as stored before the current edit
+function _cdParse(raw){
+  const s=String(raw==null?'':raw).replace(/,/g,'').trim();
+  if(s==='')return'';
+  const v=Number(s);
+  return isFinite(v)&&v>=0?Math.round(v*100)/100:null; // null = invalid (negative / not a number)
+}
 function saveCashDrawer(){
+  if(!Auth.can('manageInventory')){toast(t('perm_no_adjust_inventory'),'error');renderCashDrawer();return;} // operation boundary
   const td=todayStr();
   const drawer=S.obj('cashDrawer',{});
-  const closingRaw=document.getElementById('cdClosing').value;
-  drawer[td]={opening:parseFloat(document.getElementById('cdOpening').value)||0,closing:closingRaw===''?'':(parseFloat(closingRaw)||0)};
+  const prev=drawer[td]||{opening:0,closing:''};
+  const opening=_cdParse(document.getElementById('cdOpening').value);
+  const closing=_cdParse(document.getElementById('cdClosing').value);
+  if(opening===null||closing===null)return; // invalid (e.g. "-"): keep the stored drawer untouched; reported on commit
+  if(!_cdEditBase||_cdEditBase.date!==td)_cdEditBase={date:td,opening:prev.opening===undefined?0:prev.opening,closing:prev.closing===undefined?'':prev.closing};
+  drawer[td]={opening:opening===''?0:opening,closing};
   S.setObj('cashDrawer',drawer);
   renderCashDrawer();
 }
+function commitCashDrawerEdit(){
+  const opening=_cdParse((document.getElementById('cdOpening')||{}).value);
+  const closing=_cdParse((document.getElementById('cdClosing')||{}).value);
+  if(opening===null||closing===null){toast(t('cd_invalid_amount'),'error');renderCashDrawer();} // restore the last valid saved figures
+  const b=_cdEditBase;_cdEditBase=null;
+  if(!b)return;
+  const now=(S.obj('cashDrawer',{})[b.date])||{opening:0,closing:''};
+  const show=v=>v===''||v===undefined||v===null?'(blank)':cur(v);
+  const same=(a,c)=>(a===''||a===undefined||a===null)?(c===''||c===undefined||c===null):(c!==''&&c!==undefined&&c!==null&&Math.abs(parseFloat(a)-parseFloat(c))<0.005);
+  if(!same(b.opening,now.opening))logAuditEvent('edit',`Cash drawer opening cash changed for ${b.date}: ${show(b.opening)} → ${show(now.opening)}`,{recordType:'cashDrawer',recordId:b.date+':opening',prevValue:b.opening,newValue:now.opening,..._actorMeta()});
+  if(!same(b.closing,now.closing))logAuditEvent('edit',`Cash drawer closing count changed for ${b.date}: ${show(b.closing)} → ${show(now.closing)}`,{recordType:'cashDrawer',recordId:b.date+':closing',prevValue:b.closing,newValue:now.closing,..._actorMeta()});
+}
+// An edit left open when the app is backgrounded or closed is still logged.
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&_cdEditBase)commitCashDrawerEdit();});
+window.addEventListener('pagehide',()=>{if(_cdEditBase)commitCashDrawerEdit();});
 
 /* ═══════════════════════════════════════════════════
    PHASE 5: POINT OF SALE (POS) MODULE
@@ -13583,6 +13852,15 @@ function r2c(v){return Math.round((parseFloat(v)||0)*100)/100;}
 /* Access Control OFF has no signed-in identity: new 4.3.6 audit entries name
    the actor honestly instead of "Business Owner". Existing entries unchanged. */
 function _actorMeta(){return Auth.isEmployeeMode()?{}:{actorLabel:'Unidentified user (Access Control off)'};}
+/* 4.3.7: payment-method names. _payMethodEn() is the canonical English form
+   written to the Audit Log (stored text is never translated);
+   _payMethodLabel() is the translated form for the screen. */
+const _PAY_METHOD_EN={cash:'Cash','mobile-money':'Mobile Money','bank-transfer':'Bank Transfer',cheque:'Cheque',card:'Card',other:'Other','account credit':'Account Credit'};
+const _PAY_METHOD_KEY={cash:'method_cash','mobile-money':'method_mobile_money','bank-transfer':'method_bank_transfer',cheque:'method_cheque',card:'method_card',other:'method_other'};
+function _payMethodEn(m){return _PAY_METHOD_EN[m]||String(m||'Not recorded');}
+function _payMethodLabel(m){return _PAY_METHOD_KEY[m]?t(_PAY_METHOD_KEY[m]):_payMethodEn(m);}
+function overpayFigures(sp){return`invoice ${invNum(sp.invId)} balance ${cur(sp.bal)}, payment ${cur(sp.amount)} (${_payMethodEn(sp.method)}), excess ${cur(r2c(sp.amount-sp.bal))} to account credit`;}
+function refundFigures(sp){return`credit ${cur(sp.credit)}, refund ${cur(sp.amount)} (${_payMethodEn(sp.method)}), credit after ${cur(r2c(sp.credit-sp.amount))}`;}
 function _overrideByLabel(tok){
   if(tok)return tok.by;
   return Auth.isEmployeeMode()?'Business Owner (own override)':'no sign-in (Access Control off)';
@@ -13701,6 +13979,10 @@ const OwnerApproval=(()=>{
   const r2=v=>Math.round((parseFloat(v)||0)*100)/100;
   const bindKey=sp=>sp.kind==='creditOverride'
     ?JSON.stringify([sp.kind,sp.cid,r2(sp.prevDebt),r2(sp.limit),r2(sp.total),r2(sp.deposit),r2(sp.resultingDebt)])
+    :sp.kind==='overpay' // 4.3.7 (G1)
+    ?JSON.stringify([sp.kind,sp.cid,sp.invId,r2(sp.amount),r2(sp.bal),sp.method||''])
+    :sp.kind==='creditRefund' // 4.3.7 (G2)
+    ?JSON.stringify([sp.kind,sp.cid,r2(sp.amount),r2(sp.credit),sp.method||''])
     :JSON.stringify([sp.kind,sp.cid,r2(sp.oldLimit),r2(sp.newLimit),sp.oldStatus||'',sp.newStatus||'']);
   function clearApprovalKind(kind){if(invoiceToken&&invoiceToken.kind===kind)invoiceToken=null;}
   function peekApproval(spec){const tk=invoiceToken;return !!tk&&tk.user===uid()&&tk.kind===spec.kind&&tk.key===bindKey(spec);}
@@ -13718,6 +14000,16 @@ const OwnerApproval=(()=>{
       document.getElementById('paRegular').textContent=`${cur(spec.prevDebt)} / ${cur(spec.limit)}`;
       document.getElementById('paProposed').textContent=cur(spec.total)+(spec.deposit>0?` (−${cur(spec.deposit)})`:'');
       document.getElementById('paChange').textContent=cur(spec.resultingDebt);
+    }else if(spec.kind==='overpay'){ // 4.3.7 (G1)
+      setLabels(t('pa_intro_overpay'),t('pa_lbl_customer'),t('pa_lbl_inv_balance'),t('pa_lbl_payment'),t('pa_lbl_extra_credit'));
+      document.getElementById('paRegular').textContent=`${invNum(spec.invId)} · ${cur(spec.bal)}`;
+      document.getElementById('paProposed').textContent=`${cur(spec.amount)} · ${_payMethodLabel(spec.method)}`;
+      document.getElementById('paChange').textContent=cur(r2(spec.amount-spec.bal));
+    }else if(spec.kind==='creditRefund'){ // 4.3.7 (G2)
+      setLabels(t('pa_intro_credit_refund'),t('pa_lbl_customer'),t('pa_lbl_account_credit'),t('pa_lbl_refund'),t('pa_lbl_credit_after'));
+      document.getElementById('paRegular').textContent=cur(spec.credit);
+      document.getElementById('paProposed').textContent=`${cur(spec.amount)} · ${_payMethodLabel(spec.method)}`;
+      document.getElementById('paChange').textContent=cur(r2(spec.credit-spec.amount));
     }else{
       setLabels(t('pa_intro_cust_change'),t('pa_lbl_customer'),t('pa_lbl_limit_change'),t('pa_lbl_status_change'),t('pa_lbl_change'));
       document.getElementById('paRegular').textContent=`${limitLabel(spec.oldLimit)} → ${limitLabel(spec.newLimit)}`;
@@ -13762,20 +14054,26 @@ const OwnerApproval=(()=>{
       toast(t('pa_approved'),'success');
       return;
     }
-    if(pa.kind==='creditOverride'||pa.kind==='custChange'){ // 4.3.6
+    if(pa.kind==='creditOverride'||pa.kind==='custChange'||pa.kind==='overpay'||pa.kind==='creditRefund'){ // 4.3.6 / 4.3.7
       const cust=(S.get('customers').find(c=>c.id===pa.cid)||{}).name||'?';
       if(!ok){
         const what=pa.kind==='creditOverride'
           ?`credit-limit override: ${cust} (${creditFigures(pa)})`
+          :pa.kind==='overpay'?`overpayment: ${cust} (${overpayFigures(pa)})`
+          :pa.kind==='creditRefund'?`account-credit refund: ${cust} (${refundFigures(pa)})`
           :`customer change: ${cust} (${custChangeFigures(pa)})`;
-        logAuditEvent('login_failed',`Failed Owner approval attempt for ${what}`,{recordType:pa.kind==='creditOverride'?'creditOverride':'customer',recordId:pa.cid});
+        logAuditEvent('login_failed',`Failed Owner approval attempt for ${what}`,{recordType:{creditOverride:'creditOverride',overpay:'payment',creditRefund:'creditRefund'}[pa.kind]||'customer',recordId:pa.cid});
         err.textContent=t('pa_wrong_password');
         return;
       }
       invoiceToken={kind:pa.kind,key:bindKey(pa),user:uid(),by,at};
       pending=null;
       closeModal('mPriceApproval');
-      if(pa.kind==='creditOverride')checkoutPos();else saveCust();
+      // Re-run the real action; it re-derives everything and consumes the token.
+      if(pa.kind==='creditOverride')checkoutPos();
+      else if(pa.kind==='overpay')savePay();
+      else if(pa.kind==='creditRefund')refundAccountCredit(pa.cid,pa.amount,pa.method);
+      else saveCust();
       return;
     }
     // Invoice edit / cancellation

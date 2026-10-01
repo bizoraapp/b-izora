@@ -1,6 +1,6 @@
 # Bizora — Developer Documentation
 
-**Version:** 4.3.6 · **Build:** 2026.09.30e · **Database schema:** v8
+**Version:** 4.3.7 · **Build:** 2026.09.30f · **Database schema:** v8
 **Maintainer:** Ngwe Lesley Mbom
 
 This document exists so future work on Bizora can extend it without needing to re-read all ~10,400 lines to understand how the pieces fit together. It reflects the app as of Phase 6 (production hardening) of the PWA conversion.
@@ -115,3 +115,30 @@ Documented here so they're not mistaken for oversights:
 - No virtual scrolling / list pagination retrofit into existing render functions — flagged as a targeted future pass rather than a blanket change.
 - No automatic wiring of `SyncManager.enqueue()` into sale/payment/inventory save functions — the queue infrastructure exists, but activating it is a cloud-sync-phase decision, not a hardening-phase one.
 - No full touch-target/contrast accessibility retrofit — only OS-preference-respecting CSS (`prefers-reduced-motion`, `prefers-contrast`, `:focus-visible`) was added.
+
+---
+
+## 9. Money Controls (4.3.7)
+
+Four controls close the money-extraction paths found in the 4.3.6 audit. No database version change (schema stays v8); only optional fields were added to existing records.
+
+| Control | Where | Rule |
+|---|---|---|
+| G1 Overpayment | `savePay()` | An amount above the invoice balance becomes account credit only after the Owner confirms (Owner / Access Control off) or approves with their password (employees, single-use approval bound to customer, invoice, amount, balance and method). Every overpayment is audit-logged with the credit before → after. Invoice must exist, belong to the customer and not be cancelled; non-finite amounts are refused. |
+| G2 Credit refund | `promptRefundCredit()` (screen) → `refundAccountCredit(cid, amount, method)` (operation boundary) | Requires Manage Customers; employees also need a single-use Owner approval; amount must be > 0 and ≤ current credit; the refund method is required and stored. Every refund and every refused attempt is audit-logged. |
+| G3 Expected cash | `computeDrawerCash(td, opening)` (read-only logic) → `renderCashDrawer()` (display) | Opening + cash kept from POS cash sales (paid − change) + cash payments (method `cash`, incl. deposits) + cash overpayments kept as credit − cash expenses − cash credit refunds. Non-cash methods and account credit never count. Records saved before 4.3.7 without a method are not guessed: they are excluded and counted on screen. |
+| G4 Drawer edits | `saveCashDrawer()` / `commitCashDrawerEdit()` | Requires Manage Inventory. Fields still save on every keystroke; one audit entry per finished edit (value before → after), written on change, or when the app is hidden/closed. Negative / non-numeric values are never saved. |
+
+New optional fields: `creditLedger[].method`, `expenses[].payMethod` (both written only when known). `addCreditEntry()` takes an optional 6th `method` argument; callers without it write the old record shape.
+
+Approval kinds `overpay` and `creditRefund` reuse the existing `OwnerApproval` single-use slot (`bindKey`, `requestOwnerActionApproval`, `submitPriceApproval`).
+
+## 10. Changelog
+
+### 4.3.7 — build 2026.09.30f (cache v130)
+- **Added:** G1–G4 money controls (section 9); expense "Paid with" field; refund-method screen; three drawer lines (Cash Payments Received, Cash Expenses, Cash Refunds) and a cash-only note; 31 EN/FR strings.
+- **Changed:** Expected Cash now counts physical cash only; "Cash Sales Today" in the drawer shows cash kept (change handed back is no longer counted).
+- **Files:** `index.html`, `service-worker.js` (CACHE_VERSION v130), `DEVELOPER.md`.
+- **Database:** no schema/IDB version change; additive optional fields only; no migration; historical records untouched.
+- **Breaking changes:** none. Employees now need Owner approval for overpayments and credit refunds (intended).
+- **Release step:** set `PREVIOUS_CACHE_VERSION` to `'v129'` once 4.3.6 is confirmed live, before 4.3.7 is deployed.
