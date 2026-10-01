@@ -2,6 +2,16 @@
 
 Read this whole file before touching anything. It is the contract between the product owner (Ngwe), the product manager and you (Claude Code).
 
+**Then read the docs your task touches:**
+
+| Doc | Read it when |
+|---|---|
+| `docs/PRODUCT.md` | Always, once per session: users, modules, roles, money vocabulary, workflows, design principles |
+| `docs/BUG_HISTORY.md` | Before changing any area. Every past bug, its root cause and the rule it left behind |
+| `docs/I18N.md` | Before adding or changing any visible text (EN/FR rules, French typography, glossary) |
+| `docs/DECISIONS.md` | Before proposing a change to existing behaviour. Decided questions stay closed |
+| `qa/README.md` | Before testing |
+
 Bizora is a **production** app. Real shops in Cameroon record their sales, debts and cash in it every day, often offline, on 2–4 GB Android phones. A broken release can lose a shop's records or show the wrong cash figure. **Being careful matters more than being fast.**
 
 ---
@@ -13,6 +23,17 @@ Bizora is a **production** app. Real shops in Cameroon record their sales, debts
 - Work only on a branch: `release/<version>` for a release, `fix/<short-name>` or `investigate/<short-name>` otherwise. Open a pull request. Netlify builds a **deploy preview** for it; that preview URL is what Ngwe tests on the phone.
 - Only these files are deployed (`netlify.toml` copies exactly these into `dist/`): `index.html`, `service-worker.js`, `manifest.json`, `offline.html`, `icons/`. **If you add a file the app needs at runtime, you must add it to the `netlify.toml` allowlist and say so in the PR.** Everything else (this file, `docs/`, `qa/`) is never published.
 - **This repository is public.** Never commit secrets, real customer data, backups, exported JSON or ZIP builds. Never describe an unfixed vulnerability in detail in a commit message or PR. Say "security fix, details in the project tracker" instead.
+
+### Automatic guardrails (hooks in `.claude/`)
+
+These run on every session. **Never disable, bypass or edit them**; changing `.claude/` asks Ngwe's permission.
+- **Session start:** prints the branch, versions and these rules.
+- **Before any shell command:** blocks pushes to `main`, force or delete pushes, merges into `main`, history rewrites (`reset --hard`, `rebase`), branch/tag deletion, deploy tools and hosting APIs, recursive deletes, and commits of ZIPs, backups or secrets.
+- **Before any file edit:** blocks edits while on `main` and inside `.git`.
+- **After editing `index.html`:** runs the syntax check, the 28 protected-function hashes and EN/FR parity; it also warns about known traps (`.toISOString()` date keys, hard-coded `method:'cash'`, new timers, `S.set` on large stores, translated text in audit entries).
+- **Before you finish:** re-runs the checks if app files changed.
+
+If a hook blocks you, **stop and report**. Don't look for another way to run the command. If a protected function must change, that needs Ngwe's explicit approval: he adds its name to `qa/approved_protected_changes.txt`, and you say so in the PR.
 
 ## 2. How work is done (non-negotiable)
 
@@ -55,7 +76,7 @@ Bizora is a **production** app. Real shops in Cameroon record their sales, debts
 
 ## 5. Protected code
 
-These functions must stay **byte-identical** unless Ngwe explicitly approves a change. They are checked with `python3 qa/tools/protected_hash.py index.html` against `qa/baselines/protected-4.3.8.json`:
+These functions must stay **byte-identical** unless Ngwe explicitly approves a change. They are checked with `python3 qa/tools/protected_hash.py index.html auto`, which picks `qa/baselines/protected-<APP_VERSION>.json` (or the newest older one). After a release with an approved change is merged, a new baseline is committed for that version and the approval list is emptied:
 
 `computeRealizedProfit, buildProfitIndex, computeExpenseTotals, computeNetProfit, computeProductSalesAggregates, collectLossRecords, computeShortageChainStatus, filterCollection, loadCollection, renderCollInsights, filterCustomers, drawAllCharts, loadDashboard, custDebt, invBalance, invStatus, stockStatus, openLossRegisterView, filterLossRegister, loadProducts, renderProdTable, saveProduct, resetProdForm, go, shareReceiptPdfWhatsApp, downloadReceipt, printReceipt, _generateReceiptPdfBlob`
 
@@ -69,7 +90,7 @@ These functions must stay **byte-identical** unless Ngwe explicitly approves a c
 ## 7. Validation before any PR is ready
 
 1. `python3 qa/tools/check_syntax.py index.html`. Every `<script>` block passes `node --check`; block 0 is a known false alarm (a `<script>` tag inside an HTML comment).
-2. `python3 qa/tools/protected_hash.py index.html qa/baselines/protected-4.3.8.json`: 28/28 unchanged, unless approved.
+2. `python3 qa/tools/protected_hash.py index.html auto`: 28/28 unchanged against the baseline for the current version (`qa/baselines/`), except names Ngwe approved in `qa/approved_protected_changes.txt`.
 3. `node qa/tools/i18n_parity.js index.html`: EN and FR key counts equal, none missing.
 4. **Diff confinement:** every changed line belongs to the approved scope. List the changed functions.
 5. **Regression suites** in `qa/suites-4.3.x/` (Playwright + Chromium against a local HTTP server; IndexedDB needs a real origin). New behaviour gets new tests; existing tests are never weakened. If an existing test must change because of an approved behaviour change, report the exact diff and why.
@@ -89,7 +110,7 @@ These functions must stay **byte-identical** unless Ngwe explicitly approves a c
 
 ## 9. Product decisions already made (don't reopen without being asked)
 
-See `docs/DECISIONS.md`. Example: sale reversal keeps its current deletion behaviour (decided 2026-10-01).
+See `docs/DECISIONS.md`. Example: sale reversal keeps its current deletion behaviour (decided 2026-10-01). Open items and priorities are in the PM's backlog. Work only on what a brief assigns.
 
 ## 10. Report format (end of every task)
 

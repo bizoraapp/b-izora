@@ -7,7 +7,7 @@ Nothing in `qa/` is deployed. Only the runtime files listed in `netlify.toml` ar
 | Command | Checks |
 |---|---|
 | `python3 qa/tools/check_syntax.py index.html` | Every inline `<script>` block passes `node --check`. Block 0 is a known false positive |
-| `python3 qa/tools/protected_hash.py index.html qa/baselines/protected-4.3.8.json` | The 28 protected functions are byte-identical (exits 1 if any changed) |
+| `python3 qa/tools/protected_hash.py index.html auto` | The 28 protected functions are byte-identical to the baseline for this `APP_VERSION` (`qa/baselines/protected-<version>.json`, or the newest older one); exits 1 on any change not listed in `qa/approved_protected_changes.txt` |
 | `node qa/tools/i18n_parity.js index.html` | EN/FR dictionaries have identical keys (exits 1 on mismatch) |
 
 ## Regression suites (`suites-4.3.x/`)
