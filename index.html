@@ -680,7 +680,6 @@ tbody tr.cancelled-row td:last-child{text-decoration:none;opacity:1}
 .gs-steps{display:flex;flex-direction:column;gap:2px}
 .gs-step{display:flex;align-items:center;gap:10px;padding:10px 8px;border-radius:var(--r3);cursor:pointer;transition:var(--transition)}
 .gs-step:hover{background:var(--bg)}
-.gs-step.gs-info{cursor:default}.gs-step.gs-info:hover{background:none} /* 4.3.1: step the current user can't open — informational only */
 .gs-step.done{cursor:default}
 .gs-step.done:hover{background:none}
 .gs-step-check{font-size:16px;flex-shrink:0}
@@ -857,14 +856,6 @@ tbody tr.cancelled-row td:last-child{text-decoration:none;opacity:1}
 .insight-card.ins-good{border-left-color:var(--success)}
 .insight-ic{font-size:20.5px;flex-shrink:0}
 .insight-txt{font-size:15px;color:var(--txt);line-height:1.5}
-.ins-group{font-size:12.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--txt2);margin:2px 0 8px}
-.ins-group:not(:first-child){margin-top:14px}
-.insight-card.ins-link{cursor:pointer;align-items:center}
-.insight-card.ins-link:active{background:var(--bg)}
-.ins-link .insight-txt{flex:1;min-width:0}
-.insight-sub{display:block;font-size:13px;color:var(--txt2);line-height:1.4;margin-top:2px}
-.insight-go{font-size:22px;line-height:1;color:var(--txt2);flex-shrink:0}
-.insight-empty{padding:14px 12px;text-align:center;font-size:15px;font-weight:700;color:var(--success)}
 
 /* POS layout */
 .pos-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;align-items:start}
@@ -1347,7 +1338,7 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
         <button class="lrp-btn ghost" onclick="cancelOwnerRecovery()">Cancel</button>
         <button class="lrp-btn primary" onclick="submitOwnerRecoveryCode()">Verify</button>
       </div>
-      <div class="lock-forgot" id="ownerRecNoCodeLink" style="margin-top:16px;font-size:12.5px;display:none" onclick="showOwnerRecoveryReset()">Don't have the code either?</div>
+      <div class="lock-forgot" style="margin-top:16px;font-size:12.5px" onclick="showOwnerRecoveryReset()">Don't have the code either?</div>
     </div>
     <div id="ownerRecNewPw" style="display:none">
       <div class="lrp-note">Code verified. Set a new owner password below.</div>
@@ -1399,7 +1390,7 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
     </div>
     <div class="sb-section">
       <div class="sb-section-label" data-i18n="nav_sec_pos">Point of Sale</div>
-      <div class="nav-item" onclick="go('pos')" id="nav-pos"><span class="ni">🛒</span> <span data-i18n="nav_pos">Start Selling</span></div>
+      <div class="nav-item" onclick="go('pos')" id="nav-pos"><span class="ni">🛒</span> <span data-i18n="nav_pos">Sales (POS)</span></div>
       <div class="nav-item" onclick="go('sales')" id="nav-sales"><span class="ni">🧾</span> <span data-i18n="nav_invoices">Invoices</span></div>
       <div class="nav-item" onclick="go('expenses')" id="nav-expenses"><span class="ni">💸</span> <span data-i18n="nav_expenses">Expenses</span></div>
       <div class="nav-item" onclick="go('financial')" id="nav-financial"><span class="ni">📊</span> <span data-i18n="nav_financial">Financial Summary</span></div>
@@ -1501,13 +1492,6 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
         <div class="qa-btn" onclick="quickLogExpense()"><span class="qa-ic">💰</span><span class="qa-lbl" data-i18n="btn_log_expense">Log Expense</span></div>
         <div class="qa-btn" onclick="quickSearchInvoice()"><span class="qa-ic">🔎</span><span class="qa-lbl" data-i18n="btn_search_invoice">Search Invoice</span></div>
       </div>
-      <!-- Smart Insights: positioned directly after Quick Actions (v4.2.9) so
-           what needs attention is seen first. Content rendered by
-           renderInsights() into #insightsFeed, unchanged container id. -->
-      <div class="card" id="insightsCard" style="margin-bottom:22px">
-        <div class="card-title">💡 Smart Insights</div>
-        <div id="insightsFeed"></div>
-      </div>
       <div class="sec-title" style="margin-bottom:12px">💳 <span data-i18n="dash_credit_debt_title">Credit &amp; Debt</span></div>
       <div class="kpi-grid" id="kpiGrid"></div>
       <div class="sec-title sec-title-accent" style="margin-bottom:12px">🛒 <span data-i18n="dash_pos_today">Point of Sale — Today</span></div>
@@ -1516,19 +1500,19 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
       <div class="kpi-grid" id="expKpiGrid" style="margin-bottom:22px"></div>
       <div class="sec-title" style="margin-bottom:12px">📊 Business Analytics</div>
       <div class="kpi-grid" id="bizKpiGrid" style="margin-bottom:22px"></div>
-      <!-- v4.2.9: Monthly Cash Sales hidden from the UI only. To restore,
-           remove style="display:none" from #dashMonthlyCashCard and the
-           grid-template-columns override on this row. Its canvas,
-           drawAllCharts() block and data are untouched and still run. -->
-      <div class="charts-row charts-row-2" style="grid-template-columns:1fr">
+      <div class="charts-row charts-row-2">
         <div class="chart-card">
           <div class="cc-head"><div><div class="cc-title">📈 Outstanding Debt Trend</div><div class="cc-sub">Issued vs collected — last 6 months</div></div><div class="cc-badge" id="trendBadge">Loading…</div></div>
           <canvas id="cDebtTrend" height="200"></canvas>
         </div>
-        <div class="chart-card" id="dashMonthlyCashCard" style="display:none">
+        <div class="chart-card">
           <div class="cc-head"><div><div class="cc-title">💵 Monthly Cash Sales</div><div class="cc-sub">Cash transactions per month</div></div><div class="cc-badge" id="cashSalesBadge">Loading…</div></div>
           <canvas id="cMonthlySales" height="200"></canvas>
         </div>
+      </div>
+      <div class="card" style="margin-top:14px">
+        <div class="card-title">💡 Smart Insights</div>
+        <div id="insightsFeed"></div>
       </div>
       <div class="bottom-triple" style="margin-top:14px">
         <div class="card"><div class="card-title">🕐 Recent Activities</div><div id="actFeed"></div></div>
@@ -1578,10 +1562,6 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
         <select class="fc" id="prodStockSel" onchange="filterProducts()">
           <option value="" data-i18n="lbl_all_stock_levels">All Stock Levels</option><option value="ok" data-i18n="prd_opt_in_stock">In Stock</option>
           <option value="low" data-i18n="prod_low_stock">Low Stock</option><option value="out" data-i18n="prod_out_of_stock">Out of Stock</option>
-        </select>
-        <select class="fc" id="prodActivitySel" onchange="filterProducts()">
-          <option value="" data-i18n="prd_opt_all_activity">All Sales Activity</option><option value="nosale30" data-i18n="prd_opt_nosale30">Not sold in 30 days</option>
-          <option value="never" data-i18n="prd_opt_never_sold">Never sold</option><option value="inactive6m" data-i18n="prd_opt_inactive6m">Inactive 6+ months</option>
         </select>
         <button class="btn btn-primary" onclick="openModal('mAddProd');resetProdForm()">➕ <span data-i18n="btn_add_product">Add Product</span></button>
         <button class="btn btn-outline" onclick="openProductAnalytics()" data-i18n="prd_btn_analytics">📊 Product Analytics</button>
@@ -1731,17 +1711,13 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
       <div class="card" style="margin-bottom:14px">
         <div class="card-title">💰 Daily Cash Summary — <span id="cashSummaryDate"></span></div>
         <div class="cash-summary">
-          <div class="cd-card"><label data-i18n="inv_lbl_opening_cash">Opening Cash</label><input type="text" inputmode="decimal" class="num-fmt" id="cdOpening" oninput="saveCashDrawer()" onchange="commitCashDrawerEdit()"></div>
+          <div class="cd-card"><label data-i18n="inv_lbl_opening_cash">Opening Cash</label><input type="text" inputmode="decimal" class="num-fmt" id="cdOpening" oninput="saveCashDrawer()"></div>
           <div class="cd-card"><label data-i18n="kpi_cash_sales_today">Cash Sales Today</label><div class="cd-static" id="cdCashSales">—</div></div>
           <div class="cd-card"><label data-i18n="kpi_credit_sales_today">Credit Sales Today</label><div class="cd-static" id="cdCreditSales">—</div></div>
           <div class="cd-card"><label data-i18n="inv_lbl_collections_received">Collections Received</label><div class="cd-static" id="cdCollections">—</div></div>
-          <div class="cd-card"><label data-i18n="cd_lbl_cash_in">Cash Payments Received</label><div class="cd-static" id="cdCashIn">—</div></div>
-          <div class="cd-card"><label data-i18n="cd_lbl_cash_expenses">Cash Expenses</label><div class="cd-static" id="cdCashExpenses">—</div></div>
-          <div class="cd-card"><label data-i18n="cd_lbl_cash_refunds">Cash Refunds</label><div class="cd-static" id="cdCashRefunds">—</div></div>
           <div class="cd-card"><label data-i18n="inv_lbl_expected_cash">Expected Cash</label><div class="cd-static" id="cdExpected" style="color:var(--primary)">—</div></div>
-          <div class="cd-card"><label data-i18n="inv_lbl_closing_cash">Closing Cash (count)</label><input type="text" inputmode="decimal" class="num-fmt" id="cdClosing" oninput="saveCashDrawer()" onchange="commitCashDrawerEdit()"></div>
+          <div class="cd-card"><label data-i18n="inv_lbl_closing_cash">Closing Cash (count)</label><input type="text" inputmode="decimal" class="num-fmt" id="cdClosing" oninput="saveCashDrawer()"></div>
         </div>
-        <div id="cdNote" style="margin-top:8px;font-size:13px;color:var(--txt3);line-height:1.5"></div>
         <div style="margin-top:12px;padding:12px 14px;border-radius:var(--r2);background:var(--bg);border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
           <strong style="font-size:15px" data-i18n="inv_lbl_variance">Variance</strong>
           <span id="cdVariance" style="font-size:19.5px;font-weight:900">—</span>
@@ -1909,15 +1885,7 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
 
             <!-- Credit fields -->
             <div class="credit-fields" id="posCreditFields">
-              <div class="form-group"><label class="form-label" data-i18n="pos_deposit_paid">Deposit Paid</label><input type="text" inputmode="decimal" class="fc fw num-fmt" id="posDeposit" value="0" oninput="calcPosTotals();syncDepositMethod('pos')"></div>
-              <!-- 4.3.8 (B2): shown only when a deposit is entered; no default — the cashier must choose -->
-              <div class="form-group" id="posDepositMethodWrap" style="display:none"><label class="form-label" data-i18n="dep_method_label">Deposit paid with *</label>
-                <select class="fc fw" id="posDepositMethod">
-                  <option value="" data-i18n="refund_method_choose">— Choose —</option>
-                  <option value="cash" data-i18n="pos_opt_cash">💵 Cash</option><option value="mobile-money" data-i18n="pos_opt_mobile">📱 Mobile Money</option>
-                  <option value="bank-transfer" data-i18n="pos_opt_bank">🏦 Bank Transfer</option><option value="card" data-i18n="pos_opt_card">💳 Card</option><option value="other" data-i18n="pos_opt_other">💰 Other</option>
-                </select>
-              </div>
+              <div class="form-group"><label class="form-label" data-i18n="pos_deposit_paid">Deposit Paid</label><input type="text" inputmode="decimal" class="fc fw num-fmt" id="posDeposit" value="0" oninput="calcPosTotals()"></div>
               <div class="form-group"><label class="form-label" data-i18n="pos_credit_period">Credit Period (days)</label>
                 <select class="fc fw" id="posCreditPeriod" onchange="applyPosCreditPeriod()">
                   <option value="7" data-i18n="pos_days_7">7 days</option><option value="15" data-i18n="pos_days_15">15 days</option><option value="30" selected data-i18n="pos_days_30">30 days</option>
@@ -2119,7 +2087,6 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
           <option value="">All Methods</option><option value="cash">Cash</option>
           <option value="mobile-money">Mobile Money</option><option value="bank-transfer">Bank Transfer</option>
           <option value="cheque">Cheque</option><option value="card">Card</option>
-          <option value="other" data-i18n="method_other">Other</option><option value="account credit" data-i18n="method_account_credit">Account Credit</option>
         </select>
         <select class="fc" id="payCollectorSel" onchange="filterPayments()"><option value="">All Collectors</option></select>
         <input type="date" class="fc" id="payDateFrom" title="From date" onchange="filterPayments()">
@@ -2937,7 +2904,7 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
             <option value="vip">⭐ VIP</option><option value="other">📋 Other</option>
           </select>
         </div>
-        <div class="form-group"><label class="form-label">Credit Limit</label><input type="text" inputmode="decimal" class="fc fw num-fmt" id="cLimit" placeholder="0"><div style="font-size:12px;color:var(--txt3);margin-top:4px" data-i18n="cust_limit_hint">0 or empty = Unlimited credit</div></div>
+        <div class="form-group"><label class="form-label">Credit Limit</label><input type="text" inputmode="decimal" class="fc fw num-fmt" id="cLimit" placeholder="0"></div>
         <div class="form-group"><label class="form-label">Account Status</label>
           <select class="fc fw" id="cStatus"><option value="active">✅ Active</option><option value="blocked">🚫 Blocked</option></select>
         </div>
@@ -3027,15 +2994,7 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
       <!-- Totals -->
       <div class="totals-box">
         <div class="tot-row"><label>Invoice Total</label><span class="tot-val" id="invTotalDisplay" style="color:var(--txt)">—</span></div>
-        <div class="tot-row"><label>Deposit / Advance Paid</label><input type="text" inputmode="decimal" class="tot-input num-fmt" id="sInitPay" value="0" oninput="calcInvTotal();syncDepositMethod('inv')"></div>
-        <!-- 4.3.8 (B3): shown only when a deposit is entered; no default -->
-        <div class="tot-row" id="sDepositMethodWrap" style="display:none"><label data-i18n="dep_method_label">Deposit paid with *</label>
-          <select class="fc" id="sDepositMethod" style="max-width:190px">
-                  <option value="" data-i18n="refund_method_choose">— Choose —</option>
-                  <option value="cash" data-i18n="pos_opt_cash">💵 Cash</option><option value="mobile-money" data-i18n="pos_opt_mobile">📱 Mobile Money</option>
-                  <option value="bank-transfer" data-i18n="pos_opt_bank">🏦 Bank Transfer</option><option value="card" data-i18n="pos_opt_card">💳 Card</option><option value="other" data-i18n="pos_opt_other">💰 Other</option>
-          </select>
-        </div>
+        <div class="tot-row"><label>Deposit / Advance Paid</label><input type="text" inputmode="decimal" class="tot-input num-fmt" id="sInitPay" value="0" oninput="calcInvTotal()"></div>
         <div class="tot-row tot-highlight"><label style="font-weight:800">Outstanding Balance</label><span class="tot-val" id="invOutDisplay" style="color:var(--danger)">—</span></div>
       </div>
       <div class="form-row">
@@ -3075,15 +3034,6 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
         </div>
       </div>
       <div class="form-group"><label class="form-label" data-i18n="exp_date">Expense Date</label><input type="date" class="fc fw" id="expDate"></div>
-      <!-- 4.3.7 (G3): only expenses paid in cash reduce Expected Cash in the drawer -->
-      <div class="form-group"><label class="form-label" data-i18n="exp_paid_with">Paid with</label>
-        <select class="fc fw" id="expPayMethod">
-          <option value="cash" data-i18n="pos_opt_cash">💵 Cash</option><option value="mobile-money" data-i18n="pos_opt_mobile">📱 Mobile Money</option>
-          <option value="bank-transfer" data-i18n="pos_opt_bank">🏦 Bank Transfer</option><option value="card" data-i18n="pos_opt_card">💳 Card</option>
-          <option value="other" data-i18n="pos_opt_other">💰 Other</option>
-          <option value="" id="expPayMethodUnknown" data-i18n="exp_method_not_recorded">Not recorded</option>
-        </select>
-      </div>
       <div class="form-group"><label class="form-label"><span data-i18n="exp_notes">Notes</span> <span style="color:var(--txt3);font-weight:400" data-i18n="lbl_optional">(optional)</span></label><input type="text" class="fc fw" id="expNotes" placeholder="What was this for?" data-i18n-ph="exp_notes_ph"></div>
     </div>
     <div class="modal-ftr">
@@ -3328,8 +3278,8 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
     <div class="modal-ftr">
       <button class="btn btn-outline" onclick="closeReceiptModal()">Close</button>
       <button class="btn btn-outline" onclick="downloadReceipt()">📥 Download</button>
-      <button class="btn btn-outline" onclick="shareReceiptWhatsApp()">💬 <span data-i18n="wa_share_btn">Share text receipt via WhatsApp</span></button>
-      <button class="btn btn-outline" onclick="shareReceiptPdfWhatsApp()">📄 <span data-i18n="wa_share_pdf_btn">Share receipt</span></button>
+      <button class="btn btn-outline" onclick="shareReceiptWhatsApp()">💬 <span data-i18n="wa_share_btn">Share via WhatsApp</span></button>
+      <button class="btn btn-outline" onclick="shareReceiptPdfWhatsApp()">📄 <span data-i18n="wa_share_pdf_btn">Share PDF via WhatsApp</span></button>
       <button class="btn btn-primary" onclick="printReceipt()">🖨️ Print Receipt</button>
     </div>
   </div>
@@ -3540,7 +3490,7 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
           <option value="">All Actions</option>
           <option value="add">Added</option><option value="edit">Edited</option><option value="delete">Deleted</option>
           <option value="payment">Payment</option><option value="login">Login</option><option value="logout">Logout</option>
-          <option value="login_failed">Failed Login</option><option value="security">Security Warning</option><option value="system">System</option>
+          <option value="login_failed">Failed Login</option><option value="system">System</option>
         </select>
         <input type="date" class="fc" id="auditDateFrom" onchange="renderAuditLogList()" title="From date">
         <input type="date" class="fc" id="auditDateTo" onchange="renderAuditLogList()" title="To date">
@@ -3627,57 +3577,6 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
   </div>
 </div>
 
-<!-- 4.3.7 (G2): account-credit refund — the refund method is recorded -->
-<div class="modal-bg" id="mRefundCredit">
-  <div class="modal modal-sm">
-    <div class="modal-hdr">
-      <div class="modal-title">🏦 <span data-i18n="refund_title">Refund Account Credit</span></div>
-      <button class="modal-close" onclick="closeModal('mRefundCredit')">✕</button>
-    </div>
-    <div class="modal-body">
-      <p style="font-size:15px;color:var(--txt2);line-height:1.6;margin-bottom:12px" data-i18n="refund_intro">This zeroes the customer's credit balance. Only continue once the money has actually been handed back.</p>
-      <div class="form-group"><label class="form-label" data-i18n="pa_lbl_customer">Customer</label><div id="rcCust" style="font-weight:700"></div></div>
-      <div class="form-group"><label class="form-label" data-i18n="pa_lbl_refund">Refund</label><div id="rcAmount" style="font-weight:800;font-size:18px"></div></div>
-      <div class="form-group"><label class="form-label" data-i18n="refund_method_label">How was the money handed back? *</label>
-        <select class="fc fw" id="rcMethod" onchange="document.getElementById('rcError').textContent=''">
-          <option value="" data-i18n="refund_method_choose">— Choose —</option>
-          <option value="cash" data-i18n="pos_opt_cash">💵 Cash</option><option value="mobile-money" data-i18n="pos_opt_mobile">📱 Mobile Money</option>
-          <option value="bank-transfer" data-i18n="pos_opt_bank">🏦 Bank Transfer</option><option value="cheque" data-i18n="method_cheque">Cheque</option>
-          <option value="card" data-i18n="pos_opt_card">💳 Card</option><option value="other" data-i18n="pos_opt_other">💰 Other</option>
-        </select>
-      </div>
-      <div id="rcError" style="color:var(--danger);font-size:14px;min-height:18px"></div>
-    </div>
-    <div class="modal-ftr">
-      <button class="btn btn-outline" onclick="closeModal('mRefundCredit')" data-i18n="btn_cancel">Cancel</button>
-      <button class="btn btn-danger" onclick="confirmRefundCredit()" data-i18n="refund_btn">Record Refund</button>
-    </div>
-  </div>
-</div>
-
-<!-- 4.3.2: Owner approval for selling-price changes (non-owner employees only) -->
-<div class="modal-bg" id="mPriceApproval">
-  <div class="modal modal-sm">
-    <div class="modal-hdr">
-      <div class="modal-title" data-i18n="pa_title">🔐 Owner Approval Required</div>
-      <button class="modal-close" onclick="cancelPriceApproval()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div style="font-size:13px;color:var(--txt3);margin-bottom:12px" id="paIntro">Changing a selling price needs the Business Owner’s approval. Ask the Owner to enter their password.</div>
-      <div class="pt-row"><label id="paL1">Product</label><span class="ptv" id="paProduct">—</span></div>
-      <div class="pt-row"><label id="paL2">Regular price (per unit)</label><span class="ptv" id="paRegular">—</span></div>
-      <div class="pt-row"><label id="paL3">New price (per unit)</label><span class="ptv" id="paProposed">—</span></div>
-      <div class="pt-row"><label id="paL4">Change</label><span class="ptv" id="paChange">—</span></div>
-      <div class="form-group" style="margin-top:12px"><label class="form-label" data-i18n="pa_lbl_password">Owner password</label><input type="password" class="fc fw" id="paPassword" autocomplete="off" onkeydown="if(event.key==='Enter')submitPriceApproval()"></div>
-      <div class="emp-id-error" id="paError"></div>
-    </div>
-    <div class="modal-ftr">
-      <button class="btn btn-outline" onclick="cancelPriceApproval()" data-i18n="btn_cancel">Cancel</button>
-      <button class="btn btn-primary" id="paApproveBtn" onclick="submitPriceApproval()" data-i18n="pa_btn_approve">Approve</button>
-    </div>
-  </div>
-</div>
-
 <script>
 'use strict';
 document.addEventListener('DOMContentLoaded',()=>{['lockLogoImg','sbLogoImg','ahLogoImg','bootLogoImg'].forEach(id=>{const el=document.getElementById(id);if(el)el.src=APP_LOGO;});const vl=document.getElementById('sbVersionLabel');if(vl)vl.textContent=`v${APP_VERSION} · Fully Offline`;});
@@ -3695,10 +3594,10 @@ const APP_LOGO='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAIAAADTED
    the "Update available" banner. Purely informational at the app layer;
    the actual update *mechanism* is the service worker (see UpdateManager
    in the bottom PWA runtime script). */
-const APP_VERSION='4.3.8';
+const APP_VERSION='4.2.7';
 /* Build number — date-based, bumped by regenerating this file. Shown on
    the About page alongside the version for support/debugging purposes. */
-const BUILD_NUMBER='2026.10.01a';
+const BUILD_NUMBER='2026.08.02b';
 const IDB_NAME='CreditBossDB';
 const IDB_VERSION=8;
 /* Schema: object store name -> {keyPath, indexes:[{name,keyPath,options}]} */
@@ -4506,26 +4405,17 @@ const SecurityManager = {
       if(!hasAnyKnownArray){
         return {valid:false, corrupt:true, errors:['File does not contain any recognizable Bizora business data.'], warnings, skipCounts};
       }
-      /* 4.3.8 restore fix: the ValidationService methods use `this`, so they
-         must be CALLED on ValidationService — passing them detached made
-         `this` undefined and every real backup threw before the confirm
-         step (restore silently stopped after "read started"). Credit
-         invoices store their total in `amount`, which the shared sale
-         validator reads as `total`. The import itself (merge by id, every
-         record imported) is unchanged; this check only produces warnings. */
-      const V = (typeof ValidationService!=='undefined') ? ValidationService : null;
-      const obj = r => (r && typeof r==='object') ? r : {}; // a null/garbage row is reported as incomplete, never thrown on
       const checks = {
-        customers: V ? rec=>V.validateCustomer(obj(rec)) : null,
-        sales: V ? rec=>{const s=obj(rec);return V.validateSale(s.total===undefined?{...s,total:s.amount}:s);} : null,
-        products: V ? rec=>V.validateProduct(obj(rec)) : null
+        customers: (typeof ValidationService!=='undefined') ? ValidationService.validateCustomer : null,
+        sales: (typeof ValidationService!=='undefined') ? ValidationService.validateSale : null,
+        products: (typeof ValidationService!=='undefined') ? ValidationService.validateProduct : null
       };
       for(const key in checks){
         const validator = checks[key];
         if(!validator || !Array.isArray(data[key])) continue;
         let bad=0;
         data[key].forEach(rec => { if(!validator(rec).valid) bad++; });
-        if(bad>0){ skipCounts[key]=bad; warnings.push(`${bad} ${key} record(s) look incomplete — they will still be imported as they are.`); }
+        if(bad>0){ skipCounts[key]=bad; warnings.push(`${bad} ${key} record(s) look malformed and will be skipped.`); }
       }
       return {valid:true, corrupt:false, errors, warnings, skipCounts};
     }
@@ -4770,10 +4660,10 @@ function renderGettingStarted(){
     <div class="progress" style="margin:10px 0 14px"><div class="progress-fill" style="width:${pct}%;background:var(--success)"></div></div>
     <div class="gs-steps">
       ${steps.map(s=>`
-        <div class="gs-step ${s.done?'done':''}${!s.done&&!canOpenPage(s.page)?' gs-info':''}" ${s.done||!canOpenPage(s.page)?'':`onclick="go('${s.page}')"`}>
+        <div class="gs-step ${s.done?'done':''}" ${s.done?'':`onclick="go('${s.page}')"`}>
           <span class="gs-step-check">${s.done?'✅':'⬜'}</span>
           <span class="gs-step-label">${t('gs_step_'+s.key)}</span>
-          ${s.done||!canOpenPage(s.page)?'':'<span class="gs-step-arrow">→</span>'}
+          ${s.done?'':'<span class="gs-step-arrow">→</span>'}
         </div>`).join('')}
     </div>`;
 }
@@ -5430,7 +5320,7 @@ const I18N_DICT={
     nav_sec_pos:'Point of Sale',nav_sec_analytics:'Analytics',nav_sec_system:'System',nav_sec_support:'Support',
     // Sidebar nav items
     nav_dashboard:'Dashboard',nav_customers:'Customers',nav_products:'Products',nav_inventory:'Inventory',
-    nav_pos:'Start Selling',nav_sales:'Credit Sales',nav_invoices:'Credit Invoices',nav_financial:'Financial Summary',nav_saleshistory:'Sales History',
+    nav_pos:'Sales (POS)',nav_sales:'Credit Sales',nav_invoices:'Credit Invoices',nav_financial:'Financial Summary',nav_saleshistory:'Sales History',
     nav_payments:'Credit Repayment',nav_collection:'Debt Collection',nav_ledger:'Debt Ledger',
     nav_reports:'Reports',nav_calendar:'Calendar',nav_settings:'Settings',nav_backup:'Backup',nav_help:'Help Center',nav_about:'About',
     sb_call:'Call',sb_whatsapp:'WhatsApp',sb_email:'Email',
@@ -5460,30 +5350,10 @@ const I18N_DICT={
        existing labels (th_receipt_num, lbl_date, lbl_total, th_paid,
        th_balance, th_due_date) wherever one already exists — only the
        greeting/thanks/closing lines and the sharing UI itself are new. */
-    wa_share_btn:'Share text receipt via WhatsApp',
-    wa_share_pdf_btn:'Share receipt',
+    wa_share_btn:'Share via WhatsApp',
+    wa_share_pdf_btn:'Share PDF via WhatsApp',
     wa_pdf_shared:'Receipt PDF shared',
     wa_pdf_unsupported:'This device can\u2019t share files directly \u2014 the receipt PDF has been downloaded instead. You can attach it in WhatsApp manually.',
-    ins_requires_action:'Requires Action',
-    ins_review:'Review',
-    ins_all_good:'Your business is doing well. Keep on.',
-    ins_overdue_sub:'Customers have outstanding repayments past their expected dates.',
-    ins_loss_one:'{n} item in Loss Register',
-    ins_loss:'{n} items in Loss Register',
-    ins_loss_sub:'Review recorded business losses.',
-    ins_nosale30_one:'{n} product not sold in 30 days',
-    ins_nosale30:'{n} products not sold in 30 days',
-    ins_nosale30_sub:'Review products with no recent sales.',
-    ins_never_one:'{n} product has never sold',
-    ins_never:'{n} products have never sold',
-    ins_never_sub:'Review products with no recorded sales.',
-    ins_inactive6m_one:'{n} product inactive for 6+ months',
-    ins_inactive6m:'{n} products inactive for 6+ months',
-    ins_inactive6m_sub:'Review long-term inactive stock.',
-    prd_opt_all_activity:'All Sales Activity',
-    prd_opt_nosale30:'Not sold in 30 days',
-    prd_opt_never_sold:'Never sold',
-    prd_opt_inactive6m:'Inactive 6+ months',
     wa_msg_greeting:'Hello {name},',
     wa_msg_thanks:'Thank you for your purchase from {biz}.',
     wa_msg_closing:'Thank you for your business.',
@@ -5702,27 +5572,6 @@ const I18N_DICT={
     toast_customer_deleted:'Customer deleted',toast_invoice_updated:'Invoice updated!',toast_invoice_created:'Invoice created!',
     toast_payment_fields_required:'Customer, invoice and date are required!',toast_payment_recorded:'Payment recorded!',
     toast_product_name_required:'Product name is required!',toast_product_updated:'Product updated!',toast_product_added:'Product added!',
-    pa_intro_credit_override:'This credit sale goes over the customer\u2019s credit limit. The Business Owner must approve it with their password.',
-    pa_intro_cust_change:'Raising or removing a credit limit, or unblocking a customer, needs the Business Owner\u2019s approval.',
-    pa_lbl_debt_limit:'Current debt / limit',pa_lbl_sale:'Sale (deposit)',pa_lbl_resulting:'Debt after sale',
-    pa_lbl_limit_change:'Credit limit',pa_lbl_status_change:'Status',pa_limit_raised:'Limit raised',pa_unblock:'Unblock',
-    credit_owner_override_title:'⚠️ Credit Limit Exceeded',
-    credit_owner_override_msg:'{name}\u2019s credit limit is {limit}. Current debt {debt} → {resulting} after this sale. Override the credit limit as Business Owner?',
-    credit_owner_override_btn:'Override limit',
-    credit_limit_warn:'Credit limit exceeded: {name}\u2019s limit is {limit}, current debt {debt}; this sale would bring it to {resulting}. Owner approval is required.',
-    credit_over_limit_needs_owner:'This sale is over the customer\u2019s credit limit and needs the Business Owner\u2019s approval.',
-    credit_sale_changed:'The sale changed before it was saved. Please check out again.',
-    cust_change_needs_owner:'Raising a credit limit or unblocking a customer needs the Business Owner\u2019s approval.',
-    lbl_unlimited:'Unlimited',lbl_credit_limit_unlimited:'Credit limit: Unlimited',
-    cust_limit_hint:'0 or empty = Unlimited credit',lbl_blocked:'Blocked',lbl_active:'Active',
-    owner_reset_needs_code:'A recovery code exists for this owner account, so Access Control cannot be reset without it. Enter the recovery code to set a new owner password.',
-    toast_recovery_code_required_created:'A recovery code has been created for your owner account. Write it down and keep it safe — it is now the only way to reset a forgotten owner password.',
-    val_product_duplicate:'A product named \u2018{name}\u2019 already exists ({sku}, stock {stock}). To add quantity, use Stock In; to change price, edit that product.',
-    val_product_duplicate_discontinued:'A product named \u2018{name}\u2019 already exists ({sku}) but is discontinued. Reactivate that product (edit it and set Status to Active) instead of creating another.',
-    csv_dup_existing:'✗ Duplicate — already exists ({sku})',
-    csv_dup_in_file:'✗ Duplicate — repeated in this file (row {row})',
-    csv_dups_skipped:'{count} duplicate product name(s) were skipped.',
-    csv_all_duplicates:'Nothing imported — every product name already exists.',
     toast_product_deleted:'Product deleted',toast_customer_required_credit:'Customer is required for credit sales!',
     toast_cash_sale_completed:'Cash sale completed!',toast_credit_sale_recorded:'Credit sale recorded!',
     toast_payment_deleted:'Payment deleted',
@@ -5769,28 +5618,6 @@ const I18N_DICT={
     toast_no_open_invoice_for_credit:'This customer has no outstanding invoice to apply credit to — try Refund instead',
     toast_credit_applied:'{amount} applied to {invoice}',
     toast_refund_recorded:'{amount} refund recorded',
-    // 4.3.7 — money controls (G1–G4)
-    val_payment_amount_invalid:'Enter a valid payment amount',
-    val_payment_invoice_invalid:'This payment can\u2019t be recorded on that invoice \u2014 choose an open invoice of the selected customer',
-    overpay_confirm_title:'Payment is more than the balance',
-    overpay_confirm_msg:'{amount} is more than the {balance} still owed on {invoice}. {extra} will be kept as account credit that the business owes {customer}. Continue?',
-    overpay_confirm_btn:'Record Payment',
-    pa_intro_overpay:'This payment is more than the invoice balance. The extra becomes account credit the business owes the customer. The Business Owner must approve it with their password.',
-    pa_lbl_inv_balance:'Invoice balance',pa_lbl_payment:'Payment',pa_lbl_extra_credit:'Extra kept as account credit',
-    pa_intro_credit_refund:'Refunding account credit hands money back to the customer. The Business Owner must approve it with their password.',
-    pa_lbl_account_credit:'Account credit',pa_lbl_refund:'Refund',pa_lbl_credit_after:'Credit after refund',
-    refund_title:'Refund Account Credit',
-    refund_intro:'This zeroes the customer\u2019s credit balance. Only continue once the money has actually been handed back.',
-    refund_method_label:'How was the money handed back? *',refund_method_choose:'\u2014 Choose \u2014',refund_btn:'Record Refund',
-    refund_method_required:'Choose how the money was handed back',
-    refund_amount_invalid:'Invalid refund amount',
-    refund_exceeds_credit:'Refund refused \u2014 it is more than the customer\u2019s account credit ({credit})',
-    refund_changed:'The customer\u2019s account credit has changed \u2014 open Refund again to see the current balance',
-    exp_paid_with:'Paid with',exp_method_not_recorded:'Not recorded',exp_method_invalid:'Choose how this expense was paid',
-    cd_lbl_cash_in:'Cash Payments Received',cd_lbl_cash_expenses:'Cash Expenses',cd_lbl_cash_refunds:'Cash Refunds',
-    cd_note_cash_only:'Expected Cash counts physical cash only: mobile money, bank, card and account credit are not included, and change given back is not counted.',
-    cd_note_unrecorded:'{count} record(s) from today were left out because their payment method is missing or not recognised.',
-    cd_invalid_amount:'Enter a cash amount of 0 or more',
     val_item_row_required:'At least one item row is required',
     toast_customer_blocked_warning:'⚠️ This customer is BLOCKED and cannot receive new credit sales!',
     perm_no_record_sales:'🔒 You don\u2019t have permission to record sales. Ask the Business Owner.',
@@ -5810,28 +5637,6 @@ const I18N_DICT={
     toast_settings_saved:'Settings saved!',
     toast_doc_settings_saved:'Document settings saved!',
     perm_no_change_settings:'🔒 You don\u2019t have permission to change settings. Ask the Business Owner.',
-    perm_no_open_page:'🔒 You don\u2019t have permission to open this page. Ask the Business Owner.',
-    pa_title:'🔐 Owner Approval Required',
-    pa_intro:'Changing a selling price needs the Business Owner\u2019s approval. Ask the Owner to enter their password.',
-    pa_lbl_product:'Product',pa_lbl_regular:'Regular price (per unit)',pa_lbl_new:'New price (per unit)',pa_lbl_change:'Change',
-    pa_lbl_password:'Owner password',pa_btn_approve:'Approve',
-    pa_discount:'Discount',pa_markup:'Markup',
-    pa_enter_password:'Enter the Owner password.',
-    pa_wrong_password:'Incorrect Owner password.',
-    pa_approved:'Price change approved.',
-    pa_line_gone:'That item is no longer in the sale, so nothing was approved.',
-    pa_blocked_item:'🔒 "{name}": the price change is not approved by the Owner. Remove the item and add it again, or ask the Owner to approve it.',
-    pa_blocked_tax:'🔒 "{name}": the tax differs from the product\u2019s tax. Remove the item and add it again.',
-    pa_tax_locked:'Only the Business Owner can change tax.',
-    pa_lbl_invoice:'Invoice',pa_lbl_current:'Current',pa_lbl_new_value:'New',pa_lbl_customer:'Customer',pa_lbl_amount:'Amount',pa_lbl_action:'Action',
-    pa_intro_inv_edit:'Changing an invoice\u2019s amount or customer needs the Business Owner\u2019s approval. Ask the Owner to enter their password.',
-    pa_intro_inv_cancel:'Cancelling an invoice needs the Business Owner\u2019s approval. Ask the Owner to enter their password.',
-    pa_action_cancel_invoice:'Cancel invoice',pa_customer_change:'Customer change',
-    pa_invoice_changed:'The invoice changed after approval. Ask the Owner to approve it again.',
-    val_invoice_below_paid:'The invoice total cannot be lower than the amount already paid ({paid}).',
-    val_invoice_pos_locked:'This invoice was created at the point of sale. Its items and amounts can\u2019t be changed safely in this form. You can still change notes, due date, priority and payment terms. To correct the amounts, cancel the invoice and record the sale again.',
-    perm_no_export_reports:'🔒 You don\u2019t have permission to export reports. Ask the Business Owner.',
-    perm_no_view_financials:'🔒 You don\u2019t have permission to view financial summaries. Ask the Business Owner.',
     val_max_qty_invalid:'Enter a valid maximum quantity!',
     val_max_value_invalid:'Enter a valid maximum value!',
     toast_approval_settings_saved:'Approval settings saved!',
@@ -5841,12 +5646,6 @@ const I18N_DICT={
     toast_backup_exported:'Backup exported!',
     toast_entity_exported:'{entity} exported!',
     toast_backup_read_failed:'Could not read backup file!',
-    toast_backup_restore_failed:'Restore failed: {error}. A recovery point was saved before the import started.',
-    // 4.3.8 — payment-method integrity
-    dep_method_label:'Deposit paid with *',dep_method_receipt:'Deposit paid with',
-    val_deposit_method_required:'Choose how the deposit was paid: Cash, Mobile Money, Bank Transfer, Card or Other',
-    val_payment_method_invalid:'Choose a valid payment method',
-    pm_not_recorded:'Not recorded',method_account_credit:'Account Credit',
     toast_backup_invalid:'Invalid backup file!',
     toast_import_summary:'Imported {c} customers, {s} invoices, {p} payments, {pr} products, {exp} expenses, and {inv} inventory records',
     entity_customers:'Customers',
@@ -6485,7 +6284,7 @@ const I18N_DICT={
     nav_sec_overview:'Aperçu',nav_sec_customers:'Clients',nav_sec_catalog:'Catalogue',
     nav_sec_pos:'Point de Vente',nav_sec_analytics:'Analytique',nav_sec_system:'Système',nav_sec_support:'Assistance',
     nav_dashboard:'Tableau de bord',nav_customers:'Clients',nav_products:'Produits',nav_inventory:'Inventaire',
-    nav_pos:'Commencer à vendre',nav_sales:'Ventes à Crédit',nav_invoices:'Factures à Crédit',nav_financial:'Résumé Financier',nav_saleshistory:'Historique des Ventes',
+    nav_pos:'Ventes (PDV)',nav_sales:'Ventes à Crédit',nav_invoices:'Factures à Crédit',nav_financial:'Résumé Financier',nav_saleshistory:'Historique des Ventes',
     nav_payments:'Remboursement de Crédit',nav_collection:'Recouvrement de Créances',nav_ledger:'Registre des Créances',
     nav_reports:'Rapports',nav_calendar:'Calendrier',nav_settings:'Paramètres',nav_backup:'Sauvegarde',nav_help:'Centre d\'Aide',nav_about:'À Propos',
     sb_call:'Appeler',sb_whatsapp:'WhatsApp',sb_email:'E-mail',
@@ -6507,30 +6306,10 @@ const I18N_DICT={
     reminder_no_phone:'Aucun numéro de téléphone enregistré pour {name} — ajoutez-en un dans Modifier Client pour envoyer un rappel.',
     reminder_invalid_phone:'Le numéro de téléphone enregistré pour {name} ne semble pas valide — veuillez le vérifier dans Modifier Client.',
     reminder_sms_fallback_title:'Envoyer par SMS à la place',
-    wa_share_btn:'Partager le reçu texte via WhatsApp',
-    wa_share_pdf_btn:'Partager le reçu',
+    wa_share_btn:'Partager via WhatsApp',
+    wa_share_pdf_btn:'Partager le PDF via WhatsApp',
     wa_pdf_shared:'Reçu PDF partagé',
     wa_pdf_unsupported:'Cet appareil ne peut pas partager de fichiers directement \u2014 le reçu PDF a été téléchargé à la place. Vous pouvez le joindre manuellement dans WhatsApp.',
-    ins_requires_action:'Action requise',
-    ins_review:'À examiner',
-    ins_all_good:'Votre entreprise se porte bien. Continuez ainsi.',
-    ins_overdue_sub:'Des clients ont des remboursements en retard.',
-    ins_loss_one:'{n} élément dans le registre des pertes',
-    ins_loss:'{n} éléments dans le registre des pertes',
-    ins_loss_sub:'Examinez les pertes enregistrées.',
-    ins_nosale30_one:'{n} produit non vendu depuis 30 jours',
-    ins_nosale30:'{n} produits non vendus depuis 30 jours',
-    ins_nosale30_sub:'Vérifiez les produits sans ventes récentes.',
-    ins_never_one:'{n} produit jamais vendu',
-    ins_never:'{n} produits jamais vendus',
-    ins_never_sub:'Vérifiez les produits sans aucune vente enregistrée.',
-    ins_inactive6m_one:'{n} produit inactif depuis 6 mois ou plus',
-    ins_inactive6m:'{n} produits inactifs depuis 6 mois ou plus',
-    ins_inactive6m_sub:'Vérifiez le stock inactif de longue durée.',
-    prd_opt_all_activity:'Toute activité de vente',
-    prd_opt_nosale30:'Non vendus depuis 30 jours',
-    prd_opt_never_sold:'Jamais vendus',
-    prd_opt_inactive6m:'Inactifs depuis 6+ mois',
     wa_msg_greeting:'Bonjour {name},',
     wa_msg_thanks:'Merci pour votre achat chez {biz}.',
     wa_msg_closing:'Merci pour votre confiance.',
@@ -6736,27 +6515,6 @@ const I18N_DICT={
     toast_customer_deleted:'Client supprimé',toast_invoice_updated:'Facture mise à jour\u00A0!',toast_invoice_created:'Facture créée\u00A0!',
     toast_payment_fields_required:'Client, facture et date sont requis\u00A0!',toast_payment_recorded:'Paiement enregistré\u00A0!',
     toast_product_name_required:'Le nom du produit est requis\u00A0!',toast_product_updated:'Produit mis à jour\u00A0!',toast_product_added:'Produit ajouté\u00A0!',
-    pa_intro_credit_override:'Cette vente à crédit dépasse la limite de crédit du client. Le propriétaire doit l\u2019approuver avec son mot de passe.',
-    pa_intro_cust_change:'Augmenter ou supprimer une limite de crédit, ou débloquer un client, nécessite l\u2019approbation du propriétaire.',
-    pa_lbl_debt_limit:'Dette actuelle / limite',pa_lbl_sale:'Vente (acompte)',pa_lbl_resulting:'Dette après la vente',
-    pa_lbl_limit_change:'Limite de crédit',pa_lbl_status_change:'Statut',pa_limit_raised:'Limite augmentée',pa_unblock:'Déblocage',
-    credit_owner_override_title:'⚠️ Limite de crédit dépassée',
-    credit_owner_override_msg:'La limite de crédit de {name} est de {limit}. Dette actuelle {debt} → {resulting} après cette vente. Dépasser la limite en tant que propriétaire ?',
-    credit_owner_override_btn:'Dépasser la limite',
-    credit_limit_warn:'Limite de crédit dépassée : la limite de {name} est de {limit}, dette actuelle {debt} ; cette vente la porterait à {resulting}. L\u2019approbation du propriétaire est requise.',
-    credit_over_limit_needs_owner:'Cette vente dépasse la limite de crédit du client et nécessite l\u2019approbation du propriétaire.',
-    credit_sale_changed:'La vente a changé avant d\u2019être enregistrée. Veuillez valider à nouveau.',
-    cust_change_needs_owner:'Augmenter une limite de crédit ou débloquer un client nécessite l\u2019approbation du propriétaire.',
-    lbl_unlimited:'Illimitée',lbl_credit_limit_unlimited:'Limite de crédit : illimitée',
-    cust_limit_hint:'0 ou vide = crédit illimité',lbl_blocked:'Bloqué',lbl_active:'Actif',
-    owner_reset_needs_code:'Un code de récupération existe pour ce compte propriétaire : le contrôle d\u2019accès ne peut pas être réinitialisé sans lui. Saisissez le code de récupération pour définir un nouveau mot de passe propriétaire.',
-    toast_recovery_code_required_created:'Un code de récupération a été créé pour votre compte propriétaire. Notez-le et gardez-le en lieu sûr — c\u2019est désormais le seul moyen de réinitialiser un mot de passe propriétaire oublié.',
-    val_product_duplicate:'Un produit nommé \u2018{name}\u2019 existe déjà ({sku}, stock {stock}). Pour ajouter de la quantité, utilisez l\u2019entrée de stock ; pour changer le prix, modifiez ce produit.',
-    val_product_duplicate_discontinued:'Un produit nommé \u2018{name}\u2019 existe déjà ({sku}) mais il est arrêté. Réactivez ce produit (modifiez-le et mettez le statut sur Actif) au lieu d\u2019en créer un autre.',
-    csv_dup_existing:'✗ Doublon — existe déjà ({sku})',
-    csv_dup_in_file:'✗ Doublon — répété dans ce fichier (ligne {row})',
-    csv_dups_skipped:'{count} nom(s) de produit en double ont été ignorés.',
-    csv_all_duplicates:'Rien n\u2019a été importé — tous les noms de produits existent déjà.',
     toast_product_deleted:'Produit supprimé',toast_customer_required_credit:'Un client est requis pour les ventes à crédit\u00A0!',
     toast_cash_sale_completed:'Vente au comptant terminée\u00A0!',toast_credit_sale_recorded:'Vente à crédit enregistrée\u00A0!',
     toast_payment_deleted:'Paiement supprimé',
@@ -6801,28 +6559,6 @@ const I18N_DICT={
     toast_no_open_invoice_for_credit:'Ce client n\u2019a aucune facture impayée sur laquelle appliquer l\u2019avoir — essayez plutôt Remboursement',
     toast_credit_applied:'{amount} appliqué à {invoice}',
     toast_refund_recorded:'Remboursement de {amount} enregistré',
-    // 4.3.7 — contrôles de l\u2019argent (G1–G4)
-    val_payment_amount_invalid:'Saisissez un montant de paiement valide',
-    val_payment_invoice_invalid:'Ce paiement ne peut pas être enregistré sur cette facture \u2014 choisissez une facture ouverte du client sélectionné',
-    overpay_confirm_title:'Le paiement dépasse le solde',
-    overpay_confirm_msg:'{amount} dépasse les {balance} encore dus sur {invoice}. {extra} sera conservé comme avoir que l\u2019entreprise doit à {customer}. Continuer\u00A0?',
-    overpay_confirm_btn:'Enregistrer le paiement',
-    pa_intro_overpay:'Ce paiement dépasse le solde de la facture. L\u2019excédent devient un avoir que l\u2019entreprise doit au client. Le propriétaire doit l\u2019approuver avec son mot de passe.',
-    pa_lbl_inv_balance:'Solde de la facture',pa_lbl_payment:'Paiement',pa_lbl_extra_credit:'Excédent conservé comme avoir',
-    pa_intro_credit_refund:'Rembourser un avoir rend de l\u2019argent au client. Le propriétaire doit l\u2019approuver avec son mot de passe.',
-    pa_lbl_account_credit:'Avoir du compte',pa_lbl_refund:'Remboursement',pa_lbl_credit_after:'Avoir après remboursement',
-    refund_title:'Rembourser l\u2019avoir',
-    refund_intro:'Cela remet l\u2019avoir du client à zéro. Ne continuez qu\u2019une fois l\u2019argent réellement rendu.',
-    refund_method_label:'Comment l\u2019argent a-t-il été rendu\u00A0? *',refund_method_choose:'\u2014 Choisir \u2014',refund_btn:'Enregistrer le remboursement',
-    refund_method_required:'Choisissez comment l\u2019argent a été rendu',
-    refund_amount_invalid:'Montant de remboursement invalide',
-    refund_exceeds_credit:'Remboursement refusé \u2014 il dépasse l\u2019avoir du client ({credit})',
-    refund_changed:'L\u2019avoir du client a changé \u2014 rouvrez Remboursement pour voir le solde actuel',
-    exp_paid_with:'Payé par',exp_method_not_recorded:'Non enregistré',exp_method_invalid:'Choisissez comment cette dépense a été payée',
-    cd_lbl_cash_in:'Paiements reçus en espèces',cd_lbl_cash_expenses:'Dépenses en espèces',cd_lbl_cash_refunds:'Remboursements en espèces',
-    cd_note_cash_only:'Les espèces attendues ne comptent que l\u2019argent liquide\u00A0: mobile money, banque, carte et avoirs ne sont pas inclus, et la monnaie rendue n\u2019est pas comptée.',
-    cd_note_unrecorded:'{count} enregistrement(s) d\u2019aujourd\u2019hui ont été exclus car leur mode de paiement est absent ou non reconnu.',
-    cd_invalid_amount:'Saisissez un montant en espèces de 0 ou plus',
     val_item_row_required:'Au moins une ligne d\u2019article est obligatoire',
     toast_customer_blocked_warning:'⚠️ Ce client est BLOQUÉ et ne peut pas recevoir de nouvelles ventes à crédit\u00A0!',
     perm_no_record_sales:'🔒 Vous n\u2019avez pas la permission d\u2019enregistrer des ventes. Demandez au propriétaire de l\u2019entreprise.',
@@ -6842,28 +6578,6 @@ const I18N_DICT={
     toast_settings_saved:'Paramètres enregistrés\u00A0!',
     toast_doc_settings_saved:'Paramètres des documents enregistrés\u00A0!',
     perm_no_change_settings:'🔒 Vous n\u2019avez pas la permission de modifier les paramètres. Demandez au propriétaire de l\u2019entreprise.',
-    perm_no_open_page:'🔒 Vous n\u2019avez pas la permission d\u2019ouvrir cette page. Demandez au propriétaire de l\u2019entreprise.',
-    pa_title:'🔐 Approbation du propriétaire requise',
-    pa_intro:'Modifier un prix de vente nécessite l\u2019approbation du propriétaire. Demandez-lui de saisir son mot de passe.',
-    pa_lbl_product:'Produit',pa_lbl_regular:'Prix normal (par unité)',pa_lbl_new:'Nouveau prix (par unité)',pa_lbl_change:'Variation',
-    pa_lbl_password:'Mot de passe du propriétaire',pa_btn_approve:'Approuver',
-    pa_discount:'Remise',pa_markup:'Majoration',
-    pa_enter_password:'Saisissez le mot de passe du propriétaire.',
-    pa_wrong_password:'Mot de passe du propriétaire incorrect.',
-    pa_approved:'Modification du prix approuvée.',
-    pa_line_gone:'Cet article ne figure plus dans la vente, rien n\u2019a été approuvé.',
-    pa_blocked_item:'🔒 « {name} » : la modification du prix n\u2019est pas approuvée par le propriétaire. Retirez l\u2019article et ajoutez-le à nouveau, ou demandez l\u2019approbation du propriétaire.',
-    pa_blocked_tax:'🔒 « {name} » : la taxe diffère de celle du produit. Retirez l\u2019article et ajoutez-le à nouveau.',
-    pa_tax_locked:'Seul le propriétaire de l\u2019entreprise peut modifier la taxe.',
-    pa_lbl_invoice:'Facture',pa_lbl_current:'Actuel',pa_lbl_new_value:'Nouveau',pa_lbl_customer:'Client',pa_lbl_amount:'Montant',pa_lbl_action:'Action',
-    pa_intro_inv_edit:'Modifier le montant ou le client d\u2019une facture nécessite l\u2019approbation du propriétaire. Demandez-lui de saisir son mot de passe.',
-    pa_intro_inv_cancel:'Annuler une facture nécessite l\u2019approbation du propriétaire. Demandez-lui de saisir son mot de passe.',
-    pa_action_cancel_invoice:'Annuler la facture',pa_customer_change:'Changement de client',
-    pa_invoice_changed:'La facture a changé après l\u2019approbation. Demandez à nouveau l\u2019approbation du propriétaire.',
-    val_invoice_below_paid:'Le total de la facture ne peut pas être inférieur au montant déjà payé ({paid}).',
-    val_invoice_pos_locked:'Cette facture a été créée au point de vente. Ses articles et montants ne peuvent pas être modifiés en toute sécurité dans ce formulaire. Vous pouvez toujours modifier les notes, l\u2019échéance, la priorité et les conditions de paiement. Pour corriger les montants, annulez la facture et enregistrez à nouveau la vente.',
-    perm_no_export_reports:'🔒 Vous n\u2019avez pas la permission d\u2019exporter des rapports. Demandez au propriétaire de l\u2019entreprise.',
-    perm_no_view_financials:'🔒 Vous n\u2019avez pas la permission de consulter les résumés financiers. Demandez au propriétaire de l\u2019entreprise.',
     val_max_qty_invalid:'Saisissez une quantité maximale valide\u00A0!',
     val_max_value_invalid:'Saisissez une valeur maximale valide\u00A0!',
     toast_approval_settings_saved:'Paramètres d\u2019approbation enregistrés\u00A0!',
@@ -6873,12 +6587,6 @@ const I18N_DICT={
     toast_backup_exported:'Sauvegarde exportée\u00A0!',
     toast_entity_exported:'Export terminé\u00A0: {entity}',
     toast_backup_read_failed:'Impossible de lire le fichier de sauvegarde\u00A0!',
-    toast_backup_restore_failed:'La restauration a échoué\u00A0: {error}. Un point de récupération a été enregistré avant le début de l\u2019importation.',
-    // 4.3.8 — intégrité du mode de paiement
-    dep_method_label:'Acompte payé par *',dep_method_receipt:'Acompte payé par',
-    val_deposit_method_required:'Choisissez comment l\u2019acompte a été payé\u00A0: Comptant, Mobile Money, Virement Bancaire, Carte ou Autre',
-    val_payment_method_invalid:'Choisissez un mode de paiement valide',
-    pm_not_recorded:'Non enregistré',method_account_credit:'Avoir client',
     toast_backup_invalid:'Fichier de sauvegarde invalide\u00A0!',
     toast_import_summary:'{c} clients, {s} factures, {p} paiements, {pr} produits, {exp} dépenses et {inv} enregistrements d\u2019inventaire importés',
     entity_customers:'Clients',
@@ -7670,19 +7378,13 @@ function custPaid(cid){_ensureFinanceIndices();return(_paymentsByCid.get(cid)||[
 function custCreditBalance(cid){
   return S.get('creditLedger').filter(e=>e.cid===cid).reduce((a,e)=>a+(e.type==='earned'?parseFloat(e.amount||0):-parseFloat(e.amount||0)),0);
 }
-function addCreditEntry(cid,type,amount,note,relatedInvId,method){
+function addCreditEntry(cid,type,amount,note,relatedInvId){
   /* Incremental append: creditLedger is append-only in production (corrections
      are recorded as new offsetting entries, never edits), so a single new entry
      no longer rewrites the whole store. Record contents, uid() generation and
      the 2dp rounding are byte-for-byte unchanged — only persistence differs.
-     Stamping and the FIN_WATCH_KEYS financial watcher are preserved by S.add().
-     4.3.7: optional `method` (how money physically moved: 'cash',
-     'mobile-money', …) is stored only when given, so callers that pass no
-     method (apply-credit, older builds) write exactly the same record shape.
-     Only entries tagged 'cash' ever touch the cash drawer. */
-  const rec={id:uid(),cid,type,amount:Math.round(parseFloat(amount||0)*100)/100,date:todayStr(),note:note||'',relatedInvId:relatedInvId||null};
-  if(method)rec.method=String(method);
-  S.add('creditLedger',rec);
+     Stamping and the FIN_WATCH_KEYS financial watcher are preserved by S.add(). */
+  S.add('creditLedger',{id:uid(),cid,type,amount:Math.round(parseFloat(amount||0)*100)/100,date:todayStr(),note:note||'',relatedInvId:relatedInvId||null});
 }
 function syncStatuses(){
   const sales=S.get('sales').map(s=>{
@@ -7735,12 +7437,6 @@ const PAGE_LOADERS={dashboard:loadDashboard,customers:loadCustomers,products:loa
   pos:loadPos,sales:loadSales,expenses:loadExpenses,financial:renderFinancialSummary,saleshistory:loadSalesHistory,payments:loadPayments,collection:loadCollection,
   ledger:loadLedger,reports:loadReports,calendar:loadCalendar,settings:loadSettings,backup:loadBackup,about:loadAbout,help:loadHelp};
 function go(page){
-  /* 4.3.1: navigation-level permission check. Hiding a sidebar item is not
-     authorization — Help links, the License badge and Getting Started all
-     called go() directly and reached restricted pages. Denied navigation
-     leaves the current page untouched (no redirect, so no loop risk).
-     Owner / access-control-off always pass via Auth.can(). */
-  if(!canOpenPage(page)){toast(t('perm_no_open_page'),'error');return;}
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.querySelectorAll('.bn-item').forEach(n=>n.classList.remove('active'));
@@ -8002,7 +7698,7 @@ function renderCustTable(custsIn){
       <td><div>${esc(c.phone||'—')}</div>${c.altPhone?`<div style="font-size:12.5px;color:var(--txt3)">${esc(c.altPhone)}</div>`:''}</td>
       <td><span class="badge b-primary" style="text-transform:capitalize">${esc(c.group||'retail')}</span></td>
       <td><div style="font-weight:800;color:${debt>0?'var(--danger)':'var(--success)'}">${cur(debt)}</div>${ov>0?`<div style="font-size:11.5px;color:var(--danger);font-weight:700">${ov} overdue</div>`:''}</td>
-      <td>${lim>0?`<div style="min-width:80px"><div class="progress"><div class="progress-fill" style="width:${lPct}%;background:${lPct>80?'var(--danger)':lPct>50?'var(--warning)':'var(--success)'}"></div></div><div style="font-size:11.5px;color:var(--txt3);margin-top:2px">${cur(lim)}</div></div>`:`<span style="color:var(--txt3);font-size:14px">${t('lbl_unlimited')}</span>`}</td>
+      <td>${lim>0?`<div style="min-width:80px"><div class="progress"><div class="progress-fill" style="width:${lPct}%;background:${lPct>80?'var(--danger)':lPct>50?'var(--warning)':'var(--success)'}"></div></div><div style="font-size:11.5px;color:var(--txt3);margin-top:2px">${cur(lim)}</div></div>`:'<span style="color:var(--txt3);font-size:14px">No limit</span>'}</td>
       <td><span class="badge risk-${risk.level}">${risk.icon} ${risk.label}</span></td>
       <td><span class="badge ${blocked?'b-blocked':'b-active'}">${blocked?'🚫 '+t('status_blocked'):'✅ '+t('status_active')}</span></td>
       <td><div style="display:flex;gap:5px">
@@ -8051,26 +7747,6 @@ function saveCust(){
      preserved exactly as before. S.update() upserts by record.id, so editing an
      existing customer can never create a second record. S.set() is retained for
      genuine full-collection operations (CSV import, reset, demo seed). */
-  /* 4.3.6: raising/removing a credit limit or unblocking a customer is
-     sensitive — a non-owner needs a single-use Owner approval bound to the
-     customer and the old/new values. Lowering a limit or blocking needs no
-     approval. Every limit/status change is audited (old → new). */
-  let _custPrev=null,_custApproval=null;
-  if(eid){
-    _custPrev=S.get('customers').find(c=>c.id===eid)||null;
-    if(_custPrev){
-      const oldLim=parseFloat(_custPrev.limit)||0,newLim=parseFloat(data.limit)||0;
-      const eff=l=>l>0?l:Infinity;
-      const limitRaised=eff(newLim)>eff(oldLim);
-      const unblock=(_custPrev.status||'active')==='blocked'&&data.status!=='blocked';
-      if((limitRaised||unblock)&&priceApprovalRequired()){
-        const spec={kind:'custChange',cid:eid,oldLimit:oldLim,newLimit:newLim,oldStatus:_custPrev.status||'active',newStatus:data.status||'active',limitRaised,unblock};
-        const r=consumeApproval(spec);
-        if(!r.token){if(r.hadToken)toast(t('pa_invoice_changed'),'warning',5000);else toast(t('cust_change_needs_owner'),'warning',5000);requestOwnerActionApproval(spec);return;}
-        _custApproval=r.token;
-      }
-    }
-  }
   if(eid){
     const custs=S.get('customers');
     const i=custs.findIndex(c=>c.id===eid);
@@ -8082,13 +7758,6 @@ function saveCust(){
       S.set('customers',custs);
     }
     log('edit','Updated customer: '+name);
-    if(_custPrev){ // 4.3.6 (G/H)
-      const oldLim=parseFloat(_custPrev.limit)||0,newLim=parseFloat(data.limit)||0;
-      const appr=_custApproval?`, approved by ${_custApproval.by}`:'';
-      if(r2c(oldLim)!==r2c(newLim))logAuditEvent('edit',`Customer credit limit changed: ${name} (${limitAudit(oldLim)} → ${limitAudit(newLim)})${appr}`,{recordType:'customer',recordId:eid,prevValue:limitAudit(oldLim),newValue:limitAudit(newLim),..._actorMeta()});
-      const oldSt=_custPrev.status||'active',newSt=data.status||'active';
-      if(oldSt!==newSt)logAuditEvent('edit',`Customer status changed: ${name} (${oldSt} → ${newSt})${appr}`,{recordType:'customer',recordId:eid,prevValue:oldSt,newValue:newSt,..._actorMeta()});
-    }
   }else{
     S.add('customers',{...data,id:uid(),added:todayStr()});
     log('add','New customer: '+name);
@@ -8098,7 +7767,6 @@ function saveCust(){
   renderNotifBadgeOnly();
 }
 function resetCustForm(){
-  clearApprovalKind('custChange'); // 4.3.6: a customer-change approval never outlives its form
   document.getElementById('editCustId').value='';
   document.getElementById('custIdRow').style.display='none';
   ['cName','cBusiness','cPhone','cAltPhone','cEmail','cNatId','cAddr','cNotes'].forEach(id=>{const e=document.getElementById(id);if(e){e.value='';e.classList.remove('err');}});
@@ -8200,7 +7868,7 @@ function renderCustOverview(id){
         <div style="margin-top:5px;display:flex;gap:6px;flex-wrap:wrap">
           <span class="badge b-primary" style="text-transform:capitalize">${esc(c.group||'retail')}</span>
           ${c.addr?`<span class="badge b-gray">📍 ${esc(c.addr)}</span>`:''}
-          ${c.limit>0?`<span class="badge b-sky">💳 Limit: ${cur(c.limit)}</span>`:`<span class="badge b-gray">💳 ${t('lbl_credit_limit_unlimited')}</span>`}
+          ${c.limit>0?`<span class="badge b-sky">💳 Limit: ${cur(c.limit)}</span>`:''}
         </div>
       </div>
     </div>
@@ -8247,72 +7915,15 @@ function promptApplyCredit(cid){
     renderCustOverview(cid);loadPayments();
   });
 }
-/* ═══ 4.3.7 (G2): ACCOUNT-CREDIT REFUND CONTROL ═══
-   promptRefundCredit() is only the screen: it shows the full credit and asks
-   HOW the money is handed back. refundAccountCredit() is the operation
-   boundary — it re-checks permission, amount, method and (for employees)
-   a single-use Owner approval every time it runs, including when it is
-   called directly. Nothing is written unless every check passes. */
-// 4.3.8: refund methods = the one canonical PAYMENT_METHODS list (was a separate copy here).
-let _rcCid=null,_rcAmount=0;
 function promptRefundCredit(cid){
-  if(!Auth.can('manageCustomers')){toast(t('perm_no_manage_customers'),'error');return;}
   const credit=custCreditBalance(cid);
   if(credit<=0){toast(t('toast_no_account_credit'),'warning');return;}
   const c=S.get('customers').find(x=>x.id===cid);
-  _rcCid=cid;_rcAmount=Math.round(credit*100)/100;
-  document.getElementById('rcCust').textContent=c?.name||'?';
-  document.getElementById('rcAmount').textContent=cur(_rcAmount);
-  document.getElementById('rcMethod').value='';
-  document.getElementById('rcError').textContent='';
-  openModal('mRefundCredit');
-}
-function confirmRefundCredit(){
-  const method=document.getElementById('rcMethod').value;
-  if(!method){document.getElementById('rcError').textContent=t('refund_method_required');return;}
-  const cid=_rcCid,amount=_rcAmount;
-  // The balance must still be exactly what was shown — never refund a stale figure.
-  if(!cid||Math.abs(custCreditBalance(cid)-amount)>0.005){closeModal('mRefundCredit');toast(t('refund_changed'),'warning',6000);return;}
-  closeModal('mRefundCredit');
-  refundAccountCredit(cid,amount,method);
-}
-function refundAccountCredit(cid,amount,method){
-  const c=S.get('customers').find(x=>x.id===cid);
-  const name=c?.name||'?';
-  amount=Math.round((parseFloat(amount)||0)*100)/100;
-  if(!Auth.can('manageCustomers')){
-    toast(t('perm_no_manage_customers'),'error');
-    logAuditEvent('security',`Unauthorized account-credit refund refused (no Manage Customers permission): ${name} (${cur(amount)})`,{recordType:'creditRefund',recordId:cid||''});
-    return false;
-  }
-  if(!c){toast(t('refund_amount_invalid'),'error');return false;}
-  if(!isPaymentMethod(method)){toast(t('refund_method_required'),'error');return false;} // 4.3.8: canonical list
-  if(!isFinite(amount)||amount<=0){toast(t('refund_amount_invalid'),'error');return false;}
-  const credit=Math.round(custCreditBalance(cid)*100)/100;
-  if(amount>credit+0.005){
-    toast(tf('refund_exceeds_credit',{credit:cur(credit)}),'error',6000);
-    logAuditEvent('security',`Account-credit refund refused — amount exceeds credit: ${name} (refund ${cur(amount)}, credit ${cur(credit)})`,{recordType:'creditRefund',recordId:cid,..._actorMeta()});
-    return false;
-  }
-  const spec={kind:'creditRefund',cid,amount,credit,method};
-  let approvedBy=null;
-  if(priceApprovalRequired()){
-    const r=consumeApproval(spec); // single-use; a stale/non-matching approval is discarded
-    if(!r.token){
-      if(r.hadToken)toast(t('refund_changed'),'warning',6000);
-      logAuditEvent('security',`Account-credit refund — Owner approval required: ${name} (${refundFigures(spec)})`,{recordType:'creditRefund',recordId:cid});
-      requestOwnerActionApproval(spec);
-      return false;
-    }
-    approvedBy=r.token.by;
-  }
-  const after=Math.round((credit-amount)*100)/100;
-  addCreditEntry(cid,'refunded',amount,'Refunded to customer',null,method);
-  logAuditEvent('payment',`Account credit refunded to ${name}: ${cur(amount)} (${_payMethodEn(method)}), credit ${cur(credit)} → ${cur(after)}${approvedBy?`, approved by ${approvedBy}`:''}`,{recordType:'creditRefund',recordId:cid,prevValue:credit,newValue:after,..._actorMeta()});
-  toast(tf('toast_refund_recorded',{amount:cur(amount)}),'success');
-  renderCustOverview(cid);
-  refreshLiveStats();
-  return true;
+  confirm2('Refund Account Credit?',`Record a refund of ${cur(credit)} to ${c?.name||'this customer'}? This zeroes their credit balance — make sure the cash/mobile money has actually been handed back first.`,()=>{
+    addCreditEntry(cid,'refunded',credit,'Refunded to customer');
+    toast(tf('toast_refund_recorded',{amount:cur(credit)}),'success');
+    renderCustOverview(cid);
+  });
 }
 function renderCustLedger(id){
   const el=document.getElementById('ctabp-ledger');
@@ -8417,7 +8028,7 @@ td{padding:9px 12px;border-bottom:1px solid #EEF1F6;font-size:14px}tr:nth-child(
 <div class="cust-box">
   <h2>${esc(c.name)}${c.businessName?' &nbsp;·&nbsp; '+esc(c.businessName):''}</h2>
   <p>📞 ${esc(c.phone)}${c.altPhone?' / '+esc(c.altPhone):''}${c.email?' &nbsp;·&nbsp; 📧 '+esc(c.email):''}${c.nationalId?' &nbsp;·&nbsp; 🪪 '+esc(c.nationalId):''}<br>
-  📍 ${esc(c.addr||'—')} &nbsp;·&nbsp; Category: ${esc(c.group||'retail')}${c.limit>0?' &nbsp;·&nbsp; Credit Limit: '+cur(c.limit):' &nbsp;·&nbsp; '+t('lbl_credit_limit_unlimited')}</p>
+  📍 ${esc(c.addr||'—')} &nbsp;·&nbsp; Category: ${esc(c.group||'retail')}${c.limit>0?' &nbsp;·&nbsp; Credit Limit: '+cur(c.limit):''}</p>
 </div>
 <div class="summary">
   <div class="sum-card"><label>${t('th_total_invoiced')}</label><span>${cur(invoiced)}</span></div>
@@ -8522,7 +8133,7 @@ return`<tr><td>${esc(it.name||'—')}</td><td>${fmtQty(qty)}</td><td>${cur(price
 </tbody></table>
 <div class="sec-lbl">${t('js_lbl_payments_applied')}</div>
 <table><thead><tr><th>${t('lbl_date')}</th><th>${t('th_method')}</th><th>${t('th_reference')}</th><th>${t('th_amount')}</th></tr></thead>
-<tbody>${pays.length?pays.map(p=>`<tr><td>${fmtDate(p.date)}</td><td>${esc(_payMethodDisplay(p.method))}</td><td>${esc(p.ref||'—')}</td><td style="font-weight:700;color:#16A34A">${cur(p.amount)}</td></tr>`).join(''):
+<tbody>${pays.length?pays.map(p=>`<tr><td>${fmtDate(p.date)}</td><td>${esc(mLabel[p.method]||p.method||'—')}</td><td>${esc(p.ref||'—')}</td><td style="font-weight:700;color:#16A34A">${cur(p.amount)}</td></tr>`).join(''):
 `<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:18px">—</td></tr>`}
 </tbody></table>
 <div class="footer">${esc(footerMsg)}<br>Generated by <strong>BIZORA</strong> &nbsp;·&nbsp; ${new Date().toLocaleString()}<br>${esc(cfg.phone||'')} ${esc(cfg.email||'')}</div>
@@ -8719,23 +8330,7 @@ function saveSale(){
   const cid=document.getElementById('sCustomer').value;
   const date=document.getElementById('sDate').value;
   const due=document.getElementById('sDue').value;
-  /* 4.3.3: the invoice total is the sum of the rows actually entered (the
-     same Σ qty×price calcInvTotal() displays). The hidden #sAmount field is
-     display plumbing only and is no longer trusted as the financial total. */
-  const rows=getItemRows();
-  let amount=rows.reduce((a,r)=>a+r.subtotal,0);
-  const eid=document.getElementById('editSaleId').value;
-  const orig=eid?S.get('sales').find(s=>s.id===eid):null;
-  let keepItems=null;
-  /* 4.3.3 (R1): a POS-created invoice (product-linked lines) cannot be
-     represented faithfully by this form — it drops tax, discount, product
-     link and cost. Unchanged rows -> keep the stored total and lines exactly
-     (notes, dates, priority, terms and customer can still be saved);
-     changed rows -> refused for everyone. Never offered for approval. */
-  if(orig&&(orig.items||[]).some(it=>it&&it.productId)){
-    if(!invoiceRowsUnchanged(eid)){toast(t('val_invoice_pos_locked'),'error',8000);return;}
-    amount=parseFloat(orig.amount)||0;keepItems=orig.items;
-  }
+  const amount=parseFloat(document.getElementById('sAmount').value)||0;
   const initPay=parseFloat(document.getElementById('sInitPay').value)||0;
   clearErr('sCustomer','sDate','sDue');
   if(!cid){markErr('sCustomer',true);toast(t('val_select_customer'),'error');return;}
@@ -8745,54 +8340,26 @@ function saveSale(){
   if(amount<=0){toast(t('val_invoice_total_zero'),'error');return;}
   if(initPay<0){toast(t('val_deposit_negative'),'error');return;}
   if(initPay>amount+0.01){toast(t('val_deposit_exceeds_total'),'error');return;}
-  /* 4.3.8 (B3): a new invoice's deposit must carry a real method, read now,
-     refused before any write or approval. Deposit date behaviour unchanged. */
-  let depMethod=null;
-  if(!eid&&initPay>0){
-    depMethod=readDepositMethod('inv');
-    if(!isPaymentMethod(depMethod,DEPOSIT_METHODS)){toast(t('val_deposit_method_required'),'error',6000);const _s=document.getElementById('sDepositMethod');if(_s)_s.focus();return;}
-  }
   const cust=S.get('customers').find(c=>c.id===cid);
   if(cust&&cust.status==='blocked'){toast(t('val_invoice_blocked_customer'),'error');return;}
-  let approval=null,apprSpec=null;
-  if(orig){
-    const oldAmount=parseFloat(orig.amount)||0;
-    const amountChanged=Math.abs(amount-oldAmount)>0.005,custChanged=cid!==orig.cid;
-    // 4.3.3 payment guard — every user, before any approval request.
-    const paid=invPaidAmt(eid);
-    if(amountChanged&&amount<paid-0.005){toast(tf('val_invoice_below_paid',{paid:cur(paid)}),'error',6000);return;}
-    // 4.3.3: non-owner amount or customer change needs Owner approval.
-    if((amountChanged||custChanged)&&priceApprovalRequired()){
-      apprSpec={kind:'invEdit',invId:eid,oldAmount,newAmount:amount,oldCid:orig.cid,newCid:cid};
-      const r=consumeInvoiceApproval(apprSpec);
-      if(!r.token){if(r.hadToken)toast(t('pa_invoice_changed'),'warning',5000);requestInvoiceApproval(apprSpec);return;}
-      approval=r.token;
-    }
-  }
   saveSaleBtn.disabled=true;
+  const eid=document.getElementById('editSaleId').value;
   /* F-1: append a balancing line when the entered rows do not represent the
      full invoice amount, so Revenue recognition matches the invoiced value.
      Applied to the edit path too, which is what lets an existing itemless
      invoice become correctly recognised once the owner re-saves it. */
-  const items=keepItems||balanceSaleItems(rows,amount);
+  const items=balanceSaleItems(getItemRows(),amount);
   const data={cid,amount,date,due,items,paymentTerms:document.getElementById('sPayTerms').value,priority:document.getElementById('sPriority').value,notes:document.getElementById('sNotes').value.trim(),status:'pending'};
   let sales=S.get('sales');
   if(eid){
     const i=sales.findIndex(s=>s.id===eid);if(i>-1)sales[i]={...sales[i],...data};
     log('edit','Updated invoice '+invNum(eid)+' for '+(cust?.name||'?'));
-    if(approval){
-      const custMove=apprSpec.newCid!==apprSpec.oldCid,amtMove=Math.abs(apprSpec.newAmount-apprSpec.oldAmount)>0.005;
-      const what=amtMove&&custMove?'edit':(custMove?'customer change':'edit');
-      logAuditEvent('edit',`Invoice ${what} approved by ${approval.by}: ${invNum(eid)} (${describeInvoiceApproval(apprSpec)})`,
-        {recordType:'invoice',recordId:eid,prevValue:(amtMove?apprSpec.oldAmount:'')+(custMove?(amtMove?' / ':'')+(S.get('customers').find(c=>c.id===apprSpec.oldCid)||{}).name:''),
-         newValue:(amtMove?apprSpec.newAmount:'')+(custMove?(amtMove?' / ':'')+(S.get('customers').find(c=>c.id===apprSpec.newCid)||{}).name:'')});
-    }
   }else{
     const nid=uid();sales.push({...data,id:nid,docNum:invNum(nid)});
     if(initPay>0){
       const pays=S.get('payments');
-      pays.push({id:uid(),invId:nid,cid,amount:initPay,date,method:depMethod,ref:'',notes:'Deposit at time of sale'}); // 4.3.8: chosen method, never a hard-coded 'cash'
-      S.set('payments',pays);log('payment',`Deposit ${cur(initPay)} (${_payMethodEn(depMethod)}) from ${cust?.name||'?'} on ${invNum(nid)}`);
+      pays.push({id:uid(),invId:nid,cid,amount:initPay,date,method:'cash',ref:'',notes:'Deposit at time of sale'});
+      S.set('payments',pays);log('payment','Deposit '+cur(initPay)+' from '+(cust?.name||'?'));
     }
     log('add',invNum(nid)+' '+cur(amount)+' for '+(cust?.name||'?'));
   }
@@ -8802,11 +8369,9 @@ function saveSale(){
   refreshLiveStats();
 }
 function resetSaleForm(){
-  clearInvoiceApprovalState(); // 4.3.3: approvals/snapshots never outlive the form
   document.getElementById('editSaleId').value='';
   document.getElementById('sAmount').value='';
   document.getElementById('sInitPay').value='0';
-  syncDepositMethod('inv',true); // 4.3.8: no method survives into the next invoice
   document.getElementById('sPriority').value='normal';
   document.getElementById('sPayTerms').value='30';
   document.getElementById('sNotes').value='';
@@ -8835,7 +8400,6 @@ function editSale(id){
   document.getElementById('itemsBody').innerHTML='';
   if(s.items&&s.items.length>0)s.items.forEach(it=>addItemRow(it.name,it.qty,it.price));
   else addItemRow(s.desc||'Credit Sale',1,parseFloat(s.amount)||0);
-  markInvoiceEditBaseline(s.id); // 4.3.3 (R1): rows as shown now
   document.getElementById('mAddSaleTitle').textContent=t('js_hd_edit_invoice');
   openModal('mAddSale');
 }
@@ -8845,26 +8409,14 @@ function cancelSale(id){
     toast(tf('toast_cancel_blocked_payments',{count:linkedPays.length,amount:cur(linkedPays.reduce((a,p)=>a+parseFloat(p.amount||0),0))}),'error');
     return;
   }
-  const run=()=>{
+  confirm2('Cancel Invoice?',`Cancel ${invNum(id)}? The invoice will be voided, stock will be restored, and it will be removed from the customer's outstanding balance.`,()=>{
     const all=S.get('sales');
     const target=all.find(s=>s.id===id);
     if(target&&target.items)target.items.forEach(it=>{if(it.productId)restoreStock(it.productId,it.qty,'credit-sale',{invoiceId:id,invoiceNum:invNum(id),action:'cancelled'});});
     if(target)target.status='cancelled';
     S.set('sales',all);loadSales();log('edit','Cancelled invoice '+invNum(id));toast(t('toast_invoice_cancelled_stock'),'warning');
     refreshLiveStats();
-  };
-  /* 4.3.3: non-owners need a single-use Owner approval for this exact
-     invoice, amount and customer; the Owner's password is the confirmation.
-     A direct call without one only opens the approval modal. */
-  if(priceApprovalRequired()){
-    const inv=S.get('sales').find(s=>s.id===id);if(!inv)return;
-    const spec={kind:'invCancel',invId:id,oldAmount:parseFloat(inv.amount)||0,newAmount:parseFloat(inv.amount)||0,oldCid:inv.cid,newCid:inv.cid};
-    const r=consumeInvoiceApproval(spec);
-    if(!r.token){if(r.hadToken)toast(t('pa_invoice_changed'),'warning',5000);requestInvoiceApproval(spec);return;}
-    logAuditEvent('edit',`Invoice cancellation approved by ${r.token.by}: ${invNum(id)} (${cur(spec.oldAmount)})`,{recordType:'invoice',recordId:id,prevValue:spec.oldAmount});
-    run();return;
-  }
-  confirm2('Cancel Invoice?',`Cancel ${invNum(id)}? The invoice will be voided, stock will be restored, and it will be removed from the customer's outstanding balance.`,run);
+  });
 }
 function delSale(id){
   if(!requireDeletePermission())return;
@@ -9034,19 +8586,10 @@ function openAddExpense(){
   document.getElementById('expNewCategory').value='';
   document.getElementById('expDate').value=todayStr();
   document.getElementById('expNotes').value='';
-  _setExpPayMethod('cash'); // 4.3.7: new expenses default to Cash (one tap to change)
   openModal('mAddExpense');
   const saveExpenseBtnReset=document.getElementById('saveExpenseBtn');
   if(saveExpenseBtnReset)saveExpenseBtnReset.disabled=false;
   setTimeout(()=>document.getElementById('expAmount').focus(),80);
-}
-/* 4.3.7: "Not recorded" is offered only when editing an older expense that
-   has no method, so a new expense always gets a real method. */
-function _setExpPayMethod(m){
-  const sel=document.getElementById('expPayMethod'),unk=document.getElementById('expPayMethodUnknown');
-  if(!sel)return;
-  if(unk){unk.hidden=!!m;unk.disabled=!!m;}
-  sel.value=m||'';
 }
 function editExpense(id){
   if(!Auth.can('manageExpenses')){toast(t('exp_no_permission_edit'),'error');return;}
@@ -9060,7 +8603,6 @@ function editExpense(id){
   document.getElementById('expNewCategory').style.display='none';
   document.getElementById('expDate').value=e.date;
   document.getElementById('expNotes').value=e.notes||'';
-  _setExpPayMethod(e.payMethod||''); // 4.3.7: older expenses show "Not recorded" — never guessed
   openModal('mAddExpense');
   const saveExpenseBtnEditReset=document.getElementById('saveExpenseBtn');
   if(saveExpenseBtnEditReset)saveExpenseBtnEditReset.disabled=false;
@@ -9094,8 +8636,6 @@ function saveExpense(skipInventoryWarn){
     return;
   }
   if(!category){toast(t('exp_category_required'),'error');return;}
-  const payMethod=document.getElementById('expPayMethod').value; // 4.3.7 ('' = not recorded, older expense)
-  if(payMethod&&!isPaymentMethod(payMethod)){toast(t('exp_method_invalid'),'error');return;} // 4.3.8: canonical list
   saveExpenseBtn.disabled=true;
   /* Incremental persistence. Note the S.get('expenses') read is now scoped to
      the edit branch only: the add branch previously spread the entire array
@@ -9108,15 +8648,13 @@ function saveExpense(skipInventoryWarn){
     const list=S.get('expenses');
     const prev=list.find(x=>x.id===id);
     const updated={...prev,amount,category,date,notes};
-    if(payMethod)updated.payMethod=payMethod; // 4.3.7: an older expense keeps no method unless one is chosen
     S.update('expenses',updated);
-    logAuditEvent('edit',`Expense updated: ${expenseCategoryLabel(category)} ${cur(amount)}${payMethod?` (${_payMethodEn(payMethod)})`:''}`,{recordType:'expense',recordId:id,prevValue:cur(prev.amount),newValue:cur(amount)});
+    logAuditEvent('edit',`Expense updated: ${expenseCategoryLabel(category)} ${cur(amount)}`,{recordType:'expense',recordId:id,prevValue:cur(prev.amount),newValue:cur(amount)});
     toast(t('exp_updated'),'success');
   }else{
     const exp={id:uid(),amount,category,date,notes,createdAt:new Date().toISOString()};
-    if(payMethod)exp.payMethod=payMethod; // 4.3.7
     S.add('expenses',exp);
-    logAuditEvent('add',`Expense logged: ${expenseCategoryLabel(category)} ${cur(amount)}${payMethod?` (${_payMethodEn(payMethod)})`:''}`,{recordType:'expense',recordId:exp.id,newValue:cur(amount)});
+    logAuditEvent('add',`Expense logged: ${expenseCategoryLabel(category)} ${cur(amount)}`,{recordType:'expense',recordId:exp.id,newValue:cur(amount)});
     toast(t('exp_logged'),'success');
   }
   closeModal('mAddExpense');
@@ -9443,7 +8981,7 @@ function renderPayTable(paysIn){
       <td><div style="font-weight:600">${esc(c?.name||'?')}</div>${c?.businessName?`<div style="font-size:11.5px;color:var(--txt3)">${esc(c.businessName)}</div>`:''}</td>
       <td style="color:var(--primary)">${invNum(p.invId)}</td>
       <td style="font-weight:900;color:var(--success)">${cur(p.amount)}</td>
-      <td>${mIcons[p.method]||'💰'} <span>${esc(_payMethodDisplay(p.method))}</span></td>
+      <td>${mIcons[p.method]||'💰'} <span style="text-transform:capitalize">${esc(p.method||'cash')}</span></td>
       <td style="font-size:14px;color:var(--txt2)">${esc(p.ref||'—')}</td>
       <td style="font-size:14px;color:var(--txt2)">${esc(p.collector||'—')}</td>
       <td style="font-size:14px">${fmtDate(p.date)}</td>
@@ -9504,7 +9042,6 @@ function onPayInvChange(){
   document.getElementById('balDue').textContent=cur(bal);
   setFmtVal('pAmount',bal>0?bal:'');
 }
-let _overpayConfirmedKey=null; // 4.3.7: set only by the Owner's overpayment confirm, cleared on use
 function savePay(){
   const savePayBtn=document.getElementById('savePayBtn');
   if(savePayBtn.disabled)return; // prevent a rapid double-tap from recording the payment twice
@@ -9516,55 +9053,15 @@ function savePay(){
   const date=document.getElementById('pDate').value;
   if(!cid||!invId||!date){toast(t('toast_payment_fields_required'),'error');return;}
   if(amount<=0){toast(t('val_payment_amount_zero'),'error');return;}
-  if(!isFinite(amount)){toast(t('val_payment_amount_invalid'),'error');return;} // 4.3.7
-  // 4.3.7 (G1): the invoice must exist, belong to this customer and be open.
-  _ensureFinanceIndices();const _payInv=_salesById.get(invId); // existing O(1) index (invBalance builds the same one)
-  if(!_payInv||_payInv.cid!==cid||_payInv.status==='cancelled'){toast(t('val_payment_invoice_invalid'),'error');return;}
-  /* 4.3.8 (B4): the method is read here, at save time, and must be on the one
-     canonical list — before any approval, write or status change. Nothing is
-     ever turned into Cash. The refusal is audited (same policy as 4.3.7). */
-  const method=document.getElementById('pMethod').value;
-  if(!isPaymentMethod(method)){
-    toast(t('val_payment_method_invalid'),'error',6000);
-    logAuditEvent('security',`Payment refused — invalid payment method "${String(method).slice(0,40)}": ${(S.get('customers').find(c=>c.id===cid)||{}).name||'?'} (${cur(amount)} on ${invNum(invId)})`,{recordType:'payment',recordId:invId,..._actorMeta()});
-    return;
-  }
+  savePayBtn.disabled=true;
   const bal=invBalance(invId);
-  const ref=document.getElementById('pRef').value.trim(),collector=document.getElementById('pCollector').value.trim(),notes=document.getElementById('pNotes').value.trim();
+  const method=document.getElementById('pMethod').value,ref=document.getElementById('pRef').value.trim(),collector=document.getElementById('pCollector').value.trim(),notes=document.getElementById('pNotes').value.trim();
   const cust=S.get('customers').find(c=>c.id===cid);
   /* Overpayment: apply what's actually owed to the invoice and bank the
      rest as account credit instead of rejecting the entry or letting the
      excess vanish through invBalance's zero-floor. */
   const appliedAmt=Math.min(amount,bal);
   const creditAmt=Math.round((amount-appliedAmt)*100)/100;
-  /* 4.3.7 (G1): an excess becomes money the business owes the customer (and
-     can later be refunded), so it is never created silently. Employees need
-     a single-use Owner approval bound to customer/invoice/amount/balance/
-     method; the Owner (or Access Control off) confirms the exact figures.
-     Exact and partial payments are unchanged — no extra step. */
-  let _overpayBy=null;
-  if(creditAmt>0){
-    const spec={kind:'overpay',cid,invId,amount,bal,method};
-    if(priceApprovalRequired()){
-      if(!peekApproval(spec)){
-        consumeApproval(spec); // discard any stale/non-matching approval
-        logAuditEvent('security',`Overpayment — Owner approval required: ${cust?.name||'?'} (${overpayFigures(spec)})`,{recordType:'payment',recordId:invId});
-        requestOwnerActionApproval(spec);
-        return;
-      }
-      _overpayBy=consumeApproval(spec).token.by;
-    }else{
-      const key=JSON.stringify([cid,invId,amount,bal,method]);
-      if(_overpayConfirmedKey!==key){
-        _overpayConfirmedKey=null;
-        confirm2(t('overpay_confirm_title'),tf('overpay_confirm_msg',{amount:cur(amount),invoice:invNum(invId),balance:cur(bal),extra:cur(creditAmt),customer:cust?.name||t('toast_fallback_customer')}),()=>{_overpayConfirmedKey=key;savePay();},t('overpay_confirm_btn'));
-        return;
-      }
-      _overpayConfirmedKey=null;
-    }
-  }
-  savePayBtn.disabled=true;
-  const _creditBefore=creditAmt>0?Math.round(custCreditBalance(cid)*100)/100:0;
   let paymentId=null;
   if(appliedAmt>0){
     paymentId=uid();
@@ -9584,11 +9081,10 @@ function savePay(){
     }
   }
   if(creditAmt>0){
-    addCreditEntry(cid,'earned',creditAmt,`Overpayment on ${invNum(invId)}`,invId,method);
-    logAuditEvent('payment',`Overpayment ${cur(amount)} from ${cust?.name||'?'} on ${invNum(invId)} (${_payMethodEn(method)}): ${cur(appliedAmt)} applied, ${cur(creditAmt)} kept as account credit${_overpayBy?`, approved by ${_overpayBy}`:''}`,{recordType:'payment',recordId:paymentId||invId,prevValue:_creditBefore,newValue:Math.round((_creditBefore+creditAmt)*100)/100,..._actorMeta()}); // 4.3.7
+    addCreditEntry(cid,'earned',creditAmt,`Overpayment on ${invNum(invId)}`,invId);
     toast(tf('toast_payment_applied_overpay',{applied:cur(appliedAmt),invoice:invNum(invId),extra:cur(creditAmt),customer:cust?.name||t('toast_fallback_customer'),balance:cur(custCreditBalance(cid))}),'success',5000);
   }else{
-    log('payment',`Payment ${cur(amount)} (${_payMethodEn(method)}) from ${cust?.name||'?'} on ${invNum(invId)}`); // 4.3.8: method + invoice in the audit
+    log('payment','Payment '+cur(amount)+' from '+(cust?.name||'?'));
     toast(t('toast_payment_recorded'),'success');
   }
   closeModal('mAddPay');loadPayments();renderNotifBadgeOnly();
@@ -9609,7 +9105,6 @@ function savePay(){
   if(paymentId)setTimeout(()=>printPaymentReceipt(paymentId),250);
 }
 function resetPayForm(){
-  clearApprovalKind('overpay');_overpayConfirmedKey=null; // 4.3.7: a fresh form never inherits an overpayment approval
   ['pCustomer','pInvoice','pAmount','pDate','pRef','pCollector','pNotes'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   document.getElementById('pMethod').value='cash';
   document.getElementById('pDate').value=todayStr();
@@ -10369,7 +9864,6 @@ function buildOwnerEndOfDaySummary(date){
    deliberately a manual "Send Today's Summary" button rather than a fake
    promise of guaranteed background delivery). */
 function sendOwnerEndOfDayWhatsAppSummary(date){
-  if(!Auth.can('viewFinancials')){toast(t('perm_no_view_financials'),'error');return;} // 4.3.1: summary carries profit figures
   if(!getOwnerSalesNotifConfig().endOfDay){toast(t('owner_eod_disabled'),'error');return;}
   const phoneCheck=_ownerWaPhoneCheck();
   if(!phoneCheck.ok){toast(t('owner_wa_missing'),'error');return;}
@@ -10581,7 +10075,6 @@ function loadAbout(){
 }
 function fmtBytes(b){if(b<1024)return b+' B';if(b<1048576)return Math.round(b/1024)+' KB';return(b/1048576).toFixed(1)+' MB';}
 function exportBackup(){
-  if(!requireOwnerOrWarn())return; // 4.3.1: Backup is owner-only (matches nav-backup rule)
   const data={version:'2.4',app:'BIZORA',exportedAt:new Date().toISOString(),customers:S.get('customers'),sales:S.get('sales'),payments:S.get('payments'),products:S.get('products'),posSales:S.get('posSales'),activities:S.get('activities'),auditLog:S.get('auditLog'),creditLedger:S.get('creditLedger'),
     // Phase 6 audit fix: these 8 stores were previously omitted from backups entirely.
     reminders:S.get('reminders'),notifications:S.get('notifications'),licenses:S.get('licenses'),employees:S.get('employees'),expenses:S.get('expenses'),suppliers:S.get('suppliers'),stockMovements:S.get('stockMovements'),stockReconciliations:S.get('stockReconciliations'),
@@ -10592,11 +10085,6 @@ function exportBackup(){
   renderBackupReminder();
 }
 function exportCSV(type){
-  /* 4.3.1: stop before any data is read or a file is built. The four
-     Backup-page CSVs keep Backup's owner-only rule; Ledger / Reports
-     exports use the exportReports permission. */
-  if(['customers','sales','payments','products'].includes(type)){if(!requireOwnerOrWarn())return;}
-  else if(!Auth.can('exportReports')){toast(t('perm_no_export_reports'),'error');return;}
   const custs=S.get('customers'),sales=S.get('sales'),pays=S.get('payments'),prods=S.get('products');
   let csv='',fn='';
   if(type==='customers'){
@@ -10691,7 +10179,6 @@ function buildFinancialCSV(section){
   return[header].concat(series.map(r=>cols.map(c=>c[2]?finCsvNum(r[c[1]]):finCsvText(r[c[1]])).join(','))).join('\n');
 }
 function exportFinancialCSV(section){
-  if(!Auth.can('exportReports')){toast(t('perm_no_export_reports'),'error');return;} // 4.3.1
   const csv=buildFinancialCSV(section);
   const name={lifetime:'Lifetime',daily:'Daily',monthly:'Monthly',annual:'Annual'}[section]||'Summary';
   /* UTF-8 BOM so Excel opens accented French headers correctly. */
@@ -10747,26 +10234,17 @@ function handleFile(file,srcInput){
       : (()=>{ try{ return JSON.parse(ev.target.result); }catch{ return null; } })();
     if(!data){ toast(t('toast_backup_read_failed'),'error'); return; }
 
-    // 4.3.8: an unexpected validation error is shown, never swallowed (it used to stop the restore silently).
-    let check;
-    try{
-      check = (typeof SecurityManager!=='undefined')
-        ? SecurityManager.BackupValidator.validate(data)
-        : {valid:true, corrupt:false, errors:[], warnings:[]};
-    }catch(err){
-      toast(tf('toast_backup_restore_failed',{error:String(err&&err.message||err)}),'error',8000);
-      if(typeof ErrorManager!=='undefined')ErrorManager.log('BackupImport','Backup validation crashed: '+String(err&&err.stack||err),'Error');
-      return;
-    }
+    const check = (typeof SecurityManager!=='undefined')
+      ? SecurityManager.BackupValidator.validate(data)
+      : {valid:true, corrupt:false, errors:[], warnings:[]};
     if(!check.valid){
       toast(check.errors[0]||t('toast_backup_invalid'),'error');
       ErrorManager.log('BackupImport', 'Rejected corrupt backup: '+check.errors.join('; '), 'Warning');
       return;
     }
     if(!data.customers&&!data.sales){toast(t('toast_backup_invalid'),'error');return;}
-    const warnMsg = check.warnings.length ? ` ⚠ ${check.warnings.join(' ')}` : ''; // 4.3.8: confirm2 shows plain text (HTML tags were printed literally)
+    const warnMsg = check.warnings.length ? `<br><span style="color:var(--danger,#DC2626)">⚠ ${check.warnings.join(' ')}</span>` : '';
     confirm2('Import Backup?',`Import ${data.customers?.length||0} customers, ${data.sales?.length||0} invoices, ${data.payments?.length||0} payments, ${data.products?.length||0} products?${warnMsg}`,()=>{
-      try{ // 4.3.8: a failure part-way is reported as a failure, never as success
         /* Automatic recovery point — snapshots current data before any
            write below touches it, so an import gone wrong is recoverable
            via RecoveryManager.restoreSnapshot() even though the merge
@@ -10787,11 +10265,6 @@ function handleFile(file,srcInput){
         if(data.auditLog)merge('auditLog',data.auditLog);
         syncStatuses();log('system',`Backup restored: ${imp.c} customers, ${imp.s} invoices, ${imp.p} payments, ${imp.pr} products, ${imp.exp} expenses, ${imp.emp} employees, ${imp.sm} stock movements, ${imp.sr} reconciliations`);
         toast(tf('toast_import_summary',{c:imp.c,s:imp.s,p:imp.p,pr:imp.pr,exp:imp.exp,inv:imp.sm+imp.sr}),'success');loadBackup();renderNotifBadgeOnly();
-      }catch(err){
-        toast(tf('toast_backup_restore_failed',{error:String(err&&err.message||err)}),'error',8000);
-        if(typeof ErrorManager!=='undefined')ErrorManager.log('BackupImport','Backup import failed part-way: '+String(err&&err.stack||err),'Error');
-        try{log('system','Backup restore FAILED part-way: '+String(err&&err.message||err));}catch(_){}
-      }
       });
   };impDiag('read started (JSON)');r.readAsText(file);
 }
@@ -11144,12 +10617,7 @@ function seedProductsOnly(){
     {id:uid(),sku:'SKU-000001',name:'General Item',category:'General',cost:1000,price:1500,stock:50,lowStock:10,unit:'pcs',tax:0,notes:'',added:todayStr()}
   ]);
 }
-/* v4.2.9: the Sales-activity filter is set on the user's behalf by a Smart
-   Insight tap, so a normal visit to Products clears it. loadProducts() has
-   always shown the full list; this keeps that dropdown truthful about it.
-   _openProductsActivity() calls go('products') first and sets the filter
-   after, so insight tap-through is unaffected. Other filters: unchanged. */
-function loadProducts(){const actSel=document.getElementById('prodActivitySel');if(actSel)actSel.value='';renderProdStats();renderProdValuation();populateCatDropdown();renderProdTable(S.get('products'));setTimeout(renderMonthlyProfitChart,80);}
+function loadProducts(){renderProdStats();renderProdValuation();populateCatDropdown();renderProdTable(S.get('products'));setTimeout(renderMonthlyProfitChart,80);}
 function renderMonthlyProfitChart(){
   const r=setupCanvas('cMonthlyProfit',200);if(!r)return;
   const{ctx,w,h}=r;
@@ -11871,9 +11339,6 @@ function filterProducts(){
   if(q)p=p.filter(x=>(x.name||'').toLowerCase().includes(q)||(x.sku||'').toLowerCase().includes(q)||(x.category||'').toLowerCase().includes(q));
   if(cat)p=p.filter(x=>x.category===cat);
   if(stockF)p=p.filter(x=>stockStatus(x)===stockF);
-  const actSel=document.getElementById('prodActivitySel');
-  const actF=actSel?actSel.value:'';
-  if(actF){const b=computeProductActivityBuckets().byId;p=p.filter(x=>b.get(x.id)===actF);}
   pagState.prod.page=1;
   renderProdTable(p);
 }
@@ -11883,7 +11348,6 @@ function resetProdForm(){
   ['pName','pCategory','pCost','pPrice','pNotesF'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('pUnit').value='pcs';
   document.getElementById('pStock').value='';
-  document.getElementById('pStock').disabled=false; // editProduct() locks this field; re-enable for Add Product
   document.getElementById('pLowStock').value='5';
   document.getElementById('pTax').value='0';
   document.getElementById('pStatus').value='active';
@@ -11891,29 +11355,6 @@ function resetProdForm(){
   populateCatDropdown();
   const saveProductBtnReset=document.getElementById('saveProductBtn');
   if(saveProductBtnReset)saveProductBtnReset.disabled=false;
-}
-/* ═══ 4.3.4: DUPLICATE PRODUCT-NAME PREVENTION ═══
-   One normalization path shared by the product form, CSV preview and CSV
-   commit: trim, collapse repeated internal whitespace, compare
-   case-insensitively. Accents are NOT normalized (Café ≠ Cafe). This is a
-   data-integrity rule, not a permission, so it applies to every role.
-   Checks run only on save/import (one in-memory pass) — never at checkout,
-   page load or render. Existing duplicate records are never modified. */
-function normProductName(s){return String(s==null?'':s).trim().replace(/\s+/g,' ').toLowerCase();}
-/* name -> first product with that normalized name, built once per call site. */
-function productNameIndex(excludeId){
-  const m=new Map();
-  for(const p of S.get('products')){if(excludeId&&p.id===excludeId)continue;const k=normProductName(p.name);if(k&&!m.has(k))m.set(k,p);}
-  return m;
-}
-function findProductByName(name,excludeId){
-  const k=normProductName(name);if(!k)return null;
-  return S.get('products').find(p=>(!excludeId||p.id!==excludeId)&&normProductName(p.name)===k)||null;
-}
-function duplicateProductMessage(p){
-  return p.status==='discontinued'
-    ?tf('val_product_duplicate_discontinued',{name:p.name,sku:p.sku||'—'})
-    :tf('val_product_duplicate',{name:p.name,sku:p.sku||'—',stock:fmtQty(p.stock)});
 }
 function saveProduct(){
   const saveProductBtn=document.getElementById('saveProductBtn');
@@ -11926,9 +11367,6 @@ function saveProduct(){
   const price=parseFloat(document.getElementById('pPrice').value);
   const stock=parseFloat(document.getElementById('pStock').value);
   if(!name){toast(t('toast_product_name_required'),'error');return;}
-  // 4.3.4: refuse a name another product already uses (own name excluded on edit)
-  const dupProd=findProductByName(name,eidCheck||null);
-  if(dupProd){toast(duplicateProductMessage(dupProd),'error',7000);return;}
   if(isNaN(cost)||cost<0){toast(t('val_cost_price_required'),'error');return;}
   if(isNaN(price)||price<0){toast(t('val_selling_price_required'),'error');return;}
   if(isNaN(stock)||stock<0){toast(t('val_opening_stock_required'),'error');return;}
@@ -11948,11 +11386,8 @@ function saveProduct(){
      runs on the new-product branch only, exactly as before. */
   if(eid){
     const i=prods.findIndex(p=>p.id===eid);
-    const prevPrice=i>-1?(parseFloat(prods[i].price)||0):null;
     if(i>-1){S.update('products',{...prods[i],...data});}
-    // 4.3.3: record old → new catalog price when it changed (same audit structure)
-    if(prevPrice!==null&&Math.abs(prevPrice-price)>0.005)logAuditEvent('edit',`Updated product: ${name} (price ${cur(prevPrice)} → ${cur(price)})`,{recordType:'product',recordId:eid,prevValue:prevPrice,newValue:price});
-    else log('edit','Updated product: '+name);
+    log('edit','Updated product: '+name);
   }
   else{S.add('products',{...data,id:uid(),sku:nextSku(),stock,added:todayStr()});log('add','New product: '+name);}
   closeModal('mAddProd');loadProducts();
@@ -13608,46 +13043,6 @@ function renderInvGrid(prods){
     </div>`;
   }).join('');
 }
-/* ═══ 4.3.7 (G3): PHYSICAL CASH IN THE DRAWER ═══
-   Expected Cash = Opening
-                 + cash kept from POS cash sales (sale total — change handed
-                   back is not kept)
-                 + cash payments received (payments with method 'cash', incl.
-                   deposits) + cash overpayments kept as account credit
-                 − expenses paid in cash − account credit refunded in cash
-   Mobile money, bank, card, cheque, "other" and account-credit payments are
-   not physical cash and never count. Account credit by itself is not cash.
-   Records saved before 4.3.7 without a method are NOT guessed: they are left
-   out of Expected Cash and counted in `unrecorded` so the screen can say so.
-   Read-only; one pass per store, today's records only; writes nothing. */
-function computeDrawerCash(td,opening){
-  const n=v=>{const x=parseFloat(v);return isFinite(x)?x:0;};
-  const r={opening:n(opening),cashSales:0,creditSales:0,collections:0,cashCollections:0,cashCreditIn:0,cashExpenses:0,cashRefunds:0,unrecorded:0,expected:0};
-  for(const s of S.get('posSales')){
-    if(s.date!==td)continue;
-    if(s.method!=='cash'){if(!isPaymentMethod(s.method))r.unrecorded++;continue;} // 4.3.8 (B9): unknown methods are reported, never counted
-    const paid=parseFloat(s.paid),ch=parseFloat(s.change);
-    r.cashSales+=(isFinite(paid)&&isFinite(ch))?paid-ch:n(s.total);
-  }
-  for(const s of S.get('sales'))if(s.date===td&&s.status!=='cancelled')r.creditSales+=n(s.amount);
-  for(const p of S.get('payments')){
-    if(p.date!==td)continue;
-    r.collections+=n(p.amount);
-    if(p.method==='cash')r.cashCollections+=n(p.amount);else if(!isKnownStoredMethod(p.method))r.unrecorded++; // 4.3.8 (B9)
-  }
-  for(const e of S.get('creditLedger')){
-    if(e.date!==td||e.type==='applied')continue;
-    if(!isPaymentMethod(e.method)){r.unrecorded++;continue;} // 4.3.8 (B9)
-    if(e.method!=='cash')continue;
-    if(e.type==='earned')r.cashCreditIn+=n(e.amount);else if(e.type==='refunded')r.cashRefunds+=n(e.amount);
-  }
-  for(const x of S.get('expenses')){
-    if(x.date!==td)continue;
-    if(!isPaymentMethod(x.payMethod))r.unrecorded++;else if(x.payMethod==='cash')r.cashExpenses+=n(x.amount); // 4.3.8 (B9)
-  }
-  r.expected=Math.round((r.opening+r.cashSales+r.cashCollections+r.cashCreditIn-r.cashExpenses-r.cashRefunds)*100)/100;
-  return r;
-}
 function renderCashDrawer(){
   if(!document.getElementById('cdCashSales'))return;
   const td=todayStr();
@@ -13656,15 +13051,14 @@ function renderCashDrawer(){
   const today=drawer[td]||{opening:0,closing:''};
   setFmtVal('cdOpening',today.opening||0);
   setFmtVal('cdClosing',today.closing||'');
-  const dc=computeDrawerCash(td,today.opening); // 4.3.7 (G3)
-  const expected=dc.expected;
-  document.getElementById('cdCashSales').textContent=cur(dc.cashSales);
-  document.getElementById('cdCreditSales').textContent=cur(dc.creditSales);
-  document.getElementById('cdCollections').textContent=cur(dc.collections);
-  document.getElementById('cdCashIn').textContent=cur(dc.cashCollections+dc.cashCreditIn);
-  document.getElementById('cdCashExpenses').textContent=cur(dc.cashExpenses);
-  document.getElementById('cdCashRefunds').textContent=cur(dc.cashRefunds);
-  document.getElementById('cdNote').textContent=t('cd_note_cash_only')+(dc.unrecorded?' '+tf('cd_note_unrecorded',{count:dc.unrecorded}):'');
+  const posSales=S.get('posSales').filter(s=>s.date===td);
+  const cashSales=posSales.filter(s=>s.method==='cash').reduce((a,s)=>a+s.paid,0);
+  const creditSalesToday=S.get('sales').filter(s=>s.date===td&&s.status!=='cancelled').reduce((a,s)=>a+parseFloat(s.amount||0),0);
+  const collections=S.get('payments').filter(p=>p.date===td).reduce((a,p)=>a+parseFloat(p.amount||0),0);
+  const expected=(parseFloat(today.opening)||0)+cashSales+collections;
+  document.getElementById('cdCashSales').textContent=cur(cashSales);
+  document.getElementById('cdCreditSales').textContent=cur(creditSalesToday);
+  document.getElementById('cdCollections').textContent=cur(collections);
   document.getElementById('cdExpected').textContent=cur(expected);
   const closing=parseFloat(today.closing);
   const varEl=document.getElementById('cdVariance');
@@ -13674,47 +13068,14 @@ function renderCashDrawer(){
     varEl.className=variance>=0?'cd-variance-pos':'cd-variance-neg';
   }else{varEl.textContent=t('js_txt_enter_closing_cash');varEl.className='';}
 }
-/* 4.3.7 (G4): drawer edits are traceable. The fields still save on every
-   keystroke exactly as before (nothing is lost if the phone dies mid-count),
-   but the Audit Log gets ONE entry per finished edit — the value before the
-   edit started and the value it ended on — written when the field is left
-   (change), or when the app is hidden/closed with an edit still open.
-   The drawer record keeps its existing shape {opening, closing}. */
-let _cdEditBase=null; // {date, opening, closing} as stored before the current edit
-function _cdParse(raw){
-  const s=String(raw==null?'':raw).replace(/,/g,'').trim();
-  if(s==='')return'';
-  const v=Number(s);
-  return isFinite(v)&&v>=0?Math.round(v*100)/100:null; // null = invalid (negative / not a number)
-}
 function saveCashDrawer(){
-  if(!Auth.can('manageInventory')){toast(t('perm_no_adjust_inventory'),'error');renderCashDrawer();return;} // operation boundary
   const td=todayStr();
   const drawer=S.obj('cashDrawer',{});
-  const prev=drawer[td]||{opening:0,closing:''};
-  const opening=_cdParse(document.getElementById('cdOpening').value);
-  const closing=_cdParse(document.getElementById('cdClosing').value);
-  if(opening===null||closing===null)return; // invalid (e.g. "-"): keep the stored drawer untouched; reported on commit
-  if(!_cdEditBase||_cdEditBase.date!==td)_cdEditBase={date:td,opening:prev.opening===undefined?0:prev.opening,closing:prev.closing===undefined?'':prev.closing};
-  drawer[td]={opening:opening===''?0:opening,closing};
+  const closingRaw=document.getElementById('cdClosing').value;
+  drawer[td]={opening:parseFloat(document.getElementById('cdOpening').value)||0,closing:closingRaw===''?'':(parseFloat(closingRaw)||0)};
   S.setObj('cashDrawer',drawer);
   renderCashDrawer();
 }
-function commitCashDrawerEdit(){
-  const opening=_cdParse((document.getElementById('cdOpening')||{}).value);
-  const closing=_cdParse((document.getElementById('cdClosing')||{}).value);
-  if(opening===null||closing===null){toast(t('cd_invalid_amount'),'error');renderCashDrawer();} // restore the last valid saved figures
-  const b=_cdEditBase;_cdEditBase=null;
-  if(!b)return;
-  const now=(S.obj('cashDrawer',{})[b.date])||{opening:0,closing:''};
-  const show=v=>v===''||v===undefined||v===null?'(blank)':cur(v);
-  const same=(a,c)=>(a===''||a===undefined||a===null)?(c===''||c===undefined||c===null):(c!==''&&c!==undefined&&c!==null&&Math.abs(parseFloat(a)-parseFloat(c))<0.005);
-  if(!same(b.opening,now.opening))logAuditEvent('edit',`Cash drawer opening cash changed for ${b.date}: ${show(b.opening)} → ${show(now.opening)}`,{recordType:'cashDrawer',recordId:b.date+':opening',prevValue:b.opening,newValue:now.opening,..._actorMeta()});
-  if(!same(b.closing,now.closing))logAuditEvent('edit',`Cash drawer closing count changed for ${b.date}: ${show(b.closing)} → ${show(now.closing)}`,{recordType:'cashDrawer',recordId:b.date+':closing',prevValue:b.closing,newValue:now.closing,..._actorMeta()});
-}
-// An edit left open when the app is backgrounded or closed is still logged.
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&_cdEditBase)commitCashDrawerEdit();});
-window.addEventListener('pagehide',()=>{if(_cdEditBase)commitCashDrawerEdit();});
 
 /* ═══════════════════════════════════════════════════
    PHASE 5: POINT OF SALE (POS) MODULE
@@ -13743,7 +13104,6 @@ function loadPos(){
 }
 function resetPosForm(){
   posItems=[];posType='cash';posDiscountMode='sellingPrice';
-  resetPriceApprovals(); // 4.3.2: approvals never outlive their cart
   document.getElementById('posTypeCash').checked=true;
   setPosType('cash');
   setPosDiscountMode('sellingPrice');
@@ -13751,7 +13111,6 @@ function resetPosForm(){
   document.getElementById('posSalesperson').value='';
   document.getElementById('posReceived').value='';
   document.getElementById('posDeposit').value='0';
-  syncDepositMethod('pos',true); // 4.3.8: no method survives into the next sale
   document.getElementById('posCreditPeriod').value='30';
   document.getElementById('posMethod').value='cash';
   document.getElementById('posProdSearch').value='';
@@ -13857,384 +13216,13 @@ function renderPosItems(){
       </div>
       <div class="pos-regular-price" title="${t('js_title_regular_price')}">${cur(regularLineTotal)}</div>
       ${discCell}
-      <input type="number" min="0" max="100" step="0.01" value="${it.tax}" onchange="updatePosItem(${idx},'tax',this.value)"${priceApprovalRequired()?` disabled title="${esc(t('pa_tax_locked'))}"`:''}>
+      <input type="number" min="0" max="100" step="0.01" value="${it.tax}" onchange="updatePosItem(${idx},'tax',this.value)">
       <span class="pos-item-sub">${cur(sub)}</span>
       <span class="pos-item-rm"><button class="btn btn-ghost btn-xs" onclick="removePosItem(${idx})">✕</button></span>
     </div>`;
   }).join('');
   updateScrollHints();
 }
-/* ═══════════════════════════════════════════════════
-   OWNER APPROVAL (4.3.2 price changes · 4.3.3 invoices + tax)
-   ───────────────────────────────────────────────────
-   Any non-owner employee (Access Control on) needs the Business Owner's
-   password for: every POS selling-price change (discount or markup,
-   however small), and — 4.3.3 — changing an invoice's amount or customer
-   and cancelling an invoice. The Owner, and a shop with Access Control
-   off, are unaffected (priceApprovalRequired() is false for both).
-
-   4.3.3 hardening: all approval state (price grants, the pending request,
-   the single-use invoice approval and the invoice-edit row snapshot) lives
-   inside this closure, so it can no longer be read, replaced or forged
-   through top-level variables from the browser console. Only functions
-   are exported, as const bindings. This blocks approval-STATE tampering;
-   it does NOT make the client application tamper-proof — someone with
-   developer tools can still modify the application's code itself (see the
-   Employee Access Control scope note).
-
-   Price grants (unchanged from 4.3.2): keyed by the exact cart-line object,
-   bound to user + product + catalog price + approved discount; die when the
-   line is removed, the cart is reset, the user changes or the page reloads.
-   Quantity changes keep them (the approved UNIT price is unchanged).
-
-   Tax (4.3.3): for non-owners every cart line's tax must equal the product's
-   current catalog tax — enforced in posPriceViolation(), i.e. at checkout
-   and again inside finalizeCashSale/finalizeCreditSale.
-
-   Invoice approvals (4.3.3): ONE single-use token bound to
-   kind ('invEdit'|'invCancel') + invoice id + old/new amount + old/new
-   customer + employee. Deleted when checked (match or not), on modal
-   cancel, form reset, logout/user switch and reload. saveSale() and
-   cancelSale() check it themselves, so a direct call without a matching
-   approval only opens the approval modal. No financial calculation is
-   changed — this only gates which values may reach the existing ones. */
-function priceApprovalRequired(){return Auth.isEmployeeMode()&&!Auth.isOwner();}
-/* ═══ 4.3.6: CREDIT-LIMIT AUTHORIZATION ═══
-   One calculation for the banner, checkoutPos() and finalizeCreditSale().
-   Limit <= 0 or missing means UNLIMITED — exactly the existing rule. Debt
-   is custDebt() (sum of open invoice balances; account credit not netted),
-   unchanged. Runs on already-loaded in-memory data only. */
-function creditCheck(cid,total,deposit){
-  const cust=cid?S.get('customers').find(c=>c.id===cid)||null:null;
-  const limit=cust?(parseFloat(cust.limit)||0):0;
-  const unlimited=!(limit>0);
-  const prevDebt=cust?custDebt(cid):0;
-  const newDebt=Math.max(0,(parseFloat(total)||0)-(parseFloat(deposit)||0));
-  const resultingDebt=prevDebt+newDebt;
-  return{cust,blocked:!!cust&&cust.status==='blocked',limit,unlimited,prevDebt,newDebt,resultingDebt,over:!unlimited&&resultingDebt>limit};
-}
-function _creditSpec(cid,cc,total,deposit){return{kind:'creditOverride',cid,prevDebt:cc.prevDebt,limit:cc.limit,total:parseFloat(total)||0,deposit:parseFloat(deposit)||0,resultingDebt:cc.resultingDebt};}
-function creditFigures(sp){return`debt ${cur(sp.prevDebt)}, limit ${cur(sp.limit)}, sale ${cur(sp.total)}, deposit ${cur(sp.deposit)}, resulting ${cur(sp.resultingDebt)}`;}
-function limitLabel(l){return(parseFloat(l)||0)>0?cur(l):t('lbl_unlimited');}
-function limitAudit(l){return(parseFloat(l)||0)>0?cur(l):'Unlimited';}
-function statusLabel(st){return st==='blocked'?t('lbl_blocked'):t('lbl_active');}
-function custChangeFigures(sp){const p=[];if(r2c(sp.oldLimit)!==r2c(sp.newLimit))p.push(`limit ${limitAudit(sp.oldLimit)} → ${limitAudit(sp.newLimit)}`);if((sp.oldStatus||'active')!==(sp.newStatus||'active'))p.push(`status ${sp.oldStatus||'active'} → ${sp.newStatus||'active'}`);return p.join('; ');}
-function r2c(v){return Math.round((parseFloat(v)||0)*100)/100;}
-/* Access Control OFF has no signed-in identity: new 4.3.6 audit entries name
-   the actor honestly instead of "Business Owner". Existing entries unchanged. */
-function _actorMeta(){return Auth.isEmployeeMode()?{}:{actorLabel:'Unidentified user (Access Control off)'};}
-/* 4.3.7: payment-method names. _payMethodEn() is the canonical English form
-   written to the Audit Log (stored text is never translated);
-   _payMethodLabel() is the translated form for the screen. */
-const _PAY_METHOD_EN={cash:'Cash','mobile-money':'Mobile Money','bank-transfer':'Bank Transfer',cheque:'Cheque',card:'Card',other:'Other','account credit':'Account Credit'};
-const _PAY_METHOD_KEY={cash:'method_cash','mobile-money':'method_mobile_money','bank-transfer':'method_bank_transfer',cheque:'method_cheque',card:'method_card',other:'method_other','account credit':'method_account_credit'};
-function _payMethodEn(m){return _PAY_METHOD_EN[m]||String(m||'Not recorded');}
-function _payMethodLabel(m){return _PAY_METHOD_KEY[m]?t(_PAY_METHOD_KEY[m]):_payMethodEn(m);}
-/* ═══ 4.3.8 (B1): THE ONE LIST OF PAYMENT METHODS ═══
-   Every NEW money movement (repayment, deposit, refund, expense) is
-   validated against PAYMENT_METHODS at its save function — never only in
-   the UI. payment.method==='cash' means physical notes and coins; a sale's
-   type 'cash' only means "settled now" and says nothing about the method.
-   Deposits taken with a sale use the same list without Cheque.
-   'account credit' is a stored value written only by Apply Credit — it is
-   recognised when reading history but can never be chosen for new money. */
-const PAYMENT_METHODS=Object.freeze(['cash','mobile-money','bank-transfer','cheque','card','other']);
-const DEPOSIT_METHODS=Object.freeze(PAYMENT_METHODS.filter(m=>m!=='cheque'));
-function isPaymentMethod(m,allowed=PAYMENT_METHODS){return typeof m==='string'&&allowed.includes(m);}
-function isKnownStoredMethod(m){return isPaymentMethod(m)||m==='account credit';}
-/* 4.3.8 (B8): screen label for a STORED method. Missing/empty is "Not
-   recorded"; a non-standard old value is shown as "Not recorded (value)".
-   Display only — the stored record is never changed, never shown as Cash. */
-function _payMethodDisplay(m){
-  if(m===undefined||m===null||m==='')return t('pm_not_recorded');
-  return isKnownStoredMethod(m)?_payMethodLabel(m):`${t('pm_not_recorded')} (${String(m)})`;
-}
-/* 4.3.8 (B2/B3): deposit-method selector next to a deposit field. It is shown
-   only while the deposit is above 0 and has NO default: hiding it (deposit
-   back to 0), a form reset or a customer change clears the choice, so a
-   method from an earlier transaction can never be saved by accident. */
-const _DEP_UI={pos:{amt:'posDeposit',wrap:'posDepositMethodWrap',sel:'posDepositMethod'},inv:{amt:'sInitPay',wrap:'sDepositMethodWrap',sel:'sDepositMethod'}};
-function syncDepositMethod(k,reset){
-  const u=_DEP_UI[k];if(!u)return;
-  const a=document.getElementById(u.amt),w=document.getElementById(u.wrap),s=document.getElementById(u.sel);
-  if(!a||!w||!s)return;
-  const show=(parseFloat(a.value)||0)>0;
-  w.style.display=show?'':'none';
-  if(!show||reset)s.value='';
-}
-function readDepositMethod(k){ // '' when the selector is hidden or unset
-  const u=_DEP_UI[k];if(!u)return'';
-  const w=document.getElementById(u.wrap),s=document.getElementById(u.sel);
-  return(!w||!s||w.style.display==='none')?'':s.value;
-}
-// A different customer means a different payment: the deposit method must be chosen again.
-document.addEventListener('change',e=>{const id=e.target&&e.target.id;if(id==='posCustomer')syncDepositMethod('pos',true);else if(id==='sCustomer')syncDepositMethod('inv',true);});
-function overpayFigures(sp){return`invoice ${invNum(sp.invId)} balance ${cur(sp.bal)}, payment ${cur(sp.amount)} (${_payMethodEn(sp.method)}), excess ${cur(r2c(sp.amount-sp.bal))} to account credit`;}
-function refundFigures(sp){return`credit ${cur(sp.credit)}, refund ${cur(sp.amount)} (${_payMethodEn(sp.method)}), credit after ${cur(r2c(sp.credit-sp.amount))}`;}
-function _overrideByLabel(tok){
-  if(tok)return tok.by;
-  return Auth.isEmployeeMode()?'Business Owner (own override)':'no sign-in (Access Control off)';
-}
-function _catalogTax(p){return parseFloat(p&&p.tax)||0;}
-const OwnerApproval=(()=>{
-  let priceGrants=new WeakMap();
-  let pending=null;        // {kind:'price',it,discount} | invoice spec
-  let invoiceToken=null;   // single-use, see header
-  let editBaseline=null;   // {invId,sig} — rows as shown when ✏️ opened (R1)
-  const uid=()=>{const c=Auth.current();return c?c.id:null;};
-  const approverName=()=>(S.obj('settings').operator||'').trim()||'Business Owner';
-  const grantMatches=(g,it,discount)=>!!g&&g.user===uid()&&g.productId===it.productId&&g.price===it.price&&g.discount===discount;
-  const custName=cid=>(S.get('customers').find(c=>c.id===cid)||{}).name||'?';
-  const setLabels=(intro,l1,l2,l3,l4)=>{
-    document.getElementById('paIntro').textContent=intro;
-    [l1,l2,l3,l4].forEach((l,i)=>{document.getElementById('paL'+(i+1)).textContent=l;});
-  };
-  const openApprovalModal=()=>{
-    document.getElementById('paPassword').value='';
-    document.getElementById('paError').textContent='';
-    document.getElementById('paApproveBtn').disabled=false;
-    openModal('mPriceApproval');
-    setTimeout(()=>{const i=document.getElementById('paPassword');if(i)i.focus();},120);
-  };
-  async function verifyOwnerPassword(pw){
-    // Same Owner password, salt and verifyPassword() as the owner login —
-    // verified in place; the session is NOT switched to the Owner.
-    try{const ac=getAccessControl();return !!ac.ownerPasswordHash&&await verifyPassword(pw,ac.ownerPasswordSalt,ac.ownerPasswordHash);}
-    catch(e){return false;}
-  }
-  /* UI gate: does moving this line to `newDiscount` need Owner approval?
-     Returning to the catalog price (0%) never does; re-entering the exact
-     discount that was already approved for this line does not either. */
-  function posLineNeedsApproval(it,newDiscount){
-    if(!priceApprovalRequired())return false;
-    if(Math.abs(newDiscount)<1e-6)return false;
-    return !grantMatches(priceGrants.get(it),it,newDiscount);
-  }
-  /* Save-path gate: first cart line whose price is neither at the current
-     catalog price nor covered by a matching Owner approval, or whose tax
-     differs from the current catalog tax -> {it,reason}; else null. */
-  function posPriceViolation(){
-    if(!priceApprovalRequired())return null;
-    const byId=new Map();S.get('products').forEach(x=>byId.set(x.id,x));
-    for(const it of posItems){
-      const p=byId.get(it.productId);
-      const tax=parseFloat(it.tax);
-      if(!p||!isFinite(tax)||Math.abs(tax-_catalogTax(p))>1e-6)return{it,reason:'tax'};
-      if(grantMatches(priceGrants.get(it),it,it.discount))continue;
-      if(Math.abs(it.discount)<1e-6&&Math.abs((parseFloat(it.price)||0)-(parseFloat(p.price)||0))<0.005)continue;
-      return{it,reason:'price'};
-    }
-    return null;
-  }
-  function posPricesOkOrWarn(){
-    const v=posPriceViolation();
-    if(!v)return true;
-    toast(tf(v.reason==='tax'?'pa_blocked_tax':'pa_blocked_item',{name:v.it.name}),'error',5000);
-    const b=document.getElementById('posCheckoutBtn');if(b)b.disabled=false; // never leave Complete Sale stuck disabled
-    return false;
-  }
-  function priceApprovedMeta(it){
-    const g=priceGrants.get(it);
-    return grantMatches(g,it,it.discount)&&priceApprovalRequired()?{priceApprovedBy:g.by,priceApprovedAt:g.at}:null;
-  }
-  function requestPriceApproval(it,newDiscount){
-    pending={kind:'price',it,discount:newDiscount};
-    const regular=parseFloat(it.price)||0,proposed=regular*(1-newDiscount/100);
-    const isMarkup=newDiscount<0,pct=Math.abs(newDiscount).toFixed(Math.abs(newDiscount)%1?1:0);
-    setLabels(t('pa_intro'),t('pa_lbl_product'),t('pa_lbl_regular'),t('pa_lbl_new'),t('pa_lbl_change'));
-    document.getElementById('paProduct').textContent=it.name;
-    document.getElementById('paRegular').textContent=cur(regular);
-    document.getElementById('paProposed').textContent=cur(proposed);
-    document.getElementById('paChange').textContent=(isMarkup?t('pa_markup')+' +':t('pa_discount')+' -')+pct+'%';
-    openApprovalModal();
-  }
-  function requestInvoiceApproval(spec){
-    pending={...spec};
-    document.getElementById('paProduct').textContent=invNum(spec.invId);
-    if(spec.kind==='invCancel'){
-      setLabels(t('pa_intro_inv_cancel'),t('pa_lbl_invoice'),t('pa_lbl_customer'),t('pa_lbl_amount'),t('pa_lbl_action'));
-      document.getElementById('paRegular').textContent=custName(spec.oldCid);
-      document.getElementById('paProposed').textContent=cur(spec.oldAmount);
-      document.getElementById('paChange').textContent=t('pa_action_cancel_invoice');
-    }else{
-      setLabels(t('pa_intro_inv_edit'),t('pa_lbl_invoice'),t('pa_lbl_current'),t('pa_lbl_new_value'),t('pa_lbl_change'));
-      document.getElementById('paRegular').textContent=cur(spec.oldAmount)+' · '+custName(spec.oldCid);
-      document.getElementById('paProposed').textContent=cur(spec.newAmount)+' · '+custName(spec.newCid);
-      const parts=[];
-      const d=spec.newAmount-spec.oldAmount;
-      if(Math.abs(d)>0.005)parts.push((d>0?'+':'-')+cur(Math.abs(d)));
-      if(spec.newCid!==spec.oldCid)parts.push(t('pa_customer_change'));
-      document.getElementById('paChange').textContent=parts.join(' · ');
-    }
-    openApprovalModal();
-  }
-  function cancelPriceApproval(){
-    const was=pending;pending=null;
-    document.getElementById('paPassword').value='';
-    closeModal('mPriceApproval');
-    if(!was||was.kind==='price')renderPosItems(); // the price field keeps showing the real (unchanged) price
-  }
-  const specMatches=(tk,spec)=>!!tk&&tk.user===uid()&&tk.kind===spec.kind&&tk.invId===spec.invId&&
-    Math.abs(tk.oldAmount-spec.oldAmount)<0.005&&Math.abs(tk.newAmount-spec.newAmount)<0.005&&tk.oldCid===spec.oldCid&&tk.newCid===spec.newCid;
-  /* Single-use: the token is deleted whether or not it matches. Returns the
-     token on an exact match, else null; `hadToken` tells the caller that an
-     approval existed but no longer fits (the invoice changed after approval). */
-  function consumeInvoiceApproval(spec){
-    const tk=invoiceToken;invoiceToken=null;
-    if(specMatches(tk,spec))return{token:tk,hadToken:true};
-    return{token:null,hadToken:!!tk};
-  }
-  /* 4.3.6: credit-limit override and sensitive customer changes use the same
-     single slot, bound to every value that will actually be saved. */
-  const r2=v=>Math.round((parseFloat(v)||0)*100)/100;
-  const bindKey=sp=>sp.kind==='creditOverride'
-    ?JSON.stringify([sp.kind,sp.cid,r2(sp.prevDebt),r2(sp.limit),r2(sp.total),r2(sp.deposit),r2(sp.resultingDebt)])
-    :sp.kind==='overpay' // 4.3.7 (G1)
-    ?JSON.stringify([sp.kind,sp.cid,sp.invId,r2(sp.amount),r2(sp.bal),sp.method||''])
-    :sp.kind==='creditRefund' // 4.3.7 (G2)
-    ?JSON.stringify([sp.kind,sp.cid,r2(sp.amount),r2(sp.credit),sp.method||''])
-    :JSON.stringify([sp.kind,sp.cid,r2(sp.oldLimit),r2(sp.newLimit),sp.oldStatus||'',sp.newStatus||'']);
-  function clearApprovalKind(kind){if(invoiceToken&&invoiceToken.kind===kind)invoiceToken=null;}
-  function peekApproval(spec){const tk=invoiceToken;return !!tk&&tk.user===uid()&&tk.kind===spec.kind&&tk.key===bindKey(spec);}
-  function consumeApproval(spec){
-    const tk=invoiceToken;invoiceToken=null;
-    if(tk&&tk.user===uid()&&tk.kind===spec.kind&&tk.key===bindKey(spec))return{token:tk,hadToken:true};
-    return{token:null,hadToken:!!tk};
-  }
-  function requestOwnerActionApproval(spec){
-    pending={...spec};
-    const cust=(S.get('customers').find(c=>c.id===spec.cid)||{}).name||'?';
-    document.getElementById('paProduct').textContent=cust;
-    if(spec.kind==='creditOverride'){
-      setLabels(t('pa_intro_credit_override'),t('pa_lbl_customer'),t('pa_lbl_debt_limit'),t('pa_lbl_sale'),t('pa_lbl_resulting'));
-      document.getElementById('paRegular').textContent=`${cur(spec.prevDebt)} / ${cur(spec.limit)}`;
-      document.getElementById('paProposed').textContent=cur(spec.total)+(spec.deposit>0?` (−${cur(spec.deposit)})`:'');
-      document.getElementById('paChange').textContent=cur(spec.resultingDebt);
-    }else if(spec.kind==='overpay'){ // 4.3.7 (G1)
-      setLabels(t('pa_intro_overpay'),t('pa_lbl_customer'),t('pa_lbl_inv_balance'),t('pa_lbl_payment'),t('pa_lbl_extra_credit'));
-      document.getElementById('paRegular').textContent=`${invNum(spec.invId)} · ${cur(spec.bal)}`;
-      document.getElementById('paProposed').textContent=`${cur(spec.amount)} · ${_payMethodLabel(spec.method)}`;
-      document.getElementById('paChange').textContent=cur(r2(spec.amount-spec.bal));
-    }else if(spec.kind==='creditRefund'){ // 4.3.7 (G2)
-      setLabels(t('pa_intro_credit_refund'),t('pa_lbl_customer'),t('pa_lbl_account_credit'),t('pa_lbl_refund'),t('pa_lbl_credit_after'));
-      document.getElementById('paRegular').textContent=cur(spec.credit);
-      document.getElementById('paProposed').textContent=`${cur(spec.amount)} · ${_payMethodLabel(spec.method)}`;
-      document.getElementById('paChange').textContent=cur(r2(spec.credit-spec.amount));
-    }else{
-      setLabels(t('pa_intro_cust_change'),t('pa_lbl_customer'),t('pa_lbl_limit_change'),t('pa_lbl_status_change'),t('pa_lbl_change'));
-      document.getElementById('paRegular').textContent=`${limitLabel(spec.oldLimit)} → ${limitLabel(spec.newLimit)}`;
-      document.getElementById('paProposed').textContent=`${statusLabel(spec.oldStatus)} → ${statusLabel(spec.newStatus)}`;
-      const parts=[];if(spec.limitRaised)parts.push(t('pa_limit_raised'));if(spec.unblock)parts.push(t('pa_unblock'));
-      document.getElementById('paChange').textContent=parts.join(' · ');
-    }
-    openApprovalModal();
-  }
-  function describeInvoiceApproval(spec){
-    const parts=[];
-    if(Math.abs(spec.newAmount-spec.oldAmount)>0.005)parts.push(`${cur(spec.oldAmount)} → ${cur(spec.newAmount)}`);
-    if(spec.newCid!==spec.oldCid)parts.push(`${custName(spec.oldCid)} → ${custName(spec.newCid)}`);
-    return parts.join('; ');
-  }
-  async function submitPriceApproval(){
-    const pa=pending;if(!pa)return;
-    const btn=document.getElementById('paApproveBtn'),inp=document.getElementById('paPassword'),err=document.getElementById('paError');
-    if(btn.disabled)return; // one verification at a time
-    const pw=inp.value;
-    if(!pw){err.textContent=t('pa_enter_password');return;}
-    btn.disabled=true;
-    const ok=await verifyOwnerPassword(pw);
-    btn.disabled=false;
-    if(pending!==pa)return; // cancelled, reset or user switched while verifying
-    inp.value='';
-    const by=approverName(),at=new Date().toISOString();
-    if(pa.kind==='price'){
-      const it=pa.it,regular=parseFloat(it.price)||0,proposed=regular*(1-pa.discount/100);
-      if(!ok){
-        logAuditEvent('login_failed',`Failed Owner approval attempt for price adjustment: ${it.name} (${cur(regular)} → ${cur(proposed)} per unit)`,{recordType:'priceAdjustment',recordId:it.productId});
-        err.textContent=t('pa_wrong_password');
-        return;
-      }
-      if(!posItems.includes(it)){cancelPriceApproval();toast(t('pa_line_gone'),'warning');return;}
-      it.discount=pa.discount;
-      priceGrants.set(it,{user:uid(),productId:it.productId,price:it.price,discount:it.discount,by,at});
-      logAuditEvent('edit',`Price adjustment approved by ${by}: ${it.name} (${cur(regular)} → ${cur(proposed)} per unit)`,{recordType:'priceAdjustment',recordId:it.productId,prevValue:regular,newValue:proposed});
-      pending=null;
-      closeModal('mPriceApproval');
-      renderPosItems();calcPosTotals();
-      toast(t('pa_approved'),'success');
-      return;
-    }
-    if(pa.kind==='creditOverride'||pa.kind==='custChange'||pa.kind==='overpay'||pa.kind==='creditRefund'){ // 4.3.6 / 4.3.7
-      const cust=(S.get('customers').find(c=>c.id===pa.cid)||{}).name||'?';
-      if(!ok){
-        const what=pa.kind==='creditOverride'
-          ?`credit-limit override: ${cust} (${creditFigures(pa)})`
-          :pa.kind==='overpay'?`overpayment: ${cust} (${overpayFigures(pa)})`
-          :pa.kind==='creditRefund'?`account-credit refund: ${cust} (${refundFigures(pa)})`
-          :`customer change: ${cust} (${custChangeFigures(pa)})`;
-        logAuditEvent('login_failed',`Failed Owner approval attempt for ${what}`,{recordType:{creditOverride:'creditOverride',overpay:'payment',creditRefund:'creditRefund'}[pa.kind]||'customer',recordId:pa.cid});
-        err.textContent=t('pa_wrong_password');
-        return;
-      }
-      invoiceToken={kind:pa.kind,key:bindKey(pa),user:uid(),by,at};
-      pending=null;
-      closeModal('mPriceApproval');
-      // Re-run the real action; it re-derives everything and consumes the token.
-      if(pa.kind==='creditOverride')checkoutPos();
-      else if(pa.kind==='overpay')savePay();
-      else if(pa.kind==='creditRefund')refundAccountCredit(pa.cid,pa.amount,pa.method);
-      else saveCust();
-      return;
-    }
-    // Invoice edit / cancellation
-    if(!ok){
-      const what=pa.kind==='invCancel'?`invoice cancellation: ${invNum(pa.invId)} (${cur(pa.oldAmount)})`:`invoice edit: ${invNum(pa.invId)} (${describeInvoiceApproval(pa)})`;
-      logAuditEvent('login_failed',`Failed Owner approval attempt for ${what}`,{recordType:'invoice',recordId:pa.invId});
-      err.textContent=t('pa_wrong_password');
-      return;
-    }
-    invoiceToken={...pa,user:uid(),by,at};
-    pending=null;
-    closeModal('mPriceApproval');
-    // Re-run the real action; it re-derives everything and consumes the token.
-    if(pa.kind==='invCancel')cancelSale(pa.invId);else saveSale();
-  }
-  function resetPriceApprovals(){
-    priceGrants=new WeakMap();
-    clearApprovalKind('creditOverride'); // 4.3.6: a cart reset also invalidates a credit-limit approval
-    if(!pending||pending.kind==='price'){
-      pending=null;
-      const pw=document.getElementById('paPassword');if(pw)pw.value='';
-      const m=document.getElementById('mPriceApproval');if(m&&m.classList.contains('on'))closeModal('mPriceApproval');
-    }
-  }
-  function clearInvoiceApprovalState(){
-    invoiceToken=null;editBaseline=null;
-    if(pending&&pending.kind!=='price'){
-      pending=null;
-      const pw=document.getElementById('paPassword');if(pw)pw.value='';
-      const m=document.getElementById('mPriceApproval');if(m&&m.classList.contains('on'))closeModal('mPriceApproval');
-    }
-  }
-  function resetAllApprovals(){resetPriceApprovals();clearInvoiceApprovalState();pending=null;}
-  /* R1 — row snapshot for product-linked (POS-created) invoices. The edit
-     form cannot represent POS tax/discount/product links, so an unchanged
-     save must keep the stored figures and a changed one must be refused.
-     A forged snapshot gains nothing: the "unchanged" path only ever keeps
-     the invoice's stored amount and lines. */
-  const rowsSignature=()=>getItemRows().filter(r=>!(r.name===''&&!r.price)).map(r=>[r.name,r.qty,r.price].join('\u0001')).join('\u0002');
-  function markInvoiceEditBaseline(invId){editBaseline={invId,sig:rowsSignature()};}
-  function invoiceRowsUnchanged(invId){return !!editBaseline&&editBaseline.invId===invId&&editBaseline.sig===rowsSignature();}
-  return Object.freeze({posLineNeedsApproval,posPriceViolation,posPricesOkOrWarn,priceApprovedMeta,requestPriceApproval,
-    peekApproval,consumeApproval,requestOwnerActionApproval,clearApprovalKind,
-    requestInvoiceApproval,cancelPriceApproval,submitPriceApproval,consumeInvoiceApproval,describeInvoiceApproval,
-    resetPriceApprovals,clearInvoiceApprovalState,resetAllApprovals,markInvoiceEditBaseline,invoiceRowsUnchanged});
-})();
-const{peekApproval,consumeApproval,requestOwnerActionApproval,clearApprovalKind}=OwnerApproval;
-const{posLineNeedsApproval,posPriceViolation,posPricesOkOrWarn,requestPriceApproval,requestInvoiceApproval,
-  cancelPriceApproval,submitPriceApproval,consumeInvoiceApproval,describeInvoiceApproval,resetPriceApprovals,
-  clearInvoiceApprovalState,resetAllApprovals,markInvoiceEditBaseline,invoiceRowsUnchanged}=OwnerApproval;
-const _priceApprovedMeta=OwnerApproval.priceApprovedMeta;
 function updatePosItem(idx,field,val){
   const it=posItems[idx];if(!it)return;
   let v=parseFloat(val)||0;
@@ -14250,15 +13238,10 @@ function updatePosItem(idx,field,val){
     // which never makes sense). No lower bound: a markup has no natural
     // ceiling, that's a real business call, not something to block.
     if(v>100){toast(t('toast_discount_capped'),'warning');v=100;}
-    if(posLineNeedsApproval(it,v)){renderPosItems();requestPriceApproval(it,v);return;} // 4.3.2
   }
   if(field==='tax'){
     if(v<0){toast(t('toast_tax_negative_reset'),'warning');v=0;}
     if(v>100){toast(t('toast_tax_capped'),'warning');v=100;}
-    if(priceApprovalRequired()){ // 4.3.3: non-owners keep the catalog tax
-      const p=S.get('products').find(x=>x.id===it.productId);
-      if(!p||Math.abs(v-_catalogTax(p))>1e-6){toast(t('pa_tax_locked'),'warning');renderPosItems();return;}
-    }
   }
   if(field==='price'&&v<0){toast(t('toast_price_negative_reset'),'warning');v=0;}
   if(field==='sellingPrice'){
@@ -14291,9 +13274,7 @@ function updatePosItem(idx,field,val){
       // the fix for "selling for more than regular price is denied".
       // The only remaining guard is against a negative selling price,
       // already handled above.
-      const newDiscount=(1-perUnitSellingPrice/it.price)*100;
-      if(posLineNeedsApproval(it,newDiscount)){renderPosItems();requestPriceApproval(it,newDiscount);return;} // 4.3.2
-      it.discount=newDiscount;
+      it.discount=(1-perUnitSellingPrice/it.price)*100;
     }
     renderPosItems();calcPosTotals();
     return;
@@ -14383,7 +13364,7 @@ function checkCreditLimit(){
   const projected=currentDebt+Math.max(0,grand-deposit);
   if(projected>c.limit){
     warn.classList.add('show');
-    document.getElementById('creditLimitWarnTxt').textContent=tf('credit_limit_warn',{name:c.name,limit:cur(c.limit),debt:cur(currentDebt),resulting:cur(projected)});
+    document.getElementById('creditLimitWarnTxt').textContent=`Credit Limit Exceeded! ${c.name}'s limit is ${cur(c.limit)}, current debt ${cur(currentDebt)}, this sale would bring total to ${cur(projected)}. Manager override required to proceed.`;
   }else{warn.classList.remove('show');}
 }
 function calcPosTotalsRaw(){
@@ -14411,48 +13392,25 @@ function checkoutPos(){
     const p=S.get('products').find(x=>x.id===it.productId);
     if(!p||it.qty>p.stock){toast(tf('toast_insufficient_stock_item',{name:it.name,qty:p?p.stock:0}),'error');return;}
   }
-  if(!posPricesOkOrWarn())return; // 4.3.2: Owner approval for price changes
 
   if(posType==='credit'){
     if(!cid){toast(t('toast_customer_required_credit'),'error');return;}
     const cust=S.get('customers').find(c=>c.id===cid);
-    if(cust&&cust.status==='blocked'){
-      toast(t('val_credit_sale_blocked_customer'),'error');
-      logAuditEvent('security',`Credit sale refused — customer is blocked: ${cust.name} (sale ${cur(grand)})`,{recordType:'creditSale',recordId:cid,..._actorMeta()}); // 4.3.6 (E)
-      return;
-    }
+    if(cust&&cust.status==='blocked'){toast(t('val_credit_sale_blocked_customer'),'error');return;}
     const deposit=parseFloat(document.getElementById('posDeposit').value)||0;
     if(deposit<0||deposit>grand){toast(t('val_deposit_range'),'error');return;}
-    // 4.3.8 (B2): ask for the deposit method before any approval request (finalizeCreditSale re-checks it).
-    if(deposit>0&&!isPaymentMethod(readDepositMethod('pos'),DEPOSIT_METHODS)){toast(t('val_deposit_method_required'),'error',6000);const _s=document.getElementById('posDepositMethod');if(_s)_s.focus();return;}
     const due=document.getElementById('posDueDate').value;
     if(!due){toast(t('toast_due_date_required_credit'),'error');return;}
-    /* 4.3.6: credit-limit authorization. Non-owners need a single-use Owner
-       approval bound to the exact customer/debt/limit/total/deposit; after
-       approval this function runs again on the CURRENT cart. The Owner (and
-       Access Control off) keep a simple confirm that re-checks the values at
-       the moment it is tapped. finalizeCreditSale() enforces all of it again. */
-    const cc=creditCheck(cid,grand,deposit);
-    if(cc.over){
-      if(priceApprovalRequired()){
-        const spec=_creditSpec(cid,cc,grand,deposit);
-        if(!peekApproval(spec)){
-          consumeApproval(spec); // discard any stale/non-matching approval — it must never be reused later
-          logAuditEvent('security',`Credit limit exceeded — Owner approval required: ${cc.cust.name} (${creditFigures(spec)})`,{recordType:'creditOverride',recordId:cid}); // (A)
-          requestOwnerActionApproval(spec);
-          return;
-        }
-        checkoutBtn.disabled=true;
-        finalizeCreditSale(cid,date,grand,deposit,due,salesperson);
+    // Credit limit override check
+    if(cust&&cust.limit>0){
+      const projected=custDebt(cid)+Math.max(0,grand-deposit);
+      if(projected>cust.limit){
+        confirm2('⚠️ Credit Limit Exceeded',`${cust.name}'s credit limit is ${cur(cust.limit)}. This sale would bring their balance to ${cur(projected)}. Override and proceed anyway (manager approval)?`,()=>{
+          checkoutBtn.disabled=true;
+          finalizeCreditSale(cid,date,grand,deposit,due,salesperson);
+        });
         return;
       }
-      confirm2(t('credit_owner_override_title'),tf('credit_owner_override_msg',{name:cc.cust.name,limit:cur(cc.limit),debt:cur(cc.prevDebt),resulting:cur(cc.resultingDebt)}),()=>{
-        const nowGrand=calcPosTotalsRaw().grand,nowDep=parseFloat(document.getElementById('posDeposit').value)||0;
-        if(document.getElementById('posCustomer').value!==cid||Math.abs(nowGrand-grand)>0.005||Math.abs(nowDep-deposit)>0.005){toast(t('credit_sale_changed'),'warning',6000);return;}
-        checkoutBtn.disabled=true;
-        finalizeCreditSale(cid,date,grand,deposit,due,salesperson);
-      },t('credit_owner_override_btn'));
-      return;
     }
     checkoutBtn.disabled=true;
     finalizeCreditSale(cid,date,grand,deposit,due,salesperson);
@@ -14471,11 +13429,10 @@ function checkoutPos(){
    any future tax report reading item.tax per line on a credit sale would
    have received as undefined. */
 function buildSaleLineItems(items){
-  return items.map(it=>({productId:it.productId,name:it.name,qty:it.qty,price:it.price,cost:it.cost||0,discount:it.discount,sellingPrice:it.price*(1-it.discount/100),tax:it.tax,subtotal:it.qty*it.price*(1-it.discount/100)*(1+it.tax/100),...(_priceApprovedMeta(it)||{})}));
+  return items.map(it=>({productId:it.productId,name:it.name,qty:it.qty,price:it.price,cost:it.cost||0,discount:it.discount,sellingPrice:it.price*(1-it.discount/100),tax:it.tax,subtotal:it.qty*it.price*(1-it.discount/100)*(1+it.tax/100)}));
 }
 function finalizeCashSale(cid,date,grand,recv,salesperson){
   if(!License.guard('Create Sale'))return;
-  if(!posPricesOkOrWarn())return; // 4.3.2: re-checked at save time
   const items=buildSaleLineItems(posItems);
   const method=document.getElementById('posMethod').value;
   const id=uid();
@@ -14491,69 +13448,16 @@ function finalizeCashSale(cid,date,grand,recv,salesperson){
   renderNotifBadgeOnly();
   refreshLiveStats();
 }
-function finalizeCreditSale(cid,date,grand,deposit,due,salesperson,depositMethod){
-  /* 4.3.6: the save path enforces the credit rules itself, so a direct call
-     obeys the same rules as the checkout button. */
-  const _free=()=>{const b=document.getElementById('posCheckoutBtn');if(b)b.disabled=false;};
-  const _custName=(S.get('customers').find(c=>c.id===cid)||{}).name||'?';
-  if(!Auth.can('recordSales')){
-    toast(t('perm_no_record_sales'),'error');
-    logAuditEvent('security',`Unauthorized credit-sale attempt refused (no Record Sales permission): ${_custName} (sale ${cur(grand)})`,{recordType:'creditSale',recordId:cid}); // (F)
-    _free();return;
-  }
+function finalizeCreditSale(cid,date,grand,deposit,due,salesperson){
   if(!License.guard('Create Sale'))return;
-  if(!posPricesOkOrWarn())return; // 4.3.2: re-checked at save time (credit-limit confirm can delay this call)
-  // 4.3.6: the amount saved is the CURRENT cart total — never a value captured earlier.
-  const _actual=calcPosTotalsRaw().grand;
-  grand=parseFloat(grand);deposit=parseFloat(deposit)||0;
-  if(!isFinite(grand)||Math.abs(_actual-grand)>0.005){
-    toast(t('credit_sale_changed'),'warning',6000);
-    logAuditEvent('security',`Credit sale refused — sale changed before saving: ${_custName} (expected ${cur(grand)}, cart ${cur(_actual)})`,{recordType:'creditSale',recordId:cid,..._actorMeta()});
-    _free();return;
-  }
-  if(!(deposit>=0)||deposit>grand+0.005){toast(t('val_deposit_range'),'error');_free();return;}
-  /* 4.3.8 (B2): a deposit must carry a real method, read NOW (an explicit
-     argument for direct callers, otherwise the visible selector). Missing or
-     invalid is refused here — before the credit-limit approval is used and
-     before any sale, payment or stock write. It never becomes Cash. */
-  let _depMethod=null;
-  if(deposit>0){
-    _depMethod=depositMethod!==undefined?depositMethod:readDepositMethod('pos');
-    if(!isPaymentMethod(_depMethod,DEPOSIT_METHODS)){
-      toast(t('val_deposit_method_required'),'error',6000);
-      logAuditEvent('security',`Credit sale refused — deposit payment method ${_depMethod?`"${String(_depMethod).slice(0,40)}" is not valid`:'not chosen'}: ${_custName} (sale ${cur(grand)}, deposit ${cur(deposit)})`,{recordType:'creditSale',recordId:cid,..._actorMeta()});
-      _free();return;
-    }
-  }
-  const _cc=creditCheck(cid,grand,deposit);
-  if(!_cc.cust){toast(t('toast_customer_required_credit'),'error');_free();return;}
-  if(_cc.blocked){
-    toast(t('val_credit_sale_blocked_customer'),'error');
-    logAuditEvent('security',`Credit sale refused — customer is blocked: ${_cc.cust.name} (sale ${cur(grand)})`,{recordType:'creditSale',recordId:cid,..._actorMeta()}); // (E)
-    _free();return;
-  }
-  let _overTok=null;
-  const _spec=_creditSpec(cid,_cc,grand,deposit);
-  if(_cc.over&&priceApprovalRequired()){
-    const r=consumeApproval(_spec);
-    if(!r.token){
-      toast(t(r.hadToken?'credit_sale_changed':'credit_over_limit_needs_owner'),'error',6000);
-      logAuditEvent('security',`Credit sale refused — ${r.hadToken?'approval no longer matches the sale':'over credit limit without Owner approval'}: ${_cc.cust.name} (${creditFigures(_spec)})`,{recordType:'creditOverride',recordId:cid});
-      _free();return;
-    }
-    _overTok=r.token;
-    logAuditEvent('edit',`Credit-limit override approved by ${_overTok.by}: ${_cc.cust.name} (${creditFigures(_spec)})`,{recordType:'creditOverride',recordId:cid,prevValue:_cc.prevDebt,newValue:_cc.resultingDebt}); // (B)
-  }
   const items=buildSaleLineItems(posItems);
   const sid=uid();
   const saleRec={id:sid,cid,amount:grand,date,due,items,paymentTerms:'custom',priority:'normal',notes:'Created via POS'+(salesperson?' by '+salesperson:''),status:'pending',docNum:invNum(sid)};
   S.add('sales',saleRec);
   if(deposit>0){
     const pays=S.get('payments');
-    const _depId=uid();
-    pays.push({id:_depId,invId:sid,cid,amount:deposit,date,method:_depMethod,ref:'',notes:'Deposit at POS checkout'}); // 4.3.8: the method chosen, never a hard-coded 'cash'
+    pays.push({id:uid(),invId:sid,cid,amount:deposit,date,method:'cash',ref:'',notes:'Deposit at POS checkout'});
     S.set('payments',pays);
-    logAuditEvent('payment',`Deposit ${cur(deposit)} (${_payMethodEn(_depMethod)}) from ${_custName} on ${invNum(sid)}`,{recordType:'payment',recordId:_depId,newValue:deposit,..._actorMeta()}); // 4.3.8 (B5)
   }
   /* Targeted status recompute: adding a brand-new sale cannot change the
      status of any OTHER invoice, so a full syncStatuses() sweep of every
@@ -14567,9 +13471,8 @@ function finalizeCreditSale(cid,date,grand,deposit,due,salesperson,depositMethod
   posItems.forEach(it=>reduceStock(it.productId,it.qty,'credit-sale',{invoiceId:sid,invoiceNum:invNum(sid)}));
   const cust=S.get('customers').find(c=>c.id===cid);
   log('add',`Credit sale ${invNum(sid)} ${cur(grand)} for ${cust?.name||'?'}`);
-  if(_cc.over)logAuditEvent('add',`Credit sale over limit: ${invNum(sid)} ${_cc.cust.name} — debt ${cur(_cc.prevDebt)} → ${cur(_cc.resultingDebt)}, limit ${cur(_cc.limit)}, sale ${cur(grand)}, deposit ${cur(deposit)}, approved by ${_overrideByLabel(_overTok)}`,{recordType:'creditSale',recordId:sid,prevValue:_cc.prevDebt,newValue:_cc.resultingDebt,..._actorMeta()}); // (D)
   toast(t('toast_credit_sale_recorded'),'success');
-  const receiptData={id:sid,receiptNum:invNum(sid),date,cid,items:buildSaleLineItems(posItems),subtotal:posItems.reduce((a,i)=>a+i.qty*i.price,0),total:grand,paid:deposit,change:0,method:'credit',salesperson,type:'credit',due,depositMethod:_depMethod};
+  const receiptData={id:sid,receiptNum:invNum(sid),date,cid,items:buildSaleLineItems(posItems),subtotal:posItems.reduce((a,i)=>a+i.qty*i.price,0),total:grand,paid:deposit,change:0,method:'credit',salesperson,type:'credit',due};
   showReceipt(receiptData,'credit');
   queueOwnerSaleNotification(receiptData,'credit');
   resetPosForm();
@@ -14599,8 +13502,7 @@ function showReceipt(sale,type){
     <div class="rc-row rc-bold" style="font-size:15px"><span>${t('js_lbl_grand_total')}</span><span>${cur(sale.total)}</span></div>
     <div class="rc-row"><span>${type==='cash'?'Amount Paid':'Deposit Paid'}</span><span>${cur(sale.paid)}</span></div>
     ${type==='cash'?`<div class="rc-row"><span>Change</span><span>${cur(sale.change)}</span></div>`:`<div class="rc-row rc-bold"><span>Balance Due</span><span>${cur(sale.total-sale.paid)}</span></div><div class="rc-row"><span>Due Date</span><span>${fmtDate(sale.due)}</span></div>`}
-    <div class="rc-row"><span>${t('js_lbl_payment')}</span><span>${type==='cash'?esc(_payMethodDisplay(sale.method)):'Credit Sale'}</span></div>
-    ${type!=='cash'&&sale.paid>0&&sale.depositMethod?`<div class="rc-row"><span>${t('dep_method_receipt')}</span><span>${esc(_payMethodLabel(sale.depositMethod))}</span></div>`:''}
+    <div class="rc-row"><span>${t('js_lbl_payment')}</span><span style="text-transform:capitalize">${type==='cash'?esc(sale.method):'Credit Sale'}</span></div>
     <hr>
     <div class="rc-center">${esc(footerMsg)}</div>
     <div class="rc-center" style="font-size:11.5px;color:#888">${t('js_lbl_powered_by')}</div>`;
@@ -14680,7 +13582,6 @@ function _buildReceiptShareText(sale,type){
   if(type==='credit'){
     lines.push(`${t('th_balance')}: ${cur(sale.total-sale.paid)}`);
     if(sale.due)lines.push(`${t('th_due_date')}: ${fmtDate(sale.due)}`);
-    if(sale.paid>0&&sale.depositMethod)lines.push(`${t('dep_method_receipt')}: ${_payMethodLabel(sale.depositMethod)}`); // 4.3.8 (B11)
   }
   lines.push('',t('wa_msg_closing'));
   return lines.join('\n');
@@ -14778,8 +13679,7 @@ function _buildReceiptPdfLines(sale,type){
     L.push({l:'Balance Due',r:cur(sale.total-sale.paid),b:1});
     L.push({l:'Due Date',r:fmtDate(sale.due)});
   }
-  L.push({l:t('js_lbl_payment'),r:type==='cash'?_payMethodDisplay(sale.method):'Credit Sale'});
-  if(type!=='cash'&&sale.paid>0&&sale.depositMethod)L.push({l:t('dep_method_receipt'),r:_payMethodLabel(sale.depositMethod)}); // 4.3.8 (B11)
+  L.push({l:t('js_lbl_payment'),r:type==='cash'?(sale.method||'Cash'):'Credit Sale'});
   L.push({hr:1});
   L.push({c:footerMsg});
   L.push({c:t('js_lbl_powered_by')});
@@ -14856,18 +13756,16 @@ async function _shareReceiptPdfFile(sale,type){
   toast(t('wa_pdf_unsupported'),'warning',5000);
   flushOwnerNotifOnReturn();
 }
-/* PDF receipt → native share sheet, directly. No Bizora number-entry
-   modal: the Web Share API cannot address a file to a number anyway, so
-   the recipient is always chosen inside WhatsApp (Share → WhatsApp →
-   contact). This holds for every sale — linked customer with a phone,
-   customer without a phone, or walk-in. The text-receipt flow
-   (shareReceiptWhatsApp → wa.me, with #mWaShare for unknown numbers) is
-   intentionally unchanged. Called synchronously from the click so the
-   share keeps the user-activation it requires. */
+/* Same A / B+C recipient decision tree as the text flow — the only
+   difference is what happens once a number is resolved. */
 function shareReceiptPdfWhatsApp(){
   if(!_lastReceiptCtx){toast(t('wa_share_unavailable'),'error');return;}
   const{sale,type}=_lastReceiptCtx;
-  _shareReceiptPdfFile(sale,type);
+  const cust=sale.cid?S.get('customers').find(c=>c.id===sale.cid):null;
+  const phoneCheck=cust?normalizePhoneForMessaging(cust.phone):{ok:false};
+  if(phoneCheck.ok){_shareReceiptPdfFile(sale,type);return;}
+  _waShareMode='pdf';
+  _openWaNumberPrompt();
 }
 function confirmWaShareNumber(){
   if(!_lastReceiptCtx)return;
@@ -15087,7 +13985,7 @@ function generateInsights(){
   const overdue=sales.filter(s=>invStatus(s)==='overdue');
   if(overdue.length){
     const amt=overdue.reduce((a,s)=>a+invBalance(s.id),0);
-    insights.push({icon:'💰',tone:'danger',txt:`${overdue.length} overdue invoice${overdue.length>1?'s':''} totaling ${cur(amt)} require${overdue.length===1?'s':''} follow-up.`,cat:'collection',nav:'overdue'});
+    insights.push({icon:'💰',tone:'danger',txt:`${overdue.length} overdue invoice${overdue.length>1?'s':''} totaling ${cur(amt)} require${overdue.length===1?'s':''} follow-up.`,cat:'collection'});
   }
   // Collection rate
   const totalInv=sales.filter(s=>s.status!=='cancelled').reduce((a,s)=>a+parseFloat(s.amount||0),0);
@@ -15097,120 +13995,13 @@ function generateInsights(){
     if(rate>=80)insights.push({icon:'🎉',tone:'good',txt:`Excellent! Overall collection rate is ${rate}%.`,cat:'sales'});
     else if(rate<50)insights.push({icon:'⚠️',tone:'danger',txt:`Collection rate is only ${rate}% — consider following up on outstanding invoices.`,cat:'collection'});
   }
-  if(!insights.length)insights.push({icon:'✅',tone:'good',txt:'No urgent insights right now — everything looks healthy.',cat:'sales',empty:true});
+  if(!insights.length)insights.push({icon:'✅',tone:'good',txt:'No urgent insights right now — everything looks healthy.',cat:'sales'});
   return insights;
-}
-/* ── Dashboard Smart Insights: Requires Action / Review (v4.2.9) ──────────
-   Extension layer only. generateInsights() above remains the engine for
-   every existing insight and is unchanged except for two additive markers
-   (nav:'overdue' on the overdue summary, empty:true on its fallback line);
-   renderCollInsights() on the Collection page reads it exactly as before.
-
-   New insights reuse existing sources of truth — no new aggregation engine:
-     • product activity → computeProductSalesAggregates(null,null) (cached,
-       auto-invalidated on sales/products change) → one O(products) pass
-     • Loss Register    → collectLossRecords(), counting lossStatus 'Open'
-                          (exactly the rows the tap-through filter shows)
-     • overdue debts    → the EXISTING overdue-invoices insight, made
-                          clickable; not duplicated.
-   Product buckets are mutually exclusive so a product is never counted in
-   two alerts: never sold → inactive 6+ months → not sold in 30 days.
-   "Never sold" applies a 30-day grace from the product's `added` date
-   (not created_at) so a new shop is not flagged before it could sell.
-   Discontinued products are excluded, matching Product Analytics and the
-   Fast & Slow-Moving report. */
-function _isoMonthsAgo(iso,n){
-  const[y,m,d]=String(iso).slice(0,10).split('-').map(Number);
-  const tm=y*12+(m-1)-n,ty=Math.floor(tm/12),tmo=tm-ty*12;
-  const last=new Date(ty,tmo+1,0).getDate(); // clamp e.g. Aug 31 − 6 mo → Feb 28/29
-  return ty+'-'+String(tmo+1).padStart(2,'0')+'-'+String(Math.min(d,last)).padStart(2,'0');
-}
-function computeProductActivityBuckets(){
-  const td=todayStr();
-  const cutoff6m=_isoMonthsAgo(td,6); // last sale + 6 months <= today  ⇔  last sale <= cutoff6m
-  const agg=computeProductSalesAggregates(null,null);
-  const byId=new Map(),counts={nosale30:0,never:0,inactive6m:0};
-  for(const p of S.get('products')){
-    if(p.status==='discontinued')continue;
-    const r=agg.get(p.id),last=r&&r.lastSaleDate;
-    let b=null;
-    // 30-day grace for new products: eligible for "never sold" only once
-    // `added` is >= 30 days ago. A future `added` gives a negative diff, so
-    // it waits until day 30. Missing or unparseable `added` stays eligible.
-    if(!last)b=(p.added&&daysDiff(String(p.added).slice(0,10),td)<30)?null:'never';
-    else if(String(last).slice(0,10)<=cutoff6m)b='inactive6m';
-    else if(daysDiff(last,td)>=30)b='nosale30';
-    if(b){byId.set(p.id,b);counts[b]++;}
-  }
-  return{byId,counts};
-}
-function generateActionInsights(){
-  const action=[],review=[];
-  if(canViewLossRegister()){
-    const open=collectLossRecords().filter(r=>r.lossStatus==='Open').length;
-    if(open)action.push({icon:'🔴',tone:'danger',txt:tf(open===1?'ins_loss_one':'ins_loss',{n:open}),sub:t('ins_loss_sub'),nav:'loss'});
-  }
-  const c=computeProductActivityBuckets().counts;
-  if(c.nosale30)review.push({icon:'🟠',tone:'warn',txt:tf(c.nosale30===1?'ins_nosale30_one':'ins_nosale30',{n:c.nosale30}),sub:t('ins_nosale30_sub'),nav:'nosale30'});
-  if(c.never)review.push({icon:'🟠',tone:'warn',txt:tf(c.never===1?'ins_never_one':'ins_never',{n:c.never}),sub:t('ins_never_sub'),nav:'never'});
-  if(c.inactive6m)review.push({icon:'🟠',tone:'warn',txt:tf(c.inactive6m===1?'ins_inactive6m_one':'ins_inactive6m',{n:c.inactive6m}),sub:t('ins_inactive6m_sub'),nav:'inactive6m'});
-  return{action,review};
-}
-function _setFieldVal(id,v){const el=document.getElementById(id);if(el)el.value=v;}
-/* Tap-through targets. Each reuses the page's own loader and its own
-   existing filter function; no new list rendering. Other filters on the
-   target page are cleared first so the list shown matches the count. */
-const INSIGHT_NAV={
-  overdue:{page:'collection',open(){_setFieldVal('collSearch','');_setFieldVal('collFilterSel','');go('collection');}},
-  loss:{page:'inventory',open(){
-    if(!canViewLossRegister()){toast(t('perm_no_view_loss_register'),'error');return;}
-    ['lossFilterFrom','lossFilterTo','lossFilterSource','lossFilterOccurrence'].forEach(id=>_setFieldVal(id,''));
-    _setFieldVal('lossFilterStatus','Open');
-    go('inventory');openLossRegisterView();
-  }},
-  nosale30:{page:'products',open(){_openProductsActivity('nosale30');}},
-  never:{page:'products',open(){_openProductsActivity('never');}},
-  inactive6m:{page:'products',open(){_openProductsActivity('inactive6m');}}
-};
-function _openProductsActivity(bucket){
-  go('products');
-  const av=document.getElementById('prodAnalyticsView');
-  if(av&&av.style.display!=='none')closeProductAnalytics();
-  ['prodSearch','prodCatSel','prodStockSel'].forEach(id=>_setFieldVal(id,''));
-  _setFieldVal('prodActivitySel',bucket);
-  filterProducts();
-}
-function _insightNavAllowed(key){
-  const n=INSIGHT_NAV[key];if(!n)return false;
-  const perm=NAV_PERMISSION_MAP[n.page];
-  return !perm||Auth.can(perm);
-}
-function openInsight(key){
-  if(!_insightNavAllowed(key))return;
-  INSIGHT_NAV[key].open();
-}
-function _insightCardHtml(i){
-  const link=i.nav&&_insightNavAllowed(i.nav);
-  const attrs=link?` role="button" tabindex="0" onclick="openInsight('${i.nav}')" onkeydown="if(event.key==='Enter')openInsight('${i.nav}')"`:'';
-  const sub=i.sub||(i.nav==='overdue'?t('ins_overdue_sub'):'');
-  return`<div class="insight-card ins-${i.tone}${link?' ins-link':''}"${attrs}><span class="insight-ic">${i.icon}</span><span class="insight-txt">${i.txt}${sub?`<span class="insight-sub">${esc(sub)}</span>`:''}</span>${link?'<span class="insight-go">›</span>':''}</div>`;
 }
 function renderInsights(){
   const el=document.getElementById('insightsFeed');
-  // Same list and same 6-card cap as before; the "everything looks healthy"
-  // fallback line is dropped here in favour of the dashboard empty state.
-  const existing=generateInsights().filter(i=>!i.empty).slice(0,6);
-  const extra=generateActionInsights();
-  const urgent=i=>i.tone==='danger'||i.tone==='warn';
-  const action=[...existing.filter(urgent),...extra.action];
-  const review=[...extra.review,...existing.filter(i=>!urgent(i))];
-  if(!action.length&&!review.length){
-    el.innerHTML=`<div class="insight-empty">🌟 ${esc(t('ins_all_good'))}</div>`;
-    return;
-  }
-  el.innerHTML=
-    (action.length?`<div class="ins-group">${esc(t('ins_requires_action'))}</div>`+action.map(_insightCardHtml).join(''):'')+
-    (review.length?`<div class="ins-group">${esc(t('ins_review'))}</div>`+review.map(_insightCardHtml).join(''):'');
+  const insights=generateInsights().slice(0,6);
+  el.innerHTML=insights.map(i=>`<div class="insight-card ins-${i.tone}"><span class="insight-ic">${i.icon}</span><span class="insight-txt">${i.txt}</span></div>`).join('');
 }
 
 /* ═══════════════════════════════════════════════════
@@ -15567,7 +14358,7 @@ ${cfg.logo?`<div class="rc-center"><img src="${cfg.logo}" style="max-width:70px;
 <div class="rc-row"><span>${t('th_invoice_num')}</span><span>${esc(invNum(p.invId))}</span></div>
 <hr>
 <div class="rc-row rc-bold" style="font-size:15px"><span>${t('js_lbl_amount_paid')}</span><span>${cur(p.amount)}</span></div>
-<div class="rc-row"><span>${t('pos_payment_method')}</span><span>${esc(_payMethodDisplay(p.method))}</span></div>
+<div class="rc-row"><span>${t('pos_payment_method')}</span><span>${esc(mLabel[p.method]||p.method||'Cash')}</span></div>
 ${p.ref?`<div class="rc-row"><span>Reference</span><span>${esc(p.ref)}</span></div>`:''}
 <div class="rc-row rc-bold"><span>${t('js_lbl_balance_remaining')}</span><span>${cur(balRemaining)}</span></div>
 <hr>
@@ -15648,7 +14439,7 @@ function runGlobalSearch(){
   if(payMatches.length){
     html+=`<div class="gsearch-section-lbl">💳 Receipts / Payments (${payMatches.length})</div>`;
     html+=payMatches.map(p=>{const c=custs.find(x=>x.id===p.cid);return`<div class="gsearch-result" onclick="closeModal('mSearch');printPaymentReceipt('${p.id}')">
-      <span class="gr-ic">🧾</span><div class="gr-txt"><strong>${esc(recNum(p.id))}</strong><span>${esc(c?.name||'?')} · ${esc(_payMethodDisplay(p.method))}${p.collector?' · by '+esc(p.collector):''} · ${fmtDate(p.date)}</span></div>
+      <span class="gr-ic">🧾</span><div class="gr-txt"><strong>${esc(recNum(p.id))}</strong><span>${esc(c?.name||'?')} · ${esc(p.method||'cash')}${p.collector?' · by '+esc(p.collector):''} · ${fmtDate(p.date)}</span></div>
       <span class="gr-val">${cur(p.amount)}</span></div>`;}).join('');
   }
 
@@ -16006,7 +14797,6 @@ function renderDynReport(){
   body.innerHTML=rows.length?rows.join(''):`<tr><td colspan="8"><div class="empty" style="padding:24px"><p>${t('lbl_no_data_report')}</p></div></td></tr>`;
 }
 function exportDynReportCSV(){
-  if(!Auth.can('exportReports')){toast(t('perm_no_export_reports'),'error');return;} // 4.3.1
   const type=document.getElementById('dynReportType').value;
   const title=document.getElementById('dynReportTitle').textContent;
   const headCells=[...document.querySelectorAll('#dynReportHead th')].map(th=>th.textContent);
@@ -16139,7 +14929,7 @@ function buildUnifiedSalesList(){
       uid:'cash-'+s.id,rawId:s.id,type:'cash',date:s.date,docNum:s.receiptNum||recNum(s.id),
       custName:cust?cust.name:t('lbl_walkin_customer'),cid:s.cid||null,
       items:s.items||[],total:s.total,paid:s.paid,balance:0,
-      method:s.method||'',status:'paid',salesperson:s.salesperson||'' // 4.3.8: a missing method is not assumed to be cash
+      method:s.method||'cash',status:'paid',salesperson:s.salesperson||''
     };
   });
   const credit=S.get('sales').map(s=>{
@@ -16268,7 +15058,7 @@ function renderSalesHistoryTable(listIn){
       <td style="font-weight:700">${cur(s.total)}</td>
       <td style="color:var(--success);font-weight:600">${cur(s.paid)}</td>
       <td style="font-weight:800;color:${s.balance>0?'var(--danger)':'var(--success)'}">${cur(s.balance)}</td>
-      <td>${mIcons[s.method]||'💰'} ${esc(s.method==='credit'?t('method_credit'):_payMethodDisplay(s.method))}</td>
+      <td>${mIcons[s.method]||'💰'} ${esc(t(mKey[s.method])||s.method)}</td>
       <td><span class="badge ${invStatusBadgeClass(s.status)}">${invStatusLabel(s.status)}</span></td>
       <td><div style="display:flex;gap:4px">
         ${s.type==='cash'?`<button class="btn btn-outline btn-xs" onclick="reprintCashReceipt('${s.rawId}')" title="Reprint Receipt">🖨️</button>`:''}
@@ -16804,10 +15594,10 @@ const ROLE_LABELS={cashier:'Cashier',storekeeper:'Storekeeper',sales_rep:'Sales 
    unconditional Business-Owner-only action (see canDelete()), not something
    any role can ever be granted, by design. */
 const DEFAULT_ROLE_PERMISSIONS={
-  cashier:{recordSales:true,manageCustomers:false,viewReports:false,manageInventory:false,addProducts:false,editProducts:false,viewFinancials:false,exportReports:false,accessSettings:false,manageExpenses:false,approveAdjustments:false,viewHelp:false},
-  storekeeper:{recordSales:false,manageCustomers:false,viewReports:false,manageInventory:true,addProducts:true,editProducts:true,viewFinancials:false,exportReports:false,accessSettings:false,manageExpenses:false,approveAdjustments:false,viewHelp:true},
-  sales_rep:{recordSales:true,manageCustomers:true,viewReports:true,manageInventory:false,addProducts:false,editProducts:false,viewFinancials:false,exportReports:false,accessSettings:false,manageExpenses:false,approveAdjustments:false,viewHelp:true},
-  supervisor:{recordSales:true,manageCustomers:true,viewReports:true,manageInventory:true,addProducts:true,editProducts:true,viewFinancials:true,exportReports:true,accessSettings:false,manageExpenses:true,approveAdjustments:false,viewHelp:true},
+  cashier:{recordSales:true,manageCustomers:false,viewReports:false,manageInventory:false,addProducts:false,editProducts:false,viewFinancials:false,exportReports:false,accessSettings:false,manageExpenses:false,approveAdjustments:false},
+  storekeeper:{recordSales:false,manageCustomers:false,viewReports:false,manageInventory:true,addProducts:true,editProducts:true,viewFinancials:false,exportReports:false,accessSettings:false,manageExpenses:false,approveAdjustments:false},
+  sales_rep:{recordSales:true,manageCustomers:true,viewReports:true,manageInventory:false,addProducts:false,editProducts:false,viewFinancials:false,exportReports:false,accessSettings:false,manageExpenses:false,approveAdjustments:false},
+  supervisor:{recordSales:true,manageCustomers:true,viewReports:true,manageInventory:true,addProducts:true,editProducts:true,viewFinancials:true,exportReports:true,accessSettings:false,manageExpenses:true,approveAdjustments:false},
 };
 function getRolePermissions(role){
   const custom=S.obj('rolePermissions');
@@ -16890,7 +15680,6 @@ const Auth={
     if(this._current)logAuditEvent('logout',`${this._current.fullName} logged out`,{employee:this._current});
     else if(this.isEmployeeMode())logAuditEvent('logout','Business Owner logged out',{});
     this._current=null;
-    resetAllApprovals(); // 4.3.2/4.3.3: no approval (price or invoice) survives a user switch
     if(this.isEmployeeMode())showEmployeeIdentifyScreen();
   },
   touchActivity(){
@@ -16919,16 +15708,12 @@ function requireDeletePermission(){
 function logAuditEvent(type,msg,meta={}){
   const emp=meta.employee||Auth.current();
   const acts=S.get('activities');
-  // 4.3.5: after an unverified lock-screen reset, owner-side actions are not
-  // attributed as "Business Owner" until a new owner password is set.
-  const unverifiedOwner=!emp&&!!getAccessControl().unverifiedResetAt;
-  const ownerLabel=unverifiedOwner?'Unverified Owner (after lock-screen reset)':(!emp&&meta.actorLabel?meta.actorLabel:null); // 4.3.6: actorLabel only from new callers
   const entry={
     id:uid(),type,msg,date:todayStr(),
     time:new Date().toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'}),
-    user:emp?emp.fullName:(ownerLabel||(S.obj('settings').operator||'').trim()||'Business Owner'),
+    user:emp?emp.fullName:((S.obj('settings').operator||'').trim()||'Business Owner'),
     username:emp?emp.username:'',
-    role:emp?(ROLE_LABELS[emp.role]||emp.role):(ownerLabel||'Business Owner'),
+    role:emp?(ROLE_LABELS[emp.role]||emp.role):'Business Owner',
     recordType:meta.recordType||'',recordId:meta.recordId||'',
     prevValue:meta.prevValue!=null?String(meta.prevValue):'',
     newValue:meta.newValue!=null?String(meta.newValue):'',
@@ -17094,28 +15879,6 @@ async function submitOwnerLogin(){
   if(!res.ok){document.getElementById('ownerLoginError').textContent=res.error;return;}
   document.getElementById('empIdScreen').style.display='none';
   onEmployeeSessionStarted();
-  await ensureOwnerRecoveryCode(); // 4.3.5
-}
-/* 4.3.5: a legacy owner account with no recovery code gets one created at
-   its next successful owner login (shown once, like at setup). From then on
-   the anonymous lock-screen RESET route is closed for this device. */
-async function ensureOwnerRecoveryCode(){
-  const ac=getAccessControl();
-  if(!ac.ownerPasswordHash||ac.recoveryCodeHash)return false;
-  const code=genRecoveryCode(),codeSalt=genSalt();
-  const codeHash=await hashPassword(normRecoveryCode(code),codeSalt);
-  setAccessControl({...getAccessControl(),recoveryCodeHash:codeHash,recoveryCodeSalt:codeSalt});
-  logAuditEvent('system','Recovery code created at owner login (required) — the lock-screen reset without a code is now closed',{});
-  toast(t('toast_recovery_code_required_created'),'warning',7000);
-  showRecoveryCodeModal(code);
-  return true;
-}
-/* 4.3.5: most recent audit entry made by a named employee on this device —
-   context for an unverified reset, never proof of who performed it. */
-function _lastKnownDeviceUser(){
-  const log=S.get('auditLog');
-  for(let i=log.length-1;i>=0;i--){const a=log[i];if(a&&a.username)return{user:a.user,date:a.date,time:a.time};}
-  return null;
 }
 /* ── Forgot Owner Password flow ──
    Reachable only from the lock/identify screen itself (same rule as Forgot
@@ -17137,8 +15900,6 @@ function showOwnerForgotPanel(){
   if(!ac.recoveryCodeHash){
     document.getElementById('ownerRecNoCode').style.display='block';
   }else{
-    // 4.3.5: with a recovery code on file, the code is the ONLY self-service route
-    const noCodeLink=document.getElementById('ownerRecNoCodeLink');if(noCodeLink)noCodeLink.style.display='none';
     document.getElementById('ownerRecCodeEntry').style.display='block';
     document.getElementById('ownerRecCodeInput').value='';
     document.getElementById('ownerRecCodeError').textContent='';
@@ -17166,10 +15927,6 @@ async function submitOwnerRecoveryCode(){
 }
 async function submitOwnerRecoveryNewPassword(){
   if(!ownerRecoveryVerifiedCode){cancelOwnerRecovery();return;}
-  // 4.3.5: re-check the code against the stored hash — ownerRecoveryVerifiedCode
-  // alone could be set by hand, so it is never trusted on its own.
-  {const acChk=getAccessControl();
-   if(!acChk.recoveryCodeHash||!(await verifyPassword(ownerRecoveryVerifiedCode,acChk.recoveryCodeSalt,acChk.recoveryCodeHash))){ownerRecoveryVerifiedCode=null;cancelOwnerRecovery();toast(t('js_txt_code_incorrect'),'error');return;}}
   const pw=document.getElementById('ownerRecNewPassword').value;
   const pw2=document.getElementById('ownerRecNewPasswordConfirm').value;
   const errEl=document.getElementById('ownerRecNewPwError');
@@ -17193,7 +15950,6 @@ async function submitOwnerRecoveryNewPassword(){
   showRecoveryCodeModal(newCode);
 }
 function showOwnerRecoveryReset(){
-  if(getAccessControl().recoveryCodeHash){toast(t('owner_reset_needs_code'),'error',6000);showOwnerForgotPanel();return;} // 4.3.5
   document.getElementById('ownerRecNoCode').style.display='none';
   document.getElementById('ownerRecCodeEntry').style.display='none';
   document.getElementById('ownerRecNewPw').style.display='none';
@@ -17207,23 +15963,11 @@ function showOwnerRecoveryReset(){
    every other business record are completely untouched — turning the
    feature back on later finds the same employee accounts still there. */
 function confirmOwnerRecoveryReset(){
-  /* 4.3.5 (A): refused whenever a recovery code exists — checked here, not
-     only by hiding the UI, so a direct call or a revealed panel cannot use
-     it. The code -> new password flow is the only self-service route then. */
-  if(getAccessControl().recoveryCodeHash){toast(t('owner_reset_needs_code'),'error',6000);return;}
   const val=document.getElementById('ownerResetConfirmInput').value.trim().toUpperCase();
   if(val!=='RESET'){toast(t('val_type_reset_exactly'),'warning');return;}
-  /* 4.3.5 (B): legacy no-code reset stays available but is recorded as
-     UNVERIFIED with the last known user on this device (context only — it
-     does not claim that person performed it). The marker keeps later audit
-     entries attributed to "Unverified Owner" until a new owner password is
-     set (saveOwnerPassword clears it). */
-  const last=_lastKnownDeviceUser();
-  const at=new Date();
-  setAccessControl({enabled:false,ownerPasswordHash:'',ownerPasswordSalt:'',pendingSetup:false,recoveryCodeHash:'',recoveryCodeSalt:'',
-    unverifiedResetAt:at.toISOString(),unverifiedResetLastUser:last?last.user:''});
-  logAuditEvent('security',`UNVERIFIED lock-screen reset — no owner password or recovery code. Last user on this device: ${last?`${last.user} (${last.date} ${last.time})`:'unknown'}. Employee Access Control was turned off. Reset at ${at.toLocaleString('en')}.`,{recordType:'accessControl'});
+  setAccessControl({enabled:false,ownerPasswordHash:'',ownerPasswordSalt:'',pendingSetup:false,recoveryCodeHash:'',recoveryCodeSalt:''});
   ownerRecoveryVerifiedCode=null;
+  logAuditEvent('system','Employee Access Control was reset from the lock screen (owner password and recovery code both forgotten)',{});
   document.getElementById('ownerRecoveryPanel').style.display='none';
   document.getElementById('empIdScreen').style.display='none';
   Auth._current=null;
@@ -17238,7 +15982,7 @@ function onEmployeeSessionStarted(){
   updateSessionChip();
   const active=document.querySelector('.page.active');
   const pageId=active?active.id.replace('page-',''):'dashboard';
-  go(canOpenPage(pageId)?pageId:'dashboard'); // 4.3.1: never re-open a page the new user can't access (e.g. Backup left open by the owner)
+  go(pageId);
 }
 /* Maps each nav page to the permission that unlocks it. A null value means
    "always visible regardless of role" (Dashboard, Calendar, About — general
@@ -17249,17 +15993,7 @@ const NAV_PERMISSION_MAP={
   customers:'manageCustomers',products:null,inventory:'manageInventory',pos:'recordSales',
   sales:'recordSales',expenses:'manageExpenses',financial:'viewFinancials',saleshistory:'viewReports',payments:'recordSales',
   collection:'manageCustomers',ledger:'viewReports',reports:'viewReports',settings:'accessSettings',
-  help:'viewHelp',
 };
-/* Single source of truth for "may the current user open this page" — used
-   by go() and Getting Started. Reuses NAV_PERMISSION_MAP and Auth.can();
-   Backup keeps its existing owner-only rule (same as the nav-backup toggle
-   in renderRoleGatedUI and requireOwnerOrWarn()). */
-function canOpenPage(page){
-  if(page==='backup')return Auth.isOwner()||!Auth.isEmployeeMode();
-  const perm=NAV_PERMISSION_MAP[page];
-  return !perm||Auth.can(perm);
-}
 const BOTTOM_NAV_MAP={pos:'bn-pos',dashboard:'bn-dashboard',ledger:'bn-ledger',sales:'bn-ledger',collection:'bn-ledger',inventory:'bn-inventory'};
 /* Re-applies nav visibility and delete-button visibility for whoever is
    currently logged in. Called on every login/logout/switch-user, and safe
@@ -17361,8 +16095,7 @@ async function saveOwnerPassword(){
   const code=genRecoveryCode();
   const codeSalt=genSalt();
   const codeHash=await hashPassword(normRecoveryCode(code),codeSalt);
-  if(getAccessControl().unverifiedResetAt)logAuditEvent('security','New owner password and recovery code set after an unverified lock-screen reset — later entries are attributed to Business Owner again',{recordType:'accessControl'}); // 4.3.5
-  setAccessControl({...getAccessControl(),enabled:true,pendingSetup:false,ownerPasswordHash:hash,ownerPasswordSalt:salt,recoveryCodeHash:codeHash,recoveryCodeSalt:codeSalt,unverifiedResetAt:null,unverifiedResetLastUser:null});
+  setAccessControl({...getAccessControl(),enabled:true,pendingSetup:false,ownerPasswordHash:hash,ownerPasswordSalt:salt,recoveryCodeHash:codeHash,recoveryCodeSalt:codeSalt});
   document.getElementById('sOwnerPassword').value='';
   document.getElementById('sOwnerPasswordConfirm').value='';
   logAuditEvent('system','Business Owner password set — Employee Access Control is now active',{});
@@ -17567,7 +16300,6 @@ const PERMISSION_LABELS={
   accessSettings:{icon:'⚙️',label:'Access Settings',desc:'Open general app settings (not employee management)'},
   manageExpenses:{icon:'💸',label:'Manage Expenses',desc:'Log business expenses and view the Expenses page'},
   approveAdjustments:{icon:'✅',label:'Approve Stock Adjustments',desc:'Approve or reject stock adjustments above the configured threshold'},
-  viewHelp:{icon:'❓',label:'View Help Center',desc:'Open the in-app Help Center page'},
 };
 function openRolePermissions(){
   if(!requireOwnerOrWarn())return;
@@ -17673,9 +16405,9 @@ function renderAuditLogList(){
   const log=getFilteredAuditLog();
   const el=document.getElementById('auditLogList');
   if(!log.length){el.innerHTML='<div class="empty" style="padding:24px"><span class="empty-ic">📋</span><p>'+t('js_empty_no_audit')+'</p></div>';return;}
-  const typeLabel={add:'Added',edit:'Edited',delete:'Deleted',payment:'Payment',login:'Login',logout:'Logout',login_failed:'Failed Login',system:'System',security:'⚠️ Security Warning'};
+  const typeLabel={add:'Added',edit:'Edited',delete:'Deleted',payment:'Payment',login:'Login',logout:'Logout',login_failed:'Failed Login',system:'System'};
   let html='<div class="audit-row audit-row-hdr"><div>'+t('lbl_date')+'</div><div>'+t('js_th_time')+'</div><div>'+t('js_th_action')+'</div><div>'+t('js_th_user_role')+'</div></div>';
-  html+=log.slice(0,500).map(a=>`<div class="audit-row${a.type==='login_failed'||a.type==='security'?' audit-row-warn':''}"><div>${fmtDate(a.date)}</div><div>${esc(a.time||'')}</div><div>${esc(typeLabel[a.type]||a.type)}: ${esc(a.msg)}</div><div>${esc(a.user||'System')}${a.role?`<span class="audit-role-tag">${esc(a.role)}</span>`:''}</div></div>`).join('');
+  html+=log.slice(0,500).map(a=>`<div class="audit-row${a.type==='login_failed'?' audit-row-warn':''}"><div>${fmtDate(a.date)}</div><div>${esc(a.time||'')}</div><div>${esc(typeLabel[a.type]||a.type)}: ${esc(a.msg)}</div><div>${esc(a.user||'System')}${a.role?`<span class="audit-role-tag">${esc(a.role)}</span>`:''}</div></div>`).join('');
   el.innerHTML=html;
 }
 function exportAuditLogCSV(){
@@ -17695,7 +16427,7 @@ function exportAuditLogCSV(){
 function printAuditLog(){
   const log=getFilteredAuditLog();
   if(!log.length){toast(t('toast_no_audit_print'),'warning');return;}
-  const typeLabel={add:'Added',edit:'Edited',delete:'Deleted',payment:'Payment',login:'Login',logout:'Logout',login_failed:'Failed Login',system:'System',security:'⚠️ Security Warning'};
+  const typeLabel={add:'Added',edit:'Edited',delete:'Deleted',payment:'Payment',login:'Login',logout:'Logout',login_failed:'Failed Login',system:'System'};
   const rows=log.map(a=>`<tr><td>${fmtDate(a.date)}</td><td>${esc(a.time||'')}</td><td>${esc(typeLabel[a.type]||a.type)}</td><td>${esc(a.msg)}</td><td>${esc(a.user||'System')}</td><td>${esc(a.role||'')}</td></tr>`).join('');
   const w=window.open('','_blank');
   w.document.write(`<html><head><title>${t('js_lbl_audit_log_title')}</title><style>
@@ -17786,21 +16518,12 @@ function buildCsvPreview(type,headers,rows){
   }else if(type==='products'){
     head='<tr><th>'+t('js_th_row')+'</th><th>'+t('js_th_name')+'</th><th>'+t('th_cost')+'</th><th>'+t('th_price')+'</th><th>'+t('th_stock')+'</th><th>'+t('lbl_status')+'</th></tr>';
     const iName=findCol(headers,'name','product name'),iCost=findCol(headers,'cost','cost price'),iPrice=findCol(headers,'price','selling price'),iStock=findCol(headers,'stock','current stock');
-    const nameIdx=productNameIndex(null),seenInFile=new Map(); // 4.3.4: one lookup per import
     rows.forEach(r=>{
       const name=(r[iName]||'').trim();
       const cost=parseFloat(r[iCost]);const price=parseFloat(r[iPrice]);const stock=parseFloat(r[iStock]);
-      let valid=!!name&&!isNaN(price)&&price>=0;
-      let dup=null;
-      if(valid){
-        const k=normProductName(name);
-        if(nameIdx.has(k))dup={kind:'existing',sku:nameIdx.get(k).sku||'—'};
-        else if(seenInFile.has(k))dup={kind:'file',row:seenInFile.get(k)};
-        else seenInFile.set(k,csvParsedRows.length+1);
-        if(dup)valid=false;
-      }
+      const valid=!!name&&!isNaN(price)&&price>=0;
       if(valid)validCount++;
-      csvParsedRows.push({valid,dup,data:{name,cost:isNaN(cost)?0:cost,price:isNaN(price)?0:price,stock:isNaN(stock)?0:stock,category:'Imported',unit:'pcs',lowStock:5,tax:0}});
+      csvParsedRows.push({valid,data:{name,cost:isNaN(cost)?0:cost,price:isNaN(price)?0:price,stock:isNaN(stock)?0:stock,category:'Imported',unit:'pcs',lowStock:5,tax:0}});
     });
   }else if(type==='sales'){
     head='<tr><th>'+t('js_th_row')+'</th><th>'+t('lbl_customer')+'</th><th>'+t('lbl_amount')+'</th><th>'+t('th_cost')+'</th><th>'+t('lbl_date')+'</th><th>'+t('js_th_due')+'</th><th>'+t('lbl_status')+'</th></tr>';
@@ -17839,7 +16562,7 @@ function renderCsvPreviewBody(){
     if(type==='customers')cells=`<td>${esc(d.name)}</td><td>${esc(d.phone)}</td><td>${esc(d.businessName)}</td><td>${esc(d.group)}</td>`;
     else if(type==='products')cells=`<td>${esc(d.name)}</td><td>${cur(d.cost)}</td><td>${cur(d.price)}</td><td>${fmtQty(d.stock)}</td>`;
     else if(type==='sales')cells=`<td>${esc(d.custName)}</td><td>${cur(d.amount)}</td><td>${d.costProvided?cur(d.cost):`<em style="color:var(--warning)">${cur(estimatedCsvCost(d.amount))} est.</em>`}</td><td>${esc(d.date)}</td><td>${esc(d.due)}</td>`;
-    return`<tr class="${row.valid?'csv-row-ok':'csv-row-error'}"><td>${i+1}</td>${cells}<td><span class="csv-status-badge" style="background:${row.valid?'var(--success-lt)':'var(--danger-lt)'};color:${row.valid?'var(--success)':'var(--danger)'}">${row.valid?'✓ Valid':(row.dup?(row.dup.kind==='existing'?tf('csv_dup_existing',{sku:row.dup.sku}):tf('csv_dup_in_file',{row:row.dup.row})):'✗ Invalid')}</span></td></tr>`;
+    return`<tr class="${row.valid?'csv-row-ok':'csv-row-error'}"><td>${i+1}</td>${cells}<td><span class="csv-status-badge" style="background:${row.valid?'var(--success-lt)':'var(--danger-lt)'};color:${row.valid?'var(--success)':'var(--danger)'}">${row.valid?'✓ Valid':'✗ Invalid'}</span></td></tr>`;
   }).join('');
 }
 function estimatedCsvCost(amount){
@@ -17856,26 +16579,16 @@ function commitCsvImport(){
   const validRows=csvParsedRows.filter(r=>r.valid);
   if(!validRows.length){toast(t('toast_no_valid_rows'),'warning');return;}
   let estimatedCount=0;
-  let importedCount=validRows.length;
   if(type==='customers'){
     const custs=S.get('customers');
     validRows.forEach(r=>custs.push({...r.data,id:uid(),altPhone:'',email:'',nationalId:'',addr:'',limit:0,status:'active',contact:'phone',notes:'Imported via CSV',added:todayStr()}));
     S.set('customers',custs);
     log('add',`Imported ${validRows.length} customers via CSV`);
   }else if(type==='products'){
-    /* 4.3.4: re-check at commit (data may have changed since the preview, or
-       rows may have been altered directly) with one lookup for the import. */
-    const nameIdx=productNameIndex(null);
-    const toAdd=[];
-    validRows.forEach(r=>{const k=normProductName(r.data&&r.data.name);if(!k||nameIdx.has(k))return;nameIdx.set(k,true);toAdd.push(r);});
-    const skipped=validRows.length-toAdd.length;
-    if(!toAdd.length){toast(t('csv_all_duplicates'),'warning',6000);return;}
     const prods=S.get('products');
-    toAdd.forEach(r=>prods.push({...r.data,id:uid(),sku:nextSku(),status:'active',notes:'Imported via CSV',added:todayStr()}));
+    validRows.forEach(r=>prods.push({...r.data,id:uid(),sku:nextSku(),status:'active',notes:'Imported via CSV',added:todayStr()}));
     S.set('products',prods);
-    importedCount=toAdd.length;
-    log('add',`Imported ${toAdd.length} products via CSV`+(skipped?` (${skipped} duplicate name(s) skipped)`:''));
-    if(skipped)toast(tf('csv_dups_skipped',{count:skipped}),'warning',6000);
+    log('add',`Imported ${validRows.length} products via CSV`);
   }else if(type==='sales'){
     const sales=S.get('sales');
     validRows.forEach(r=>{
@@ -17887,7 +16600,7 @@ function commitCsvImport(){
     log('add',`Imported ${validRows.length} invoices via CSV${estimatedCount?` (${estimatedCount} with an estimated cost)`:''}`);
   }
   closeModal('mCsvPreview');
-  toast(estimatedCount?tf('toast_import_done_estimated',{count:importedCount,entity:tOpt('entity_'+type,type),estimated:estimatedCount}):tf('toast_import_done',{count:importedCount,entity:tOpt('entity_'+type,type)}),'success',estimatedCount?4500:3200);
+  toast(estimatedCount?tf('toast_import_done_estimated',{count:validRows.length,entity:tOpt('entity_'+type,type),estimated:estimatedCount}):tf('toast_import_done',{count:validRows.length,entity:tOpt('entity_'+type,type)}),'success',estimatedCount?4500:3200);
   if(type==='customers'&&document.getElementById('page-customers').classList.contains('active'))loadCustomers();
   if(type==='products'&&document.getElementById('page-products').classList.contains('active'))loadProducts();
   if(type==='sales'&&document.getElementById('page-sales').classList.contains('active'))loadSales();
@@ -18569,11 +17282,6 @@ const DevSuite={
     const phoneDupSeen=new Set(),phoneDupes=new Set();
     custs.forEach(c=>{if(!c.phone)return;if(phoneDupSeen.has(c.phone))phoneDupes.add(c.phone);phoneDupSeen.add(c.phone);});
     if(phoneDupes.size)issues.push({sev:'WARNING',area:'customers',msg:`${phoneDupes.size} duplicate customer phone number(s) found`});
-    // 4.3.4: REPORT ONLY — existing duplicate product names are never modified here.
-    const prodNameGroups=new Map();
-    prods.forEach(p=>{const k=normProductName(p.name);if(!k)return;if(!prodNameGroups.has(k))prodNameGroups.set(k,[]);prodNameGroups.get(k).push(p.sku||p.id);});
-    const dupNameGroups=[...prodNameGroups.entries()].filter(([,v])=>v.length>1);
-    if(dupNameGroups.length)issues.push({sev:'WARNING',area:'products',msg:`${dupNameGroups.length} duplicate product name(s) found: `+dupNameGroups.slice(0,5).map(([k,v])=>`"${k}" (${v.join(', ')})`).join('; ')+(dupNameGroups.length>5?' …':'')});
 
     const fails=issues.filter(i=>i.sev==='FAIL').length,warns=issues.filter(i=>i.sev==='WARNING').length;
     document.getElementById('devValidatorSummary').innerHTML=
