@@ -24,7 +24,7 @@ Bizora is a Progressive Web App (PWA) built for small businesses to manage sales
 
 ## Status
 
-Current version: **v4.0.8**
+Current version: **v4.3.8**
 
 ## License
 

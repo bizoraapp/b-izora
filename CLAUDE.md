@@ -56,7 +56,7 @@ If a hook blocks you, **stop and report**. Don't look for another way to run the
 
 ## 3. Architecture (what exists — extend it, never rebuild it)
 
-**Release state:** live production = **4.2.7 (cache v120)**. The audited **4.3.8** (cache v131, `PREVIOUS_CACHE_VERSION` v120) arrives through the `release/4.3.8` pull request. Rules in sections 4–5 that name 4.3.8 functions apply once that PR is merged. Before any work, check which version `main` actually contains (`APP_VERSION` in `index.html`).
+**Release state:** live production = **4.3.8 (cache v131)**, confirmed by Ngwe on 2026-10-01; its rollback cache on updated devices is v120 (4.2.7). The next release sets `PREVIOUS_CACHE_VERSION` to `'v131'` (after re-checking the live `service-worker.js`) and `CACHE_VERSION` to `'v132'`. Before any work, check which version `main` actually contains (`APP_VERSION` in `index.html`).
 
 - **Single-file app:** `index.html`, about 19,000 lines of HTML, CSS and vanilla JavaScript. No framework, no bundler, no npm dependencies at runtime. **Do not introduce React, TypeScript, build tools or libraries.**
 - **Storage:** IndexedDB database `CreditBossDB`, **`IDB_VERSION = 8`**, mirrored in memory (`MEM`). All reads and writes go through `S.get / S.set / S.add / S.update / S.remove` and `S.obj / S.setObj`. **Never change `S.set()` globally.** Key → store: `sales→creditSales`, `payments→repayments`, `posSales`, `customers`, `products`, `expenses`, `creditLedger`, `employees`, `auditLog→auditLogs`, `activities`, `stockMovements`; settings-like objects (including `cashDrawer`) are kept in `settings`.
