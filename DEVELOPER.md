@@ -1,6 +1,6 @@
 # Bizora — Developer Documentation
 
-**Version:** 4.2.7 · **Build:** 2026.09.13a · **Database schema:** v8
+**Version:** 4.3.6 · **Build:** 2026.09.30e · **Database schema:** v8
 **Maintainer:** Ngwe Lesley Mbom
 
 This document exists so future work on Bizora can extend it without needing to re-read all ~10,400 lines to understand how the pieces fit together. It reflects the app as of Phase 6 (production hardening) of the PWA conversion.
