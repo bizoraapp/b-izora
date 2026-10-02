@@ -31,7 +31,8 @@ def chk(area, name, cond, info=''):
     print(('PASS' if cond else 'FAIL'), '|', area, '|', name, '' if cond else '| ' + json.dumps(info, ensure_ascii=False, default=str)[:600])
 
 MOCK = """
-window.__cam={next:null,mode:'ok',formats:null,tracks:[],gum:0,detect:0,constraints:null,asked:null,delay:0};
+window.__cam={next:null,mode:'ok',formats:null,tracks:[],gum:0,detect:0,constraints:null,asked:null,delay:0,
+  devices:null,defaultId:'',opened:[],applied:[],caps:null,failIds:[]};
 window.BarcodeDetector=class{
   constructor(o){window.__cam.asked=o&&o.formats;}
   static async getSupportedFormats(){return window.__cam.formats||['aztec','code_128','code_39','data_matrix','ean_13','ean_8','itf','qr_code','upc_a','upc_e'];}
@@ -43,10 +44,20 @@ if(navigator.mediaDevices){navigator.mediaDevices.getUserMedia=async(c)=>{
   if(k.mode==='deny')throw new DOMException('Permission denied','NotAllowedError');
   if(k.mode==='nocam')throw new DOMException('Requested device not found','NotFoundError');
   if(k.mode==='busy')throw new DOMException('Could not start video source','NotReadableError');
+  const ex=c&&c.video&&c.video.deviceId&&c.video.deviceId.exact;const id=ex||k.defaultId||'';
+  if(ex&&k.devices&&!k.devices.some(d=>d.deviceId===ex))throw new DOMException('No such camera','OverconstrainedError');
+  if(k.failIds.includes(id))throw new DOMException('Could not start video source','NotReadableError');
+  k.opened.push(id);
   const cv=document.createElement('canvas');cv.width=160;cv.height=120;const g=cv.getContext('2d');
-  let i=0;const draw=()=>{g.fillStyle=(i++%2)?'#222':'#ddd';g.fillRect(0,0,160,120);};draw();
-  const st=cv.captureStream(15);setInterval(draw,60); // test stand-in only
-  k.tracks.push(...st.getTracks());return st;};}
+  let st;
+  if(k.mode==='nopic'){st=cv.captureStream(0);} // never delivers a picture
+  else{let i=0;const draw=()=>{g.fillStyle=(i++%2)?'#222':'#ddd';g.fillRect(0,0,160,120);};draw();
+    st=cv.captureStream(15);setInterval(draw,60);} // test stand-in only
+  const dev=(k.devices||[]).find(d=>d.deviceId===id);
+  st.getVideoTracks().forEach(tr=>{tr.getSettings=()=>({deviceId:id});tr.getCapabilities=()=>k.caps||{};
+    tr.applyConstraints=async(x)=>{k.applied.push({id,x});};if(dev)Object.defineProperty(tr,'label',{get:()=>dev.label});});
+  k.tracks.push(...st.getTracks());return st;};
+  navigator.mediaDevices.enumerateDevices=async()=>(window.__cam.devices||[]).map(d=>({kind:'videoinput',groupId:'',...d}));}
 """
 
 SETUP = """async(role)=>{
@@ -153,7 +164,7 @@ def main():
         p.click(BTN['pos']); p.wait_for_timeout(400)
         r = p.evaluate(STATE)
         chk(A, 'Detector without any retail format (QR only): unsupported message in the scanner, no camera request', r['gum'] == 0 and r['on'] and r['err'] and "isn’t supported" in r['status'], r)
-        p.click('#bcCamOverlay .modal-ftr button'); p.wait_for_timeout(200)
+        p.click('#bcCamOverlay .modal-ftr button[data-i18n="btn_cancel"]'); p.wait_for_timeout(200)
         p.evaluate("()=>{window.__cam.formats=null;window.__cam.mode='deny'}")
         p.click(BTN['pos']); p.wait_for_timeout(400)
         r = p.evaluate(STATE)
@@ -286,7 +297,7 @@ def main():
         def opened():
             p.evaluate("()=>{window.__cam.next=null}"); p.click(BTN['pos']); p.wait_for_function("()=>window.__cam.detect>0&&BarcodeCamera.isOpen()", timeout=5000)
             p.evaluate("()=>{window.__cam.detect=0}")
-        opened(); p.click('#bcCamOverlay .modal-ftr button'); p.wait_for_timeout(300)
+        opened(); p.click('#bcCamOverlay .modal-ftr button[data-i18n="btn_cancel"]'); p.wait_for_timeout(300)
         r = p.evaluate(STATE); p.wait_for_timeout(500); d = p.evaluate("()=>window.__cam.detect")
         chk(A, 'Cancel: scanner closed, every track stopped, detection loop stopped', not r['on'] and r['live'] == 0 and not r['src'] and d == r['detect'], {'r': r, 'd': d})
         opened(); p.click('#bcCamOverlay .modal-close'); p.wait_for_timeout(300)
@@ -330,6 +341,64 @@ def main():
         chk(A, 'No JS errors', not errs, errs)
         ctx.close()
 
+        # ===================== CAMERA CHOICE (several rear lenses, e.g. Samsung A21s) =====================
+        A = 'Cameras'
+        DEVS = "[{deviceId:'f1',label:'camera2 1, facing front'},{deviceId:'b2',label:'camera2 2, facing back'},{deviceId:'b0',label:'camera2 0, facing back'},{deviceId:'b3',label:'camera2 3, facing back'}]"
+        LIVE = "window.__cam.tracks.filter(t=>t.readyState==='live').length"
+        p, errs, ctx, net = page(br, url)
+        p.evaluate("()=>go('pos')")
+        p.evaluate("(d)=>{const k=window.__cam;k.devices=eval(d);k.defaultId='b2';k.caps={focusMode:['manual','continuous']};k.next=null}", DEVS)
+        p.click(BTN['pos']); p.wait_for_function("()=>BarcodeCamera.isOpen()&&window.__cam.detect>0", timeout=5000)
+        r = p.evaluate("()=>({opened:window.__cam.opened.slice(),cur:BarcodeCamera._currentId(BarcodeCamera._s),live:" + LIVE + ",info:document.getElementById('bcCamInfo').textContent,sw:getComputedStyle(document.getElementById('bcCamSwitch')).display,applied:window.__cam.applied.slice()})")
+        chk(A, 'Browser hands over another rear lens (camera2 2): Bizora reopens the main one (camera2 0); only one camera left running',
+            r['opened'] == ['b2', 'b0'] and r['cur'] == 'b0' and r['live'] == 1, r)
+        chk(A, 'Continuous autofocus requested on the camera in use', any(a['id'] == 'b0' and a['x'] == {'advanced': [{'focusMode': 'continuous'}]} for a in r['applied']), r['applied'])
+        chk(A, 'Camera name shown, and Switch camera offered (3 rear lenses; the front camera is not used)', 'camera2 0, facing back' in r['info'] and '(1/3)' in r['info'] and r['sw'] != 'none', r)
+        chk(A, 'No camera choice is saved until the user switches', p.evaluate("()=>localStorage.getItem('bizora_bc_camera')") is None)
+        p.click('#bcCamSwitch'); p.wait_for_timeout(500)
+        r = p.evaluate("()=>({cur:BarcodeCamera._currentId(BarcodeCamera._s),live:" + LIVE + ",info:document.getElementById('bcCamInfo').textContent,pref:localStorage.getItem('bizora_bc_camera'),status:document.getElementById('bcCamStatus').textContent,open:BarcodeCamera.isOpen()})")
+        chk(A, 'Switch camera: next rear lens (camera2 2), old camera stopped, choice remembered on this phone',
+            r['cur'] == 'b2' and r['live'] == 1 and '(2/3)' in r['info'] and r['pref'] == 'b2' and r['open'] and 'Point the camera' in r['status'], r)
+        p.click('#bcCamSwitch'); p.wait_for_timeout(400); p.click('#bcCamSwitch'); p.wait_for_timeout(400)
+        r = p.evaluate("()=>({cur:BarcodeCamera._currentId(BarcodeCamera._s),live:" + LIVE + "})")
+        chk(A, 'Switch camera goes round all rear lenses (2 -> 3 -> 0)', r['cur'] == 'b0' and r['live'] == 1, r)
+        p.click('#bcCamSwitch'); p.wait_for_timeout(400)
+        p.evaluate("()=>{BarcodeCamera.close();window.__cam.opened=[]}")
+        r = scan(p, 'pos', '5449000000996')
+        r2 = p.evaluate("()=>window.__cam.opened.slice()")
+        chk(A, 'Next scan opens the remembered lens directly, and the scan works', r2 == ['b2'] and r['cart'] == [{'id': 'pa', 'qty': 1, 'price': 350}] and r['live'] == 0, {'opened': r2, 'r': r})
+        p.evaluate("()=>{localStorage.setItem('bizora_bc_camera','gone');window.__cam.opened=[];window.__cam.next=null}")
+        p.click(BTN['pos']); p.wait_for_function("()=>BarcodeCamera.isOpen()&&window.__cam.detect>0", timeout=5000)
+        r = p.evaluate("()=>({opened:window.__cam.opened.slice(),pref:localStorage.getItem('bizora_bc_camera'),err:document.getElementById('bcCamOverlay').classList.contains('err')})")
+        chk(A, 'Remembered lens no longer exists: forgotten, main lens used, no error', r['opened'] == ['b2', 'b0'] and r['pref'] is None and not r['err'], r)
+        p.evaluate("()=>BarcodeCamera.close()")
+        p.evaluate("()=>{const k=window.__cam;k.failIds=['b0'];k.opened=[];k.next=null}")
+        p.click(BTN['pos']); p.wait_for_function("()=>BarcodeCamera.isOpen()&&window.__cam.detect>0", timeout=5000)
+        r = p.evaluate("()=>({opened:window.__cam.opened.slice(),cur:BarcodeCamera._currentId(BarcodeCamera._s),live:" + LIVE + "})")
+        chk(A, "Main lens refuses to start: falls back to the browser's choice, scanner still works", r['opened'] == ['b2', 'b2'] and r['cur'] == 'b2' and r['live'] == 1, r)
+        p.evaluate("()=>{BarcodeCamera.close();localStorage.removeItem('bizora_bc_camera');window.__cam.failIds=['b3'];window.__cam.next=null}")
+        p.click(BTN['pos']); p.wait_for_function("()=>BarcodeCamera.isOpen()&&window.__cam.detect>0", timeout=5000)
+        p.click('#bcCamSwitch'); p.wait_for_timeout(400); p.click('#bcCamSwitch'); p.wait_for_timeout(400)
+        r = p.evaluate("()=>({err:document.getElementById('bcCamOverlay').classList.contains('err'),status:document.getElementById('bcCamStatus').textContent,live:" + LIVE + ",open:BarcodeCamera.isOpen(),sw:getComputedStyle(document.getElementById('bcCamSwitch')).display})")
+        chk(A, 'A lens that will not start: clear message, nothing left running, Switch camera still offered', r['err'] and 'could not be started' in r['status'] and r['live'] == 0 and r['open'] and r['sw'] != 'none', r)
+        p.click('#bcCamSwitch'); p.wait_for_timeout(400)
+        r = p.evaluate("()=>({err:document.getElementById('bcCamOverlay').classList.contains('err'),cur:BarcodeCamera._currentId(BarcodeCamera._s),live:" + LIVE + "})")
+        chk(A, '...and switching again recovers on the next lens', not r['err'] and r['cur'] == 'b0' and r['live'] == 1, r)
+        p.evaluate("()=>BarcodeCamera.close()")
+        r = p.evaluate("()=>({live:" + LIVE + ",info:document.getElementById('bcCamInfo').textContent,sw:getComputedStyle(document.getElementById('bcCamSwitch')).display})")
+        chk(A, 'Close after switching: every camera stopped, name and Switch button cleared', r == {'live': 0, 'info': '', 'sw': 'none'}, r)
+        p.evaluate("()=>{const k=window.__cam;k.devices=null;k.defaultId='';k.failIds=[];k.mode='nopic';k.next=null}")
+        p.click(BTN['pos']); p.wait_for_timeout(600)
+        p.evaluate("()=>{BarcodeCamera._s.picSince-=5000}"); p.wait_for_timeout(500)
+        r = p.evaluate("()=>({status:document.getElementById('bcCamStatus').textContent,sw:getComputedStyle(document.getElementById('bcCamSwitch')).display,open:BarcodeCamera.isOpen()})")
+        chk(A, 'Camera gives no picture: "No picture from this camera" message, scanner stays open', 'No picture from this camera' in r['status'] and r['open'], r)
+        chk(A, 'Single camera (no lens list): Switch camera hidden', r['sw'] == 'none', r)
+        p.evaluate("()=>{BarcodeCamera.close();window.__cam.mode='ok'}")
+        r = p.evaluate("()=>{BarcodeCamera.open(()=>{});return new Promise(res=>setTimeout(()=>{const v=document.getElementById('bcCamVideo'),f=getComputedStyle(document.querySelector('.bc-cam-view'),'::after');res({fit:getComputedStyle(v).objectFit,frame:f.content!=='none'&&f.borderTopStyle==='solid'});BarcodeCamera.close()},500))}")
+        chk(A, 'Whole camera picture visible (not cropped) with a white aiming frame', r == {'fit': 'contain', 'frame': True}, r)
+        chk(A, 'No JS errors', not errs, errs)
+        ctx.close()
+
         # ===================== OFFLINE =====================
         A = 'Offline'
         p, errs, ctx, net = page(br, url)
@@ -348,7 +417,7 @@ def main():
             keys = p.evaluate("""()=>{const en=I18N_DICT.en,fr=I18N_DICT.fr;const k=Object.keys(en).filter(x=>x.startsWith('bc_cam_'));
               return {n:k.length,missing:k.filter(x=>!fr[x]),same:k.filter(x=>fr[x]===en[x])}}""")
             if lang == 'en':
-                chk(A, 'All 11 camera strings exist in EN and FR, and FR is translated', keys['n'] == 11 and not keys['missing'] and not keys['same'], keys)
+                chk(A, 'All 14 camera strings exist in EN and FR, and FR is translated', keys['n'] == 14 and not keys['missing'] and not keys['same'], keys)
             p.evaluate("()=>go('pos')")
             lbl = p.evaluate("()=>{const b=document.querySelector('button[onclick=\"bcCamToPos()\"]');return {t:b.innerText.trim(),title:b.title}}")
             p.evaluate("()=>{window.__cam.mode='deny'}"); p.click(BTN['pos']); p.wait_for_timeout(400)

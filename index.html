@@ -895,8 +895,12 @@ html.bc-cam-on .bc-cam-btn{display:inline-flex;flex-shrink:0}
 .bc-cam-bg{position:fixed;inset:0;z-index:1050;background:rgba(7,13,30,.85);display:none;align-items:center;justify-content:center;padding:16px}
 .bc-cam-bg.on{display:flex}
 .bc-cam-bg .modal{transform:none;max-width:480px}
-.bc-cam-video{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;background:#000;border-radius:var(--r2)}
-.bc-cam-bg.err .bc-cam-video{display:none}
+.bc-cam-view{position:relative;overflow:hidden;border-radius:var(--r2);background:#000}
+.bc-cam-view::after{content:'';position:absolute;left:10%;right:10%;top:32%;bottom:32%;border:2px solid #fff;border-radius:8px;box-shadow:0 0 0 999px rgba(0,0,0,.28);pointer-events:none}
+.bc-cam-video{display:block;width:100%;max-height:55vh;object-fit:contain;background:#000}
+.bc-cam-bg.err .bc-cam-view{display:none}
+.bc-cam-info{margin-top:4px;font-size:12px;text-align:center;color:var(--txt3,var(--txt2));word-break:break-word}
+.bc-cam-info:empty{display:none}
 .bc-cam-status{margin-top:10px;font-size:14px;text-align:center;color:var(--txt2)}
 .bc-cam-bg.err .bc-cam-status{color:var(--danger);margin-top:0}
 .product-search-results.show{display:block}
@@ -3262,10 +3266,11 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
       <button type="button" class="modal-close" onclick="BarcodeCamera.close()">✕</button>
     </div>
     <div class="modal-body">
-      <video id="bcCamVideo" class="bc-cam-video" playsinline muted></video>
+      <div class="bc-cam-view"><video id="bcCamVideo" class="bc-cam-video" playsinline muted></video></div>
       <p id="bcCamStatus" class="bc-cam-status" aria-live="polite"></p>
+      <p id="bcCamInfo" class="bc-cam-info"></p>
     </div>
-    <div class="modal-ftr"><button type="button" class="btn btn-outline" onclick="BarcodeCamera.close()" data-i18n="btn_cancel">Cancel</button></div>
+    <div class="modal-ftr"><button type="button" class="btn btn-outline" id="bcCamSwitch" style="display:none" onclick="BarcodeCamera.switchCamera()">🔄 <span data-i18n="bc_cam_switch">Switch camera</span></button><button type="button" class="btn btn-outline" onclick="BarcodeCamera.close()" data-i18n="btn_cancel">Cancel</button></div>
   </div>
 </div>
 <div class="modal-bg" id="mStockIn">
@@ -5786,12 +5791,15 @@ const I18N_DICT={
     bc_cam_btn_title:'Scan a barcode with the phone camera',
     bc_cam_starting:'Starting the camera…',
     bc_cam_aim:'Point the camera at the barcode and hold the phone steady.',
-    bc_cam_hint:'No barcode detected yet. Fill the frame with the barcode, keep it in focus and use good light.',
+    bc_cam_hint:'No barcode detected yet. Hold the barcode inside the white frame, 10\u201315 cm away, in good light. If the picture stays blurred, tap \u201cSwitch camera\u201d.',
     bc_cam_unsupported:'Camera barcode scanning isn\u2019t supported on this browser. Type the barcode or use a barcode scanner.',
     bc_cam_denied:'Camera access was refused. Allow the camera for Bizora in your browser settings, then try again.',
     bc_cam_no_camera:'No camera was found on this device.',
     bc_cam_error:'The camera could not be started. Close any other app using the camera and try again.',
     bc_cam_scanned:'Barcode scanned: {code}',
+    bc_cam_switch:'Switch camera',
+    bc_cam_no_picture:'No picture from this camera. Tap \u201cSwitch camera\u201d to try another one.',
+    bc_cam_using:'Camera: {name}',
     val_product_duplicate_discontinued:'A product named \u2018{name}\u2019 already exists ({sku}) but is discontinued. Reactivate that product (edit it and set Status to Active) instead of creating another.',
     csv_dup_existing:'✗ Duplicate — already exists ({sku})',
     csv_dup_in_file:'✗ Duplicate — repeated in this file (row {row})',
@@ -6846,12 +6854,15 @@ const I18N_DICT={
     bc_cam_btn_title:'Scanner un code-barres avec l\u2019appareil photo du téléphone',
     bc_cam_starting:'Démarrage de l\u2019appareil photo…',
     bc_cam_aim:'Pointez l\u2019appareil photo vers le code-barres et tenez le téléphone immobile.',
-    bc_cam_hint:'Aucun code-barres détecté pour l\u2019instant. Cadrez tout le code-barres, gardez-le net et utilisez un bon éclairage.',
+    bc_cam_hint:'Aucun code-barres détecté pour l\u2019instant. Placez le code-barres dans le cadre blanc, à 10\u201315\u00A0cm, avec un bon éclairage. Si l\u2019image reste floue, touchez \u00AB\u00A0Changer d\u2019appareil photo\u00A0\u00BB.',
     bc_cam_unsupported:'La lecture des codes-barres par l\u2019appareil photo n\u2019est pas prise en charge par ce navigateur. Saisissez le code-barres ou utilisez un lecteur de codes-barres.',
     bc_cam_denied:'L\u2019accès à l\u2019appareil photo a été refusé. Autorisez l\u2019appareil photo pour Bizora dans les paramètres du navigateur, puis réessayez.',
     bc_cam_no_camera:'Aucun appareil photo n\u2019a été trouvé sur cet appareil.',
     bc_cam_error:'Impossible de démarrer l\u2019appareil photo. Fermez toute autre application qui l\u2019utilise, puis réessayez.',
     bc_cam_scanned:'Code-barres scanné\u00A0: {code}',
+    bc_cam_switch:'Changer d\u2019appareil photo',
+    bc_cam_no_picture:'Aucune image de cet appareil photo. Touchez \u00AB\u00A0Changer d\u2019appareil photo\u00A0\u00BB pour en essayer un autre.',
+    bc_cam_using:'Appareil photo\u00A0: {name}',
     val_product_duplicate_discontinued:'Un produit nommé \u2018{name}\u2019 existe déjà ({sku}) mais il est arrêté. Réactivez ce produit (modifiez-le et mettez le statut sur Actif) au lieu d\u2019en créer un autre.',
     csv_dup_existing:'✗ Doublon — existe déjà ({sku})',
     csv_dup_in_file:'✗ Doublon — répété dans ce fichier (ligne {row})',
@@ -14039,8 +14050,12 @@ function posAddScannedProduct(p,code){
    track stopped, overlay closed, then one callback. Cancel, ✕, Escape, the
    app going to the background, the page closing and another screen covering
    the scanner (auto-lock, user switch) stop it the same way.
+   Camera choice: phones with several rear lenses get the main one (lowest
+   "camera2 N" number), and 🔄 Switch camera moves to the next lens; the lens
+   chosen is remembered on this phone (localStorage, bizora_bc_camera).
    The listeners for those are added on open and removed on close. */
 const BC_CAM_FORMATS=['ean_13','ean_8','upc_a','upc_e','code_128'];
+const BC_CAM_PREF_KEY='bizora_bc_camera'; // this phone's chosen camera (a device preference, like the flags)
 const BarcodeCamera={
   _s:null, // the open session, or null
   supported(){return typeof window.BarcodeDetector==='function'&&!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia);},
@@ -14048,34 +14063,46 @@ const BarcodeCamera={
   async open(onCode){
     if(!FeatureFlags.isEnabled('barcodeScanning')||this._s)return;
     if(!this.supported()){toast(t('bc_cam_unsupported'),'warning',6000);return;}
-    const s={onCode,stream:null,raf:0,busy:false,last:0,started:0,hinted:false};
+    const s={onCode,stream:null,raf:0,busy:false,last:0,started:0,hinted:false,picSince:0,noPic:false,cams:[],detector:null};
     this._s=s;
     this._show(true);
     this._status('bc_cam_starting',false);
-    let detector;
     try{
       const avail=await BarcodeDetector.getSupportedFormats();
       const formats=BC_CAM_FORMATS.filter(f=>avail.includes(f));
       if(!formats.length)throw {bcKey:'bc_cam_unsupported'};
-      detector=new BarcodeDetector({formats});
+      s.detector=new BarcodeDetector({formats});
       if(s!==this._s)return; // closed while checking
-      const stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}});
-      if(s!==this._s){stream.getTracks().forEach(tr=>tr.stop());return;} // closed while the permission prompt was up
-      s.stream=stream;
-      const v=document.getElementById('bcCamVideo');
-      v.srcObject=stream;
-      await v.play();
+      // 1) the camera this phone used last time, else the browser's "back camera"
+      const saved=this._pref();
+      let ok=false,fromSaved=false;
+      if(saved){
+        try{ok=fromSaved=await this._start(s,saved);}
+        catch(e){if(e&&(e.name==='NotAllowedError'||e.name==='SecurityError'))throw e;this._pref('');} // that camera is gone: forget it
+      }
+      if(!ok&&s===this._s)ok=await this._start(s,null);
+      if(!ok)return; // closed meanwhile (already cleaned up)
+      // 2) phones with several rear cameras: the browser's pick is often the
+      //    ultra-wide or macro lens, which cannot read a barcode. Prefer the main one.
+      s.cams=await this._backCameras();
       if(s!==this._s)return;
+      if(!fromSaved&&s.cams.length>1){
+        const main=s.cams[0];
+        if(main.deviceId&&this._currentId(s)!==main.deviceId){
+          try{this._stopStream(s);ok=await this._start(s,main.deviceId);}
+          catch(e){ok=false;}
+          if(!ok&&s===this._s)ok=await this._start(s,null); // keep the browser's choice if the main one will not open
+          if(!ok)return;
+        }
+      }
     }catch(err){
       if(s!==this._s)return;
       this._stopSession(s);
-      const n=err&&err.name;
-      this._status((err&&err.bcKey)||(n==='NotAllowedError'||n==='SecurityError'?'bc_cam_denied':n==='NotFoundError'||n==='OverconstrainedError'?'bc_cam_no_camera':'bc_cam_error'),true);
+      this._status(this._errKey(err),true);
       return; // the overlay stays open with the message until the user closes it
     }
-    this._status('bc_cam_aim',false);
+    this._ready(s);
     const v=document.getElementById('bcCamVideo');
-    s.started=performance.now();
     const tick=async now=>{
       if(s!==this._s)return;
       s.raf=requestAnimationFrame(tick);
@@ -14083,10 +14110,14 @@ const BarcodeCamera={
       s.last=now;
       const top=document.elementFromPoint(innerWidth/2,innerHeight/2);
       if(top&&!top.closest('#bcCamOverlay,#toastRack')){this.close();return;} // covered (auto-lock, user switch): stop the camera; toasts don't count
-      if(v.readyState<2)return;
+      if(!s.stream)return; // switching camera
+      if(v.readyState<2||!v.videoWidth){ // no picture yet
+        if(!s.noPic&&now-s.picSince>4000){s.noPic=true;this._status('bc_cam_no_picture',false);}
+        return;
+      }
       s.busy=true;
       let found=[];
-      try{found=await detector.detect(v);}catch(e){found=[];}
+      try{found=await s.detector.detect(v);}catch(e){found=[];}
       s.busy=false;
       if(s!==this._s)return; // closed during detect(): ignore whatever it found
       const hit=(found||[]).find(b=>b&&BC_CAM_FORMATS.includes(b.format)&&normBarcode(b.rawValue));
@@ -14095,16 +14126,91 @@ const BarcodeCamera={
     };
     s.raf=requestAnimationFrame(tick);
   },
+  /* Next rear camera; the one chosen is remembered on this phone. */
+  async switchCamera(){
+    const s=this._s;
+    if(!s||s.cams.length<2||s.switching)return;
+    s.switching=true;
+    const cur=this._currentId(s);
+    const i=s.cams.findIndex(c=>c.deviceId===cur);
+    const next=s.cams[(i+1)%s.cams.length];
+    this._stopStream(s);
+    this._status('bc_cam_starting',false);
+    try{
+      const ok=await this._start(s,next.deviceId);
+      if(!ok)return;
+      this._pref(next.deviceId);
+      this._ready(s);
+    }catch(err){
+      if(s===this._s)this._status(this._errKey(err),true); // try the next one with Switch camera, or Cancel
+    }finally{s.switching=false;}
+  },
   close(){
     const s=this._s;
     this._s=null;
     this._stopSession(s);
     this._show(false);
   },
+  async _start(s,deviceId){
+    const size={width:{ideal:1280},height:{ideal:720}};
+    const video=deviceId?{deviceId:{exact:deviceId},...size}:{facingMode:{ideal:'environment'},...size};
+    const stream=await navigator.mediaDevices.getUserMedia({audio:false,video});
+    if(s!==this._s){stream.getTracks().forEach(tr=>tr.stop());return false;} // closed while the permission prompt was up
+    s.stream=stream;
+    const tr=stream.getVideoTracks()[0];
+    try{ // continuous autofocus where the phone offers it (close-up barcodes)
+      const caps=tr&&tr.getCapabilities&&tr.getCapabilities();
+      if(caps&&Array.isArray(caps.focusMode)&&caps.focusMode.includes('continuous'))await tr.applyConstraints({advanced:[{focusMode:'continuous'}]});
+    }catch(e){}
+    if(s!==this._s)return false;
+    const v=document.getElementById('bcCamVideo');
+    v.srcObject=stream;
+    v.play().catch(()=>{}); // not awaited: a lens that never sends a picture must not hang here; the loop reports it
+    return s===this._s;
+  },
+  _ready(s){
+    s.started=s.picSince=performance.now();s.hinted=false;s.noPic=false;
+    this._status('bc_cam_aim',false);
+    const cur=this._currentId(s),cam=s.cams.find(c=>c.deviceId===cur);
+    const tr=s.stream&&s.stream.getVideoTracks()[0];
+    const name=(cam&&cam.label)||(tr&&tr.label)||'';
+    const info=document.getElementById('bcCamInfo');
+    if(info)info.textContent=name?tf('bc_cam_using',{name})+(s.cams.length>1&&cam?' ('+(s.cams.indexOf(cam)+1)+'/'+s.cams.length+')':''):'';
+    const sw=document.getElementById('bcCamSwitch');
+    if(sw)sw.style.display=s.cams.length>1?'':'none';
+  },
+  /* Rear cameras, main lens first. Chrome on Android names them
+     "camera2 0, facing back", "camera2 2, facing back"…; the lowest number is
+     normally the main lens. Without names (no permission yet) nothing is listed. */
+  async _backCameras(){
+    let list=[];
+    try{list=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput'&&d.deviceId);}catch(e){return[];}
+    const back=list.filter(d=>/back|rear|environment|arri[eè]re/i.test(d.label||''));
+    const num=d=>{const l=d.label||'',m=/(\d+)\s*,?\s*facing/i.exec(l)||/(\d+)\D*$/.exec(l);return m?parseInt(m[1],10):999;}; // "camera2 0, facing back" -> 0
+    return back.map((d,i)=>({deviceId:d.deviceId,label:d.label,n:num(d),i})).sort((a,b)=>a.n-b.n||a.i-b.i);
+  },
+  _currentId(s){
+    const tr=s&&s.stream&&s.stream.getVideoTracks()[0];
+    try{return (tr&&tr.getSettings&&tr.getSettings().deviceId)||'';}catch(e){return'';}
+  },
+  _pref(v){
+    try{
+      if(v===undefined)return localStorage.getItem(BC_CAM_PREF_KEY)||'';
+      if(v)localStorage.setItem(BC_CAM_PREF_KEY,v);else localStorage.removeItem(BC_CAM_PREF_KEY);
+    }catch(e){}
+    return '';
+  },
+  _errKey(err){
+    const n=err&&err.name;
+    return (err&&err.bcKey)||(n==='NotAllowedError'||n==='SecurityError'?'bc_cam_denied':n==='NotFoundError'||n==='OverconstrainedError'?'bc_cam_no_camera':'bc_cam_error');
+  },
+  _stopStream(s){
+    if(s&&s.stream){s.stream.getTracks().forEach(tr=>tr.stop());s.stream=null;}
+  },
   _stopSession(s){
     if(!s)return;
     cancelAnimationFrame(s.raf);s.raf=0;
-    if(s.stream){s.stream.getTracks().forEach(tr=>tr.stop());s.stream=null;}
+    this._stopStream(s);
     const v=document.getElementById('bcCamVideo');
     if(v){try{v.pause();}catch(e){}v.srcObject=null;}
   },
@@ -14115,7 +14221,12 @@ const BarcodeCamera={
   _show(on){
     document.getElementById('bcCamOverlay').classList.toggle('on',on);
     if(on){document.addEventListener('visibilitychange',_bcCamOnHide);window.addEventListener('pagehide',_bcCamOnHide);window.addEventListener('keydown',_bcCamOnKey,true);}
-    else{document.removeEventListener('visibilitychange',_bcCamOnHide);window.removeEventListener('pagehide',_bcCamOnHide);window.removeEventListener('keydown',_bcCamOnKey,true);document.getElementById('bcCamOverlay').classList.remove('err');}
+    else{
+      document.removeEventListener('visibilitychange',_bcCamOnHide);window.removeEventListener('pagehide',_bcCamOnHide);window.removeEventListener('keydown',_bcCamOnKey,true);
+      document.getElementById('bcCamOverlay').classList.remove('err');
+      const info=document.getElementById('bcCamInfo');if(info)info.textContent='';
+      const sw=document.getElementById('bcCamSwitch');if(sw)sw.style.display='none';
+    }
   }
 };
 function _bcCamOnHide(e){if(e.type==='pagehide'||document.visibilityState==='hidden')BarcodeCamera.close();}
