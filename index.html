@@ -886,6 +886,23 @@ tbody tr.cancelled-row td:last-child{text-decoration:none;opacity:1}
 .pos-type-opt .pto-sub{font-size:12px;color:var(--txt3);font-weight:500}
 .product-search-wrap{position:relative;margin-bottom:14px}
 .product-search-results{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--card);border:1px solid var(--border);border-radius:var(--r2);box-shadow:var(--sh-lg);max-height:280px;overflow-y:auto;z-index:50;display:none}
+/* Barcode camera (Phase 2): buttons show only when FeatureFlags.barcodeScanning is on (html.bc-cam-on).
+   Plain overlay above the open modal: no backdrop-filter, no animation. */
+.bc-cam-btn{display:none}
+html.bc-cam-on .bc-cam-btn{display:inline-flex;flex-shrink:0}
+.bc-cam-row{display:flex;gap:8px;align-items:center}
+.bc-cam-row>input{flex:1;min-width:0}
+.bc-cam-bg{position:fixed;inset:0;z-index:1050;background:rgba(7,13,30,.85);display:none;align-items:center;justify-content:center;padding:16px}
+.bc-cam-bg.on{display:flex}
+.bc-cam-bg .modal{transform:none;max-width:480px}
+.bc-cam-view{position:relative;overflow:hidden;border-radius:var(--r2);background:#000}
+.bc-cam-view::after{content:'';position:absolute;left:10%;right:10%;top:32%;bottom:32%;border:2px solid #fff;border-radius:8px;box-shadow:0 0 0 999px rgba(0,0,0,.28);pointer-events:none}
+.bc-cam-video{display:block;width:100%;max-height:55vh;object-fit:contain;background:#000}
+.bc-cam-bg.err .bc-cam-view{display:none}
+.bc-cam-info{margin-top:4px;font-size:12px;text-align:center;color:var(--txt3,var(--txt2));word-break:break-word}
+.bc-cam-info:empty{display:none}
+.bc-cam-status{margin-top:10px;font-size:14px;text-align:center;color:var(--txt2)}
+.bc-cam-bg.err .bc-cam-status{color:var(--danger);margin-top:0}
 .product-search-results.show{display:block}
 .psr-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s}
 .psr-item:last-child{border-bottom:none}
@@ -1574,7 +1591,7 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
     <!-- PRODUCTS -->
     <div class="page" id="page-products">
       <div class="filter-bar">
-        <div class="search-wrap"><input type="text" id="prodSearch" placeholder="Search by name, SKU, or category…" data-i18n-ph="prd_ph_search" oninput="filterProducts()"></div>
+        <div class="search-wrap"><input type="text" id="prodSearch" placeholder="Search by name, SKU, or category…" data-i18n-ph="prd_ph_search" oninput="filterProducts()"></div><button type="button" class="btn btn-outline btn-sm bc-cam-btn" onclick="bcCamToProductSearch()" title="Scan a barcode with the phone camera" data-i18n-title="bc_cam_btn_title">📷 <span data-i18n="bc_cam_scan">Scan</span></button>
         <select class="fc" id="prodCatSel" onchange="filterProducts()"><option value="">All Categories</option></select>
         <select class="fc" id="prodStockSel" onchange="filterProducts()">
           <option value="" data-i18n="lbl_all_stock_levels">All Stock Levels</option><option value="ok" data-i18n="prd_opt_in_stock">In Stock</option>
@@ -1866,7 +1883,7 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
           <div class="card">
             <div class="card-title" style="margin-bottom:10px">🛒 <span data-i18n="nav_products">Products</span></div>
             <div class="product-search-wrap">
-              <input type="text" class="fc fw" id="posProdSearch" placeholder="🔍 Search product by name or SKU to add…" oninput="searchPosProducts()" onfocus="searchPosProducts()" data-i18n-ph="pos_search_ph">
+              <div class="bc-cam-row"><input type="text" class="fc fw" id="posProdSearch" placeholder="🔍 Search product by name or SKU to add…" oninput="searchPosProducts()" onfocus="searchPosProducts()" onkeydown="posSearchKeydown(event)" autocomplete="off" data-i18n-ph="pos_search_ph"><button type="button" class="btn btn-outline btn-sm bc-cam-btn" onclick="bcCamToPos()" title="Scan a barcode with the phone camera" data-i18n-title="bc_cam_btn_title">📷 <span data-i18n="bc_cam_scan">Scan</span></button></div>
               <div class="product-search-results" id="posSearchResults"></div>
             </div>
             <div class="pos-toptype" style="margin-bottom:10px">
@@ -3182,6 +3199,7 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
         <div class="form-group"><label class="form-label">Low Stock Threshold</label><input type="text" inputmode="decimal" class="fc fw num-fmt" id="pLowStock" placeholder="5" value="5"></div>
         <div class="form-group"><label class="form-label">Default Tax %</label><input type="number" class="fc fw" id="pTax" min="0" max="100" step="0.01" placeholder="0" value="0"></div>
       </div>
+      <div class="form-group"><label class="form-label" data-i18n="bc_lbl_barcode">Barcode</label><div class="bc-cam-row"><input type="text" class="fc fw" id="pBarcode" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="80" placeholder="Scan or type the barcode (optional)" data-i18n-ph="bc_ph_barcode" onkeydown="if(event.key==='Enter')event.preventDefault()" oninput="markErr('pBarcode',false)"><button type="button" class="btn btn-outline btn-sm bc-cam-btn" onclick="bcCamToProductForm()" title="Scan a barcode with the phone camera" data-i18n-title="bc_cam_btn_title">📷 <span data-i18n="bc_cam_scan">Scan</span></button></div></div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Status</label>
           <select class="fc fw" id="pStatus"><option value="active">✅ Active</option><option value="discontinued">🚫 Discontinued</option></select>
@@ -3240,6 +3258,21 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
 </div>
 
 <!-- Stock In -->
+<!-- Barcode camera (Phase 2). Not a .modal-bg: it sits above the open form, and only BarcodeCamera.close() hides it (stopping the camera). -->
+<div class="bc-cam-bg" id="bcCamOverlay" role="dialog" aria-modal="true" aria-labelledby="bcCamTitle">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title" id="bcCamTitle" data-i18n="bc_cam_title">Scan barcode</div>
+      <button type="button" class="modal-close" onclick="BarcodeCamera.close()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="bc-cam-view"><video id="bcCamVideo" class="bc-cam-video" playsinline muted></video></div>
+      <p id="bcCamStatus" class="bc-cam-status" aria-live="polite"></p>
+      <p id="bcCamInfo" class="bc-cam-info"></p>
+    </div>
+    <div class="modal-ftr"><button type="button" class="btn btn-outline" id="bcCamSwitch" style="display:none" onclick="BarcodeCamera.switchCamera()">🔄 <span data-i18n="bc_cam_switch">Switch camera</span></button><button type="button" class="btn btn-outline" onclick="BarcodeCamera.close()" data-i18n="btn_cancel">Cancel</button></div>
+  </div>
+</div>
 <div class="modal-bg" id="mStockIn">
   <div class="modal modal-sm">
     <div class="modal-hdr">
@@ -3247,6 +3280,7 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
       <button class="modal-close" onclick="closeModal('mStockIn')">✕</button>
     </div>
     <div class="modal-body">
+      <div class="form-group"><label class="form-label" data-i18n="bc_lbl_barcode">Barcode</label><div class="bc-cam-row"><input type="text" class="fc fw" id="stockInBarcode" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="80" placeholder="Scan or type a barcode to find the product" data-i18n-ph="bc_ph_scan_stockin" onkeydown="stockInBarcodeKeydown(event)" onchange="stockInBarcodeResolve()"><button type="button" class="btn btn-outline btn-sm bc-cam-btn" onclick="bcCamToStockIn()" title="Scan a barcode with the phone camera" data-i18n-title="bc_cam_btn_title">📷 <span data-i18n="bc_cam_scan">Scan</span></button></div><p id="stockInBarcodeMsg" style="display:none;font-size:13px;margin-top:6px"></p></div>
       <div class="form-group"><label class="form-label">Product *</label><select class="fc fw" id="stockInProd"></select></div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Quantity Received *</label><input type="text" inputmode="decimal" class="fc fw num-fmt" id="stockInQty" placeholder="0"></div>
@@ -4328,6 +4362,17 @@ const FeatureFlags = (() => {
     disable(name){ const f=load(); f[name]=false; save(f); },
     getAll(){ return load(); }
   };
+})();
+/* Barcode camera (Phase 2) test switch, device-only like every flag:
+   open Bizora with ?barcodecam=1 to turn FeatureFlags.barcodeScanning on for
+   this phone, ?barcodecam=0 to turn it off again. The default stays OFF; with
+   the flag off the camera buttons are hidden and BarcodeCamera.open() refuses. */
+(function(){
+  try{
+    const v=new URLSearchParams(location.search).get('barcodecam');
+    if(v==='1')FeatureFlags.enable('barcodeScanning');else if(v==='0')FeatureFlags.disable('barcodeScanning');
+    if(FeatureFlags.isEnabled('barcodeScanning'))document.documentElement.classList.add('bc-cam-on');
+  }catch(err){}
 })();
 
 /* ─── ErrorManager ─────────────────────────────────────────────────
@@ -5728,6 +5773,33 @@ const I18N_DICT={
     owner_reset_needs_code:'A recovery code exists for this owner account, so Access Control cannot be reset without it. Enter the recovery code to set a new owner password.',
     toast_recovery_code_required_created:'A recovery code has been created for your owner account. Write it down and keep it safe — it is now the only way to reset a forgotten owner password.',
     val_product_duplicate:'A product named \u2018{name}\u2019 already exists ({sku}, stock {stock}). To add quantity, use Stock In; to change price, edit that product.',
+    bc_lbl_barcode:'Barcode',
+    bc_ph_barcode:'Scan or type the barcode (optional)',
+    bc_ph_scan_stockin:'Scan or type a barcode to find the product',
+    bc_val_invalid:'This barcode is not valid: use letters, numbers and symbols only (64 characters maximum).',
+    bc_val_duplicate:'This barcode already belongs to \u2018{name}\u2019 ({sku}). A barcode can identify only one product.',
+    bc_not_found:'Barcode not found. Add this product to your inventory first.',
+    bc_ambiguous:'This barcode is on more than one product. Correct it in Products before scanning it.',
+    bc_dup_ignored:'Same barcode scanned twice: the second scan was ignored.',
+    bc_found:'Found: {name}',
+    bc_discontinued:'\u2018{name}\u2019 is discontinued. Reactivate it in Products to receive stock.',
+    bc_csv_dup_existing:'Barcode {code} already used',
+    bc_csv_dup_in_file:'Barcode repeats row {row}',
+    bc_csv_skipped:'{count} row(s) skipped: barcode already used.',
+    bc_cam_scan:'Scan',
+    bc_cam_title:'Scan barcode',
+    bc_cam_btn_title:'Scan a barcode with the phone camera',
+    bc_cam_starting:'Starting the camera…',
+    bc_cam_aim:'Point the camera at the barcode and hold the phone steady.',
+    bc_cam_hint:'No barcode detected yet. Hold the barcode inside the white frame, 10\u201315 cm away, in good light. If the picture stays blurred, tap \u201cSwitch camera\u201d.',
+    bc_cam_unsupported:'Camera barcode scanning isn\u2019t supported on this browser. Type the barcode or use a barcode scanner.',
+    bc_cam_denied:'Camera access was refused. Allow the camera for Bizora in your browser settings, then try again.',
+    bc_cam_no_camera:'No camera was found on this device.',
+    bc_cam_error:'The camera could not be started. Close any other app using the camera and try again.',
+    bc_cam_scanned:'Barcode scanned: {code}',
+    bc_cam_switch:'Switch camera',
+    bc_cam_no_picture:'No picture from this camera. Tap \u201cSwitch camera\u201d to try another one.',
+    bc_cam_using:'Camera: {name}',
     val_product_duplicate_discontinued:'A product named \u2018{name}\u2019 already exists ({sku}) but is discontinued. Reactivate that product (edit it and set Status to Active) instead of creating another.',
     csv_dup_existing:'✗ Duplicate — already exists ({sku})',
     csv_dup_in_file:'✗ Duplicate — repeated in this file (row {row})',
@@ -6764,6 +6836,33 @@ const I18N_DICT={
     owner_reset_needs_code:'Un code de récupération existe pour ce compte propriétaire : le contrôle d\u2019accès ne peut pas être réinitialisé sans lui. Saisissez le code de récupération pour définir un nouveau mot de passe propriétaire.',
     toast_recovery_code_required_created:'Un code de récupération a été créé pour votre compte propriétaire. Notez-le et gardez-le en lieu sûr — c\u2019est désormais le seul moyen de réinitialiser un mot de passe propriétaire oublié.',
     val_product_duplicate:'Un produit nommé \u2018{name}\u2019 existe déjà ({sku}, stock {stock}). Pour ajouter de la quantité, utilisez l\u2019entrée de stock ; pour changer le prix, modifiez ce produit.',
+    bc_lbl_barcode:'Code-barres',
+    bc_ph_barcode:'Scannez ou saisissez le code-barres (facultatif)',
+    bc_ph_scan_stockin:'Scannez ou saisissez un code-barres pour trouver le produit',
+    bc_val_invalid:'Ce code-barres n\u2019est pas valide\u00A0: utilisez uniquement des lettres, des chiffres et des symboles (64\u00A0caractères au maximum).',
+    bc_val_duplicate:'Ce code-barres appartient déjà à \u2018{name}\u2019 ({sku}). Un code-barres ne peut identifier qu\u2019un seul produit.',
+    bc_not_found:'Code-barres introuvable. Ajoutez d\u2019abord ce produit à votre inventaire.',
+    bc_ambiguous:'Ce code-barres figure sur plusieurs produits. Corrigez-le dans Produits avant de le scanner.',
+    bc_dup_ignored:'Même code-barres scanné deux fois\u00A0: le second scan a été ignoré.',
+    bc_found:'Trouvé\u00A0: {name}',
+    bc_discontinued:'\u2018{name}\u2019 est arrêté. Réactivez-le dans Produits pour recevoir du stock.',
+    bc_csv_dup_existing:'Code-barres {code} déjà utilisé',
+    bc_csv_dup_in_file:'Code-barres répété (ligne {row})',
+    bc_csv_skipped:'{count} ligne(s) ignorée(s)\u00A0: code-barres déjà utilisé.',
+    bc_cam_scan:'Scanner',
+    bc_cam_title:'Scanner un code-barres',
+    bc_cam_btn_title:'Scanner un code-barres avec l\u2019appareil photo du téléphone',
+    bc_cam_starting:'Démarrage de l\u2019appareil photo…',
+    bc_cam_aim:'Pointez l\u2019appareil photo vers le code-barres et tenez le téléphone immobile.',
+    bc_cam_hint:'Aucun code-barres détecté pour l\u2019instant. Placez le code-barres dans le cadre blanc, à 10\u201315\u00A0cm, avec un bon éclairage. Si l\u2019image reste floue, touchez \u00AB\u00A0Changer d\u2019appareil photo\u00A0\u00BB.',
+    bc_cam_unsupported:'La lecture des codes-barres par l\u2019appareil photo n\u2019est pas prise en charge par ce navigateur. Saisissez le code-barres ou utilisez un lecteur de codes-barres.',
+    bc_cam_denied:'L\u2019accès à l\u2019appareil photo a été refusé. Autorisez l\u2019appareil photo pour Bizora dans les paramètres du navigateur, puis réessayez.',
+    bc_cam_no_camera:'Aucun appareil photo n\u2019a été trouvé sur cet appareil.',
+    bc_cam_error:'Impossible de démarrer l\u2019appareil photo. Fermez toute autre application qui l\u2019utilise, puis réessayez.',
+    bc_cam_scanned:'Code-barres scanné\u00A0: {code}',
+    bc_cam_switch:'Changer d\u2019appareil photo',
+    bc_cam_no_picture:'Aucune image de cet appareil photo. Touchez \u00AB\u00A0Changer d\u2019appareil photo\u00A0\u00BB pour en essayer un autre.',
+    bc_cam_using:'Appareil photo\u00A0: {name}',
     val_product_duplicate_discontinued:'Un produit nommé \u2018{name}\u2019 existe déjà ({sku}) mais il est arrêté. Réactivez ce produit (modifiez-le et mettez le statut sur Actif) au lieu d\u2019en créer un autre.',
     csv_dup_existing:'✗ Doublon — existe déjà ({sku})',
     csv_dup_in_file:'✗ Doublon — répété dans ce fichier (ligne {row})',
@@ -10622,7 +10721,7 @@ function exportCSV(type){
     const debtors=custs.filter(c=>custDebt(c.id)>0);
     csv='Customer ID,Name,Business,Phone,Outstanding,Invoiced,Paid,Rate%,Status\n'+debtors.map(c=>`"${csvSafe(custIdStr(c.id))}","${csvSafe(c.name)}","${csvSafe(c.businessName||'')}","${csvSafe(c.phone||'')}","${custDebt(c.id)}","${custInvoiced(c.id)}","${custPaid(c.id)}","${custInvoiced(c.id)>0?Math.round(custPaid(c.id)/custInvoiced(c.id)*100):0}","${csvSafe(c.status||'active')}"`).join('\n');fn='ledger_'+todayStr()+'.csv';
   }else if(type==='products'){
-    csv='SKU,Name,Category,Cost,Price,Stock,Unit,Low Stock Threshold,Status\n'+prods.map(p=>`"${csvSafe(p.sku)}","${csvSafe(p.name)}","${csvSafe(p.category||'')}","${p.cost}","${p.price}","${p.stock}","${csvSafe(p.unit||'')}","${p.lowStock||5}","${csvSafe(stockStatus(p))}"`).join('\n');fn='products_'+todayStr()+'.csv';
+    csv='SKU,Name,Category,Cost,Price,Stock,Unit,Low Stock Threshold,Status,Barcode\n'+prods.map(p=>`"${csvSafe(p.sku)}","${csvSafe(p.name)}","${csvSafe(p.category||'')}","${p.cost}","${p.price}","${p.stock}","${csvSafe(p.unit||'')}","${p.lowStock||5}","${csvSafe(stockStatus(p))}","${csvSafe(p.barcode||'')}"`).join('\n');fn='products_'+todayStr()+'.csv';
   }
   dl(csv,fn,'text/csv');toast(tf('toast_entity_exported',{entity:tOpt('entity_'+type,type)}),'success');
 }
@@ -11881,7 +11980,8 @@ function filterProducts(){
   const cat=document.getElementById('prodCatSel').value;
   const stockF=document.getElementById('prodStockSel').value;
   let p=S.get('products');
-  if(q)p=p.filter(x=>(x.name||'').toLowerCase().includes(q)||(x.sku||'').toLowerCase().includes(q)||(x.category||'').toLowerCase().includes(q));
+  const qBc=normBarcode(document.getElementById('prodSearch').value); // exact barcode match, in addition to the existing search
+  if(q)p=p.filter(x=>(x.name||'').toLowerCase().includes(q)||(x.sku||'').toLowerCase().includes(q)||(x.category||'').toLowerCase().includes(q)||(qBc&&normBarcode(x.barcode)===qBc));
   if(cat)p=p.filter(x=>x.category===cat);
   if(stockF)p=p.filter(x=>stockStatus(x)===stockF);
   const actSel=document.getElementById('prodActivitySel');
@@ -11893,7 +11993,7 @@ function filterProducts(){
 function resetProdForm(){
   document.getElementById('editProdId').value='';
   document.getElementById('prodSkuRow').style.display='none';
-  ['pName','pCategory','pCost','pPrice','pNotesF'].forEach(id=>document.getElementById(id).value='');
+  ['pName','pCategory','pCost','pPrice','pNotesF','pBarcode'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('pUnit').value='pcs';
   document.getElementById('pStock').value='';
   document.getElementById('pStock').disabled=false; // editProduct() locks this field; re-enable for Add Product
@@ -11928,6 +12028,55 @@ function duplicateProductMessage(p){
     ?tf('val_product_duplicate_discontinued',{name:p.name,sku:p.sku||'—'})
     :tf('val_product_duplicate',{name:p.name,sku:p.sku||'—',stock:fmtQty(p.stock)});
 }
+/* ═══ BARCODE IDENTIFICATION (Phase 1) ═══
+   A barcode is an optional product identifier (product.barcode, a string).
+   It never carries price, cost, stock, customer or supplier meaning: it only
+   finds a product, then hands over to the existing workflows
+   (addPosItemFromProduct, saveStockIn, the product form).
+   - normBarcode(): one normalization for save, search, import and scan.
+     Removes all whitespace (scanners append Enter/Tab/CR; people type
+     spaces); keeps every other character, letter case and leading zeros.
+     Never converted to a number.
+   - Lookup: barcode -> product id map, built from memory on first use and
+     rebuilt only when the products list changes (new array or new length)
+     or after a barcode write (invalidateBarcodeIndex). No IndexedDB index,
+     no startup scan, no timer. A hit is re-checked against the live record.
+   - A barcode found on two products (possible after restoring another
+     device's backup) is reported as ambiguous and never guessed. */
+const BARCODE_MAX_LEN=64;
+function normBarcode(v){return String(v==null?'':v).replace(/\s+/g,'');}
+function barcodeProblem(code){return !!code&&(code.length>BARCODE_MAX_LEN||!/^[\x21-\x7E]+$/.test(code));}
+let _bcIndex=null,_bcIndexArr=null,_bcIndexLen=-1;
+const _BC_AMBIGUOUS='\u0000ambiguous';
+function invalidateBarcodeIndex(){_bcIndex=null;}
+function _barcodeIndex(){
+  const prods=S.get('products');
+  if(!_bcIndex||_bcIndexArr!==prods||_bcIndexLen!==prods.length){
+    const m=new Map();
+    for(const p of prods){const c=normBarcode(p.barcode);if(c)m.set(c,m.has(c)?_BC_AMBIGUOUS:p.id);}
+    _bcIndex=m;_bcIndexArr=prods;_bcIndexLen=prods.length;
+  }
+  return _bcIndex;
+}
+/* -> {status:'ok',product} | {status:'unknown'} | {status:'ambiguous'} | {status:'empty'} */
+function lookupBarcode(raw){
+  const code=normBarcode(raw);
+  if(!code)return{status:'empty'};
+  for(let attempt=0;attempt<2;attempt++){
+    const id=_barcodeIndex().get(code);
+    if(id===undefined)return{status:'unknown',code};
+    if(id===_BC_AMBIGUOUS)return{status:'ambiguous',code};
+    const p=S.get('products').find(x=>x.id===id);
+    if(p&&normBarcode(p.barcode)===code)return{status:'ok',product:p,code};
+    invalidateBarcodeIndex(); // stale entry (record edited elsewhere): rebuild once and retry
+  }
+  return{status:'unknown',code};
+}
+/* Source-of-truth uniqueness check for saves: any OTHER product using the code. */
+function barcodeOwner(code,excludeId){
+  if(!code)return null;
+  return S.get('products').find(p=>p.id!==excludeId&&normBarcode(p.barcode)===code)||null;
+}
 function saveProduct(){
   const saveProductBtn=document.getElementById('saveProductBtn');
   if(saveProductBtn.disabled)return; // prevent a rapid double-tap from creating two products
@@ -11942,6 +12091,11 @@ function saveProduct(){
   // 4.3.4: refuse a name another product already uses (own name excluded on edit)
   const dupProd=findProductByName(name,eidCheck||null);
   if(dupProd){toast(duplicateProductMessage(dupProd),'error',7000);return;}
+  // Barcode: optional; one product per barcode (own barcode allowed on edit).
+  const barcode=normBarcode(document.getElementById('pBarcode').value);
+  if(barcodeProblem(barcode)){markErr('pBarcode',true);toast(t('bc_val_invalid'),'error',6000);return;}
+  const bcOwner=barcodeOwner(barcode,eidCheck||null);
+  if(bcOwner){markErr('pBarcode',true);toast(tf('bc_val_duplicate',{name:bcOwner.name,sku:bcOwner.sku||'—'}),'error',7000);return;}
   if(isNaN(cost)||cost<0){toast(t('val_cost_price_required'),'error');return;}
   if(isNaN(price)||price<0){toast(t('val_selling_price_required'),'error');return;}
   if(isNaN(stock)||stock<0){toast(t('val_opening_stock_required'),'error');return;}
@@ -11962,12 +12116,13 @@ function saveProduct(){
   if(eid){
     const i=prods.findIndex(p=>p.id===eid);
     const prevPrice=i>-1?(parseFloat(prods[i].price)||0):null;
-    if(i>-1){S.update('products',{...prods[i],...data});}
+    if(i>-1){const rec={...prods[i],...data};if(barcode)rec.barcode=barcode;else delete rec.barcode;S.update('products',rec);}
     // 4.3.3: record old → new catalog price when it changed (same audit structure)
     if(prevPrice!==null&&Math.abs(prevPrice-price)>0.005)logAuditEvent('edit',`Updated product: ${name} (price ${cur(prevPrice)} → ${cur(price)})`,{recordType:'product',recordId:eid,prevValue:prevPrice,newValue:price});
     else log('edit','Updated product: '+name);
   }
-  else{S.add('products',{...data,id:uid(),sku:nextSku(),stock,added:todayStr()});log('add','New product: '+name);}
+  else{S.add('products',{...data,...(barcode?{barcode}:{}),id:uid(),sku:nextSku(),stock,added:todayStr()});log('add','New product: '+name);}
+  invalidateBarcodeIndex();
   closeModal('mAddProd');loadProducts();
   toast(eid?t('toast_product_updated'):t('toast_product_added'),'success');
 }
@@ -11984,6 +12139,7 @@ function editProduct(id){
   document.getElementById('pTax').value=p.tax||0;
   document.getElementById('pStatus').value=p.status||'active';
   document.getElementById('pNotesF').value=p.notes||'';
+  document.getElementById('pBarcode').value=p.barcode||'';
   setFmtVal('pStock',p.stock);
   document.getElementById('pStock').disabled=true;
   document.getElementById('prodSkuRow').style.display='flex';
@@ -13547,8 +13703,32 @@ function openStockIn(productId){
   document.getElementById('stockInCost').value='';
   document.getElementById('stockInInvoice').value='';
   document.getElementById('stockInNotes').value='';
+  document.getElementById('stockInBarcode').value='';stockInBarcodeMsg('',false);
   document.getElementById('stockInSaveBtn').disabled=false; // reset in case a prior save left it disabled
   openModal('mStockIn');
+}
+/* Barcode in Stock In: identifies the product only, by selecting it in the
+   existing dropdown. Quantity, cost and saving stay with saveStockIn(). */
+function stockInBarcodeMsg(text,ok){
+  const el=document.getElementById('stockInBarcodeMsg');if(!el)return;
+  el.textContent=text;el.style.display=text?'block':'none';el.style.color=ok?'var(--success)':'var(--danger)';
+}
+function stockInBarcodeResolve(){
+  const r=lookupBarcode(document.getElementById('stockInBarcode').value);
+  if(r.status==='empty'){stockInBarcodeMsg('',false);return;}
+  if(r.status==='ambiguous'){stockInBarcodeMsg(t('bc_ambiguous'),false);return;}
+  if(r.status!=='ok'){stockInBarcodeMsg(t('bc_not_found'),false);return;}
+  const sel=document.getElementById('stockInProd');
+  if(![...sel.options].some(o=>o.value===r.product.id)){stockInBarcodeMsg(tf('bc_discontinued',{name:r.product.name}),false);return;}
+  sel.value=r.product.id;
+  stockInBarcodeMsg(tf('bc_found',{name:r.product.name}),true);
+  document.getElementById('stockInQty').focus();
+  return true;
+}
+function stockInBarcodeKeydown(e){
+  if(e.key!=='Enter'&&e.key!=='Tab')return;
+  const found=stockInBarcodeResolve();
+  if(e.key==='Enter'||found)e.preventDefault(); // a found product moves focus to Quantity; Tab must not skip past it
 }
 function saveStockIn(){
   if(!Auth.can('manageInventory')){toast(t('perm_no_receive_stock'),'error');return;}
@@ -13600,7 +13780,8 @@ function filterInventory(){
   const q=document.getElementById('invSearch').value.toLowerCase();
   const f=document.getElementById('invFilterSel').value;
   let p=S.get('products');
-  if(q)p=p.filter(x=>(x.name||'').toLowerCase().includes(q)||(x.sku||'').toLowerCase().includes(q));
+  const qBc=normBarcode(document.getElementById('invSearch').value); // exact barcode match, in addition to the existing search
+  if(q)p=p.filter(x=>(x.name||'').toLowerCase().includes(q)||(x.sku||'').toLowerCase().includes(q)||(qBc&&normBarcode(x.barcode)===qBc));
   if(f)p=p.filter(x=>stockStatus(x)===f);
   renderInvGrid(p);
 }
@@ -13798,7 +13979,10 @@ function searchPosProducts(){
   const q=document.getElementById('posProdSearch').value.toLowerCase().trim();
   const box=document.getElementById('posSearchResults');
   if(!q){box.classList.remove('show');box.innerHTML='';return;}
-  const prods=S.get('products').filter(p=>(p.name||'').toLowerCase().includes(q)||(p.sku||'').toLowerCase().includes(q)||(p.category||'').toLowerCase().includes(q)).slice(0,12);
+  let prods=S.get('products').filter(p=>(p.name||'').toLowerCase().includes(q)||(p.sku||'').toLowerCase().includes(q)||(p.category||'').toLowerCase().includes(q));
+  const bcHit=lookupBarcode(document.getElementById('posProdSearch').value); // exact barcode match is listed first; never added without Enter/Tab or a tap
+  if(bcHit.status==='ok')prods=[bcHit.product,...prods.filter(p=>p.id!==bcHit.product.id)];
+  prods=prods.slice(0,12);
   if(!prods.length){box.innerHTML='<div class="psr-item disabled">'+t('js_empty_no_products')+'</div>';box.classList.add('show');return;}
   box.innerHTML=prods.map(p=>{
     const st=stockStatus(p);
@@ -13818,6 +14002,261 @@ function searchPosProducts(){
 document.addEventListener('click',e=>{
   if(!e.target.closest('.product-search-wrap'))document.getElementById('posSearchResults')?.classList.remove('show');
 });
+/* Barcode scanner (keyboard-mode guns send the code + Enter, some + Tab).
+   Exact match only: the product goes through addPosItemFromProduct(), so the
+   cart, quantity, price and stock rules stay the existing ones. The same code
+   within 1 s of the last accepted scan is ignored (accidental double scan);
+   this is a timestamp comparison, not a timer. Unknown codes add nothing. */
+let _bcLastScan={code:'',at:0};
+function posSearchKeydown(e){
+  if(e.key!=='Enter'&&e.key!=='Tab')return;
+  const input=e.target,r=lookupBarcode(input.value);
+  if(r.status==='empty')return;
+  if(r.status==='ok'){e.preventDefault();posAddScannedProduct(r.product,r.code);return;}
+  if(e.key==='Tab')return; // not a known barcode: Tab keeps its normal behaviour
+  e.preventDefault();
+  if(r.status==='ambiguous'){toast(t('bc_ambiguous'),'error',6000);input.select();return;}
+  // Unknown code: Enter on a value that matches no barcode and lists no product adds nothing and says so.
+  // A normal name/SKU/category search that lists products is left alone.
+  searchPosProducts();
+  if(!document.querySelector('#posSearchResults .psr-name')){toast(t('bc_not_found'),'warning',5000);input.select();}
+}
+function posAddScannedProduct(p,code){
+  const now=Date.now();
+  const input=document.getElementById('posProdSearch');
+  if(_bcLastScan.code===code&&now-_bcLastScan.at<1000){
+    input.value='';document.getElementById('posSearchResults').classList.remove('show');
+    toast(t('bc_dup_ignored'),'info',1500);return;
+  }
+  if(stockStatus(p)==='out'){ // same rule as the search list, where out-of-stock items cannot be picked
+    input.value='';document.getElementById('posSearchResults').classList.remove('show');
+    toast(t('toast_not_enough_stock'),'warning');return;
+  }
+  _bcLastScan={code,at:now};
+  addPosItemFromProduct(p.id);
+}
+/* ═══ BARCODE CAMERA (Phase 2) ═══
+   Optional phone-camera input for the Phase 1 barcode workflows, behind
+   FeatureFlags.barcodeScanning (default OFF). Native BarcodeDetector only: no
+   library, no network. Frames stay in the <video> element; they are never
+   drawn, stored or sent anywhere.
+   The camera only produces a barcode string (normBarcode, never a number).
+   Each caller hands it to the existing Phase 1 path: lookupBarcode,
+   posAddScannedProduct (1 s duplicate guard, stock rule, addPosItemFromProduct),
+   stockInBarcodeResolve, the product form field (saveProduct validates).
+   Lifecycle: the MediaStream and the detection loop (requestAnimationFrame,
+   at most one detect() in flight, about 6 per second) exist only while the
+   scanner is open. The first barcode ends the session: loop stopped, every
+   track stopped, overlay closed, then one callback. Cancel, ✕, Escape, the
+   app going to the background, the page closing and another screen covering
+   the scanner (auto-lock, user switch) stop it the same way.
+   Camera choice: phones with several rear lenses get the main one (lowest
+   "camera2 N" number), and 🔄 Switch camera moves to the next lens; the lens
+   chosen is remembered on this phone (localStorage, bizora_bc_camera).
+   The listeners for those are added on open and removed on close. */
+const BC_CAM_FORMATS=['ean_13','ean_8','upc_a','upc_e','code_128'];
+const BC_CAM_PREF_KEY='bizora_bc_camera'; // this phone's chosen camera (a device preference, like the flags)
+const BarcodeCamera={
+  _s:null, // the open session, or null
+  supported(){return typeof window.BarcodeDetector==='function'&&!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia);},
+  isOpen(){return !!this._s;},
+  async open(onCode){
+    if(!FeatureFlags.isEnabled('barcodeScanning')||this._s)return;
+    if(!this.supported()){toast(t('bc_cam_unsupported'),'warning',6000);return;}
+    const s={onCode,stream:null,raf:0,busy:false,last:0,started:0,hinted:false,picSince:0,noPic:false,cams:[],detector:null};
+    this._s=s;
+    this._show(true);
+    this._status('bc_cam_starting',false);
+    try{
+      const avail=await BarcodeDetector.getSupportedFormats();
+      const formats=BC_CAM_FORMATS.filter(f=>avail.includes(f));
+      if(!formats.length)throw {bcKey:'bc_cam_unsupported'};
+      s.detector=new BarcodeDetector({formats});
+      if(s!==this._s)return; // closed while checking
+      // 1) the camera this phone used last time, else the browser's "back camera"
+      const saved=this._pref();
+      let ok=false,fromSaved=false;
+      if(saved){
+        try{ok=fromSaved=await this._start(s,saved);}
+        catch(e){if(e&&(e.name==='NotAllowedError'||e.name==='SecurityError'))throw e;this._pref('');} // that camera is gone: forget it
+      }
+      if(!ok&&s===this._s)ok=await this._start(s,null);
+      if(!ok)return; // closed meanwhile (already cleaned up)
+      // 2) phones with several rear cameras: the browser's pick is often the
+      //    ultra-wide or macro lens, which cannot read a barcode. Prefer the main one.
+      s.cams=await this._backCameras();
+      if(s!==this._s)return;
+      if(!fromSaved&&s.cams.length>1){
+        const main=s.cams[0];
+        if(main.deviceId&&this._currentId(s)!==main.deviceId){
+          try{this._stopStream(s);ok=await this._start(s,main.deviceId);}
+          catch(e){ok=false;}
+          if(!ok&&s===this._s)ok=await this._start(s,null); // keep the browser's choice if the main one will not open
+          if(!ok)return;
+        }
+      }
+    }catch(err){
+      if(s!==this._s)return;
+      this._stopSession(s);
+      this._status(this._errKey(err),true);
+      return; // the overlay stays open with the message until the user closes it
+    }
+    this._ready(s);
+    const v=document.getElementById('bcCamVideo');
+    const tick=async now=>{
+      if(s!==this._s)return;
+      s.raf=requestAnimationFrame(tick);
+      if(s.busy||now-s.last<160)return;
+      s.last=now;
+      const top=document.elementFromPoint(innerWidth/2,innerHeight/2);
+      if(top&&!top.closest('#bcCamOverlay,#toastRack')){this.close();return;} // covered (auto-lock, user switch): stop the camera; toasts don't count
+      if(!s.stream)return; // switching camera
+      if(v.readyState<2||!v.videoWidth){ // no picture yet
+        if(!s.noPic&&now-s.picSince>4000){s.noPic=true;this._status('bc_cam_no_picture',false);}
+        return;
+      }
+      s.busy=true;
+      let found=[];
+      try{found=await s.detector.detect(v);}catch(e){found=[];}
+      s.busy=false;
+      if(s!==this._s)return; // closed during detect(): ignore whatever it found
+      const hit=(found||[]).find(b=>b&&BC_CAM_FORMATS.includes(b.format)&&normBarcode(b.rawValue));
+      if(hit){const cb=s.onCode;this.close();cb(normBarcode(hit.rawValue));return;}
+      if(!s.hinted&&now-s.started>8000){s.hinted=true;this._status('bc_cam_hint',false);}
+    };
+    s.raf=requestAnimationFrame(tick);
+  },
+  /* Next rear camera; the one chosen is remembered on this phone. */
+  async switchCamera(){
+    const s=this._s;
+    if(!s||s.cams.length<2||s.switching)return;
+    s.switching=true;
+    const cur=this._currentId(s);
+    const i=s.cams.findIndex(c=>c.deviceId===cur);
+    const next=s.cams[(i+1)%s.cams.length];
+    this._stopStream(s);
+    this._status('bc_cam_starting',false);
+    try{
+      const ok=await this._start(s,next.deviceId);
+      if(!ok)return;
+      this._pref(next.deviceId);
+      this._ready(s);
+    }catch(err){
+      if(s===this._s)this._status(this._errKey(err),true); // try the next one with Switch camera, or Cancel
+    }finally{s.switching=false;}
+  },
+  close(){
+    const s=this._s;
+    this._s=null;
+    this._stopSession(s);
+    this._show(false);
+  },
+  async _start(s,deviceId){
+    const size={width:{ideal:1280},height:{ideal:720}};
+    const video=deviceId?{deviceId:{exact:deviceId},...size}:{facingMode:{ideal:'environment'},...size};
+    const stream=await navigator.mediaDevices.getUserMedia({audio:false,video});
+    if(s!==this._s){stream.getTracks().forEach(tr=>tr.stop());return false;} // closed while the permission prompt was up
+    s.stream=stream;
+    const tr=stream.getVideoTracks()[0];
+    try{ // continuous autofocus where the phone offers it (close-up barcodes)
+      const caps=tr&&tr.getCapabilities&&tr.getCapabilities();
+      if(caps&&Array.isArray(caps.focusMode)&&caps.focusMode.includes('continuous'))await tr.applyConstraints({advanced:[{focusMode:'continuous'}]});
+    }catch(e){}
+    if(s!==this._s)return false;
+    const v=document.getElementById('bcCamVideo');
+    v.srcObject=stream;
+    v.play().catch(()=>{}); // not awaited: a lens that never sends a picture must not hang here; the loop reports it
+    return s===this._s;
+  },
+  _ready(s){
+    s.started=s.picSince=performance.now();s.hinted=false;s.noPic=false;
+    this._status('bc_cam_aim',false);
+    const cur=this._currentId(s),cam=s.cams.find(c=>c.deviceId===cur);
+    const tr=s.stream&&s.stream.getVideoTracks()[0];
+    const name=(cam&&cam.label)||(tr&&tr.label)||'';
+    const info=document.getElementById('bcCamInfo');
+    if(info)info.textContent=name?tf('bc_cam_using',{name})+(s.cams.length>1&&cam?' ('+(s.cams.indexOf(cam)+1)+'/'+s.cams.length+')':''):'';
+    const sw=document.getElementById('bcCamSwitch');
+    if(sw)sw.style.display=s.cams.length>1?'':'none';
+  },
+  /* Rear cameras, main lens first. Chrome on Android names them
+     "camera2 0, facing back", "camera2 2, facing back"…; the lowest number is
+     normally the main lens. Without names (no permission yet) nothing is listed. */
+  async _backCameras(){
+    let list=[];
+    try{list=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='videoinput'&&d.deviceId);}catch(e){return[];}
+    const back=list.filter(d=>/back|rear|environment|arri[eè]re/i.test(d.label||''));
+    const num=d=>{const l=d.label||'',m=/(\d+)\s*,?\s*facing/i.exec(l)||/(\d+)\D*$/.exec(l);return m?parseInt(m[1],10):999;}; // "camera2 0, facing back" -> 0
+    return back.map((d,i)=>({deviceId:d.deviceId,label:d.label,n:num(d),i})).sort((a,b)=>a.n-b.n||a.i-b.i);
+  },
+  _currentId(s){
+    const tr=s&&s.stream&&s.stream.getVideoTracks()[0];
+    try{return (tr&&tr.getSettings&&tr.getSettings().deviceId)||'';}catch(e){return'';}
+  },
+  _pref(v){
+    try{
+      if(v===undefined)return localStorage.getItem(BC_CAM_PREF_KEY)||'';
+      if(v)localStorage.setItem(BC_CAM_PREF_KEY,v);else localStorage.removeItem(BC_CAM_PREF_KEY);
+    }catch(e){}
+    return '';
+  },
+  _errKey(err){
+    const n=err&&err.name;
+    return (err&&err.bcKey)||(n==='NotAllowedError'||n==='SecurityError'?'bc_cam_denied':n==='NotFoundError'||n==='OverconstrainedError'?'bc_cam_no_camera':'bc_cam_error');
+  },
+  _stopStream(s){
+    if(s&&s.stream){s.stream.getTracks().forEach(tr=>tr.stop());s.stream=null;}
+  },
+  _stopSession(s){
+    if(!s)return;
+    cancelAnimationFrame(s.raf);s.raf=0;
+    this._stopStream(s);
+    const v=document.getElementById('bcCamVideo');
+    if(v){try{v.pause();}catch(e){}v.srcObject=null;}
+  },
+  _status(key,isErr){
+    const el=document.getElementById('bcCamStatus');if(el)el.textContent=t(key);
+    document.getElementById('bcCamOverlay').classList.toggle('err',!!isErr);
+  },
+  _show(on){
+    document.getElementById('bcCamOverlay').classList.toggle('on',on);
+    if(on){document.addEventListener('visibilitychange',_bcCamOnHide);window.addEventListener('pagehide',_bcCamOnHide);window.addEventListener('keydown',_bcCamOnKey,true);}
+    else{
+      document.removeEventListener('visibilitychange',_bcCamOnHide);window.removeEventListener('pagehide',_bcCamOnHide);window.removeEventListener('keydown',_bcCamOnKey,true);
+      document.getElementById('bcCamOverlay').classList.remove('err');
+      const info=document.getElementById('bcCamInfo');if(info)info.textContent='';
+      const sw=document.getElementById('bcCamSwitch');if(sw)sw.style.display='none';
+    }
+  }
+};
+function _bcCamOnHide(e){if(e.type==='pagehide'||document.visibilityState==='hidden')BarcodeCamera.close();}
+function _bcCamOnKey(e){if(e.key==='Escape'){e.stopPropagation();e.preventDefault();BarcodeCamera.close();}} // closes the scanner only, not the form under it
+/* Callers: each one feeds an existing Phase 1 path. */
+function bcCamToPos(){
+  BarcodeCamera.open(code=>{
+    const r=lookupBarcode(code);
+    if(r.status==='ok'){posAddScannedProduct(r.product,r.code);return;}
+    if(r.status==='ambiguous'){toast(t('bc_ambiguous'),'error',6000);return;}
+    toast(t('bc_not_found'),'warning',5000); // unknown: nothing added, nothing changed
+  });
+}
+function bcCamToProductForm(){
+  BarcodeCamera.open(code=>{
+    document.getElementById('pBarcode').value=code;markErr('pBarcode',false);
+    toast(tf('bc_cam_scanned',{code}),'success',2500); // filled only; Save still runs saveProduct()'s checks
+  });
+}
+function bcCamToStockIn(){
+  BarcodeCamera.open(code=>{document.getElementById('stockInBarcode').value=code;stockInBarcodeResolve();});
+}
+function bcCamToProductSearch(){
+  BarcodeCamera.open(code=>{
+    const r=lookupBarcode(code);
+    if(r.status==='unknown'){toast(t('bc_not_found'),'warning',5000);return;}
+    if(r.status==='ambiguous')toast(t('bc_ambiguous'),'error',6000);
+    document.getElementById('prodSearch').value=code;filterProducts();
+  });
+}
 function addPosItemFromProduct(productId){
   const p=S.get('products').find(x=>x.id===productId);if(!p)return;
   const existing=posItems.find(i=>i.productId===productId);
@@ -17799,6 +18238,7 @@ function buildCsvPreview(type,headers,rows){
   }else if(type==='products'){
     head='<tr><th>'+t('js_th_row')+'</th><th>'+t('js_th_name')+'</th><th>'+t('th_cost')+'</th><th>'+t('th_price')+'</th><th>'+t('th_stock')+'</th><th>'+t('lbl_status')+'</th></tr>';
     const iName=findCol(headers,'name','product name'),iCost=findCol(headers,'cost','cost price'),iPrice=findCol(headers,'price','selling price'),iStock=findCol(headers,'stock','current stock');
+    const iBc=findCol(headers,'barcode','bar code','ean'),bcSeen=new Map(); // optional column; old files without it are unchanged
     const nameIdx=productNameIndex(null),seenInFile=new Map(); // 4.3.4: one lookup per import
     rows.forEach(r=>{
       const name=(r[iName]||'').trim();
@@ -17812,8 +18252,16 @@ function buildCsvPreview(type,headers,rows){
         else seenInFile.set(k,csvParsedRows.length+1);
         if(dup)valid=false;
       }
+      const bc=iBc>-1?normBarcode(r[iBc]):'';
+      if(valid&&bc){
+        if(barcodeProblem(bc))dup={kind:'bc_invalid'};
+        else if(lookupBarcode(bc).status!=='unknown')dup={kind:'bc_existing',code:bc};
+        else if(bcSeen.has(bc))dup={kind:'bc_file',row:bcSeen.get(bc)};
+        else bcSeen.set(bc,csvParsedRows.length+1);
+        if(dup)valid=false;
+      }
       if(valid)validCount++;
-      csvParsedRows.push({valid,dup,data:{name,cost:isNaN(cost)?0:cost,price:isNaN(price)?0:price,stock:isNaN(stock)?0:stock,category:'Imported',unit:'pcs',lowStock:5,tax:0}});
+      csvParsedRows.push({valid,dup,data:{name,cost:isNaN(cost)?0:cost,price:isNaN(price)?0:price,stock:isNaN(stock)?0:stock,category:'Imported',unit:'pcs',lowStock:5,tax:0,...(bc&&valid?{barcode:bc}:{})}});
     });
   }else if(type==='sales'){
     head='<tr><th>'+t('js_th_row')+'</th><th>'+t('lbl_customer')+'</th><th>'+t('lbl_amount')+'</th><th>'+t('th_cost')+'</th><th>'+t('lbl_date')+'</th><th>'+t('js_th_due')+'</th><th>'+t('lbl_status')+'</th></tr>';
@@ -17852,7 +18300,7 @@ function renderCsvPreviewBody(){
     if(type==='customers')cells=`<td>${esc(d.name)}</td><td>${esc(d.phone)}</td><td>${esc(d.businessName)}</td><td>${esc(d.group)}</td>`;
     else if(type==='products')cells=`<td>${esc(d.name)}</td><td>${cur(d.cost)}</td><td>${cur(d.price)}</td><td>${fmtQty(d.stock)}</td>`;
     else if(type==='sales')cells=`<td>${esc(d.custName)}</td><td>${cur(d.amount)}</td><td>${d.costProvided?cur(d.cost):`<em style="color:var(--warning)">${cur(estimatedCsvCost(d.amount))} est.</em>`}</td><td>${esc(d.date)}</td><td>${esc(d.due)}</td>`;
-    return`<tr class="${row.valid?'csv-row-ok':'csv-row-error'}"><td>${i+1}</td>${cells}<td><span class="csv-status-badge" style="background:${row.valid?'var(--success-lt)':'var(--danger-lt)'};color:${row.valid?'var(--success)':'var(--danger)'}">${row.valid?'✓ Valid':(row.dup?(row.dup.kind==='existing'?tf('csv_dup_existing',{sku:row.dup.sku}):tf('csv_dup_in_file',{row:row.dup.row})):'✗ Invalid')}</span></td></tr>`;
+    return`<tr class="${row.valid?'csv-row-ok':'csv-row-error'}"><td>${i+1}</td>${cells}<td><span class="csv-status-badge" style="background:${row.valid?'var(--success-lt)':'var(--danger-lt)'};color:${row.valid?'var(--success)':'var(--danger)'}">${row.valid?'✓ Valid':(row.dup?(row.dup.kind==='existing'?tf('csv_dup_existing',{sku:row.dup.sku}):row.dup.kind==='bc_invalid'?t('bc_val_invalid'):row.dup.kind==='bc_existing'?tf('bc_csv_dup_existing',{code:row.dup.code}):row.dup.kind==='bc_file'?tf('bc_csv_dup_in_file',{row:row.dup.row}):tf('csv_dup_in_file',{row:row.dup.row})):'✗ Invalid')}</span></td></tr>`;
   }).join('');
 }
 function estimatedCsvCost(amount){
@@ -17880,15 +18328,22 @@ function commitCsvImport(){
        rows may have been altered directly) with one lookup for the import. */
     const nameIdx=productNameIndex(null);
     const toAdd=[];
-    validRows.forEach(r=>{const k=normProductName(r.data&&r.data.name);if(!k||nameIdx.has(k))return;nameIdx.set(k,true);toAdd.push(r);});
-    const skipped=validRows.length-toAdd.length;
+    const bcTaken=new Set();let bcSkipped=0;
+    validRows.forEach(r=>{const k=normProductName(r.data&&r.data.name);if(!k||nameIdx.has(k))return;
+      const bc=normBarcode(r.data&&r.data.barcode);
+      if(bc&&(barcodeProblem(bc)||bcTaken.has(bc)||lookupBarcode(bc).status!=='unknown')){bcSkipped++;return;} // barcode: one product per code
+      if(bc)bcTaken.add(bc);
+      nameIdx.set(k,true);toAdd.push(r);});
+    const skipped=validRows.length-toAdd.length-bcSkipped;
     if(!toAdd.length){toast(t('csv_all_duplicates'),'warning',6000);return;}
     const prods=S.get('products');
     toAdd.forEach(r=>prods.push({...r.data,id:uid(),sku:nextSku(),status:'active',notes:'Imported via CSV',added:todayStr()}));
     S.set('products',prods);
+    invalidateBarcodeIndex();
     importedCount=toAdd.length;
-    log('add',`Imported ${toAdd.length} products via CSV`+(skipped?` (${skipped} duplicate name(s) skipped)`:''));
+    log('add',`Imported ${toAdd.length} products via CSV`+(skipped?` (${skipped} duplicate name(s) skipped)`:'')+(bcSkipped?` (${bcSkipped} duplicate barcode(s) skipped)`:''));
     if(skipped)toast(tf('csv_dups_skipped',{count:skipped}),'warning',6000);
+    if(bcSkipped)toast(tf('bc_csv_skipped',{count:bcSkipped}),'warning',6000);
   }else if(type==='sales'){
     const sales=S.get('sales');
     validRows.forEach(r=>{
