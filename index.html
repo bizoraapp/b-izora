@@ -262,10 +262,10 @@
   /* Inputs: slightly larger click target and a crisper focus state,
      matching the same premium-but-restrained language as the buttons
      above. */
-  select.fc,input[type=date].fc,input[type=number].fc,input[type=text].fc,input[type=email].fc,textarea.fc{
+  select.fc,input[type=date].fc,input[type=number].fc,input[type=text].fc,input[type=email].fc,input[type=tel].fc,textarea.fc{
     padding:12px 15px;
   }
-  select.fc:focus,input[type=date].fc:focus,input[type=number].fc:focus,input[type=text].fc:focus,input[type=email].fc:focus,textarea.fc:focus{
+  select.fc:focus,input[type=date].fc:focus,input[type=number].fc:focus,input[type=text].fc:focus,input[type=email].fc:focus,input[type=tel].fc:focus,textarea.fc:focus{
     border-color:var(--navy);
     box-shadow:0 0 0 3px rgba(11,44,107,.08),inset 0 1px 3px rgba(11,44,107,.05);
   }
@@ -435,7 +435,7 @@ canvas{display:block;max-width:100%}
 .search-wrap input{width:100%;padding:11px 14px 11px 38px;border:1px solid var(--border);border-radius:var(--r2);background:var(--card);color:var(--txt);font-size:15px;outline:none;transition:var(--transition);box-shadow:inset 0 1px 3px rgba(11,44,107,.05)}
 .search-wrap input:focus{border-color:var(--gold);box-shadow:0 0 0 4px var(--gold-lt),inset 0 1px 3px rgba(11,44,107,.05)}
 .search-wrap::before{content:'🔍';position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none;opacity:.6}
-select.fc,input[type=date].fc,input[type=number].fc,input[type=text].fc,input[type=email].fc,textarea.fc{padding:10px 13px;border:1px solid var(--border);border-radius:var(--r2);background:var(--card);color:var(--txt);font-size:15px;outline:none;transition:var(--transition);font-family:inherit;box-shadow:inset 0 1px 3px rgba(11,44,107,.05)}
+select.fc,input[type=date].fc,input[type=number].fc,input[type=text].fc,input[type=email].fc,input[type=tel].fc,textarea.fc{padding:10px 13px;border:1px solid var(--border);border-radius:var(--r2);background:var(--card);color:var(--txt);font-size:15px;outline:none;transition:var(--transition);font-family:inherit;box-shadow:inset 0 1px 3px rgba(11,44,107,.05)}
 select.fc:focus,input.fc:focus,textarea.fc:focus{border-color:var(--gold);box-shadow:0 0 0 4px var(--gold-lt),inset 0 1px 3px rgba(11,44,107,.05)}
 select.fc{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235B6478' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px;appearance:none}
 textarea.fc{resize:vertical;min-height:76px;line-height:1.6}
@@ -824,6 +824,7 @@ tbody tr.cancelled-row td:last-child{text-decoration:none;opacity:1}
 .bn-item.active{background:linear-gradient(135deg,var(--gold),var(--gold-d));color:var(--navy-d);box-shadow:var(--glow-gold)}
 .bn-item.active .bn-ic{transform:translateY(-2px) scale(1.12)}
 .bn-item:active{transform:scale(.93)}
+@media(max-width:768px){.bottom-nav{display:flex}} /* UX-04: must follow the .bottom-nav{display:none} rule above, or the phone rule never wins */
 
 /* ═══════ PHASE 5: POS / PRODUCTS / INVENTORY / DEBT COLLECTION ═══════ */
 /* Stock badges */
@@ -1372,11 +1373,11 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
 
 <div class="sb-overlay" id="sbOverlay" onclick="closeSidebar()"></div>
 <nav class="bottom-nav" id="bottomNav">
-  <div class="bn-item" id="bn-dashboard" onclick="go('dashboard')"><span class="bn-ic">🏠</span><span class="bn-lbl">Home</span></div>
-  <div class="bn-item" id="bn-pos" onclick="go('pos')"><span class="bn-ic">🛒</span><span class="bn-lbl">Sales</span></div>
-  <div class="bn-item" id="bn-ledger" onclick="go('ledger')"><span class="bn-ic">💳</span><span class="bn-lbl">Credit</span></div>
-  <div class="bn-item" id="bn-inventory" onclick="go('inventory')"><span class="bn-ic">📦</span><span class="bn-lbl">Inventory</span></div>
-  <div class="bn-item" id="bn-more" onclick="toggleSidebar()"><span class="bn-ic">☰</span><span class="bn-lbl">More</span></div>
+  <div class="bn-item" id="bn-dashboard" onclick="go('dashboard')"><span class="bn-ic">🏠</span><span class="bn-lbl" data-i18n="bn_home">Home</span></div>
+  <div class="bn-item" id="bn-pos" onclick="go('pos')"><span class="bn-ic">🛒</span><span class="bn-lbl" data-i18n="bn_sales">Sales</span></div>
+  <div class="bn-item" id="bn-ledger" onclick="go('ledger')"><span class="bn-ic">💳</span><span class="bn-lbl" data-i18n="bn_credit">Credit</span></div>
+  <div class="bn-item" id="bn-inventory" onclick="go('inventory')"><span class="bn-ic">📦</span><span class="bn-lbl" data-i18n="bn_inventory">Inventory</span></div>
+  <div class="bn-item" id="bn-more" onclick="toggleSidebar()"><span class="bn-ic">☰</span><span class="bn-lbl" data-i18n="bn_more">More</span></div>
 </nav>
 <aside class="sidebar" id="sidebar">
   <div class="sb-logo">
@@ -2681,7 +2682,8 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
       <p style="font-size:14px;color:var(--txt2);margin-bottom:16px">Let's set up your business profile — takes 30 seconds, and you can always change this later in Settings.</p>
       <div class="form-group">
         <label class="form-label">Business Name</label>
-        <input class="fc fw" id="frBizName" type="text" placeholder="e.g. Mama Ngozi's Store">
+        <input class="fc fw" id="frBizName" type="text" placeholder="e.g. Mama Ngozi's Store" oninput="markErr('frBizName',false);document.getElementById('frBizNameErr').style.display='none'">
+        <p id="frBizNameErr" style="display:none;color:var(--danger);font-size:13px;margin-top:6px"></p>
       </div>
       <!-- Reuses the exact same logo functionality as Settings: same
            handleLogoUpload()/removeLogo() functions, same settings.logo
@@ -4699,6 +4701,13 @@ const FirstRunWizard = {
   },
   complete(){
     const name = document.getElementById('frBizName').value.trim();
+    if(!name){ // UX-03: a blank name is never saved; the wizard stays open. "Skip for now" is unchanged.
+      markErr('frBizName',true);
+      const err = document.getElementById('frBizNameErr');
+      if(err){ err.textContent = t('val_business_name_required'); err.style.display = 'block'; }
+      document.getElementById('frBizName').focus();
+      return;
+    }
     const currency = document.getElementById('frCurrency').value.trim() || 'FCFA';
     const phone = document.getElementById('frPhone').value.trim();
     const cfg = { ...S.obj('settings', {}), businessName: name, currency, phone, setupCompleted: true };
@@ -5429,6 +5438,7 @@ const I18N_DICT={
     nav_sec_overview:'Overview',nav_sec_customers:'Customers',nav_sec_catalog:'Catalog',
     nav_sec_pos:'Point of Sale',nav_sec_analytics:'Analytics',nav_sec_system:'System',nav_sec_support:'Support',
     // Sidebar nav items
+    bn_home:'Home',bn_sales:'Sales',bn_credit:'Credit',bn_inventory:'Inventory',bn_more:'More',
     nav_dashboard:'Dashboard',nav_customers:'Customers',nav_products:'Products',nav_inventory:'Inventory',
     nav_pos:'Start Selling',nav_sales:'Credit Sales',nav_invoices:'Credit Invoices',nav_financial:'Financial Summary',nav_saleshistory:'Sales History',
     nav_payments:'Credit Repayment',nav_collection:'Debt Collection',nav_ledger:'Debt Ledger',
@@ -5761,6 +5771,7 @@ const I18N_DICT={
     toast_support_copy_failed:'Could not copy — number is {number}',
     perm_no_manage_customers:'🔒 You don\u2019t have permission to manage customers. Ask the Business Owner.',
     val_phone_required:'Phone number is required!',
+    val_business_name_required:'Please enter your business name.',
     val_phone_invalid:'Invalid phone number format! Use digits, +, spaces or dashes.',
     val_alt_phone_invalid:'Invalid alternative phone format!',
     val_email_invalid:'Invalid email address!',
@@ -6484,6 +6495,7 @@ const I18N_DICT={
   fr:{
     nav_sec_overview:'Aperçu',nav_sec_customers:'Clients',nav_sec_catalog:'Catalogue',
     nav_sec_pos:'Point de Vente',nav_sec_analytics:'Analytique',nav_sec_system:'Système',nav_sec_support:'Assistance',
+    bn_home:'Accueil',bn_sales:'Ventes',bn_credit:'Crédit',bn_inventory:'Inventaire',bn_more:'Plus',
     nav_dashboard:'Tableau de bord',nav_customers:'Clients',nav_products:'Produits',nav_inventory:'Inventaire',
     nav_pos:'Commencer à vendre',nav_sales:'Ventes à Crédit',nav_invoices:'Factures à Crédit',nav_financial:'Résumé Financier',nav_saleshistory:'Historique des Ventes',
     nav_payments:'Remboursement de Crédit',nav_collection:'Recouvrement de Créances',nav_ledger:'Registre des Créances',
@@ -6793,6 +6805,7 @@ const I18N_DICT={
     toast_support_copy_failed:'Copie impossible — le numéro est {number}',
     perm_no_manage_customers:'🔒 Vous n\u2019avez pas la permission de gérer les clients. Demandez au propriétaire de l\u2019entreprise.',
     val_phone_required:'Le numéro de téléphone est obligatoire\u00A0!',
+    val_business_name_required:'Veuillez saisir le nom de votre entreprise.',
     val_phone_invalid:'Format de numéro de téléphone invalide\u00A0! Utilisez des chiffres, +, des espaces ou des tirets.',
     val_alt_phone_invalid:'Format du téléphone secondaire invalide\u00A0!',
     val_email_invalid:'Adresse e-mail invalide\u00A0!',
@@ -17920,6 +17933,8 @@ function renderBackupReminder(){
   }
 }
 function checkBackupReminderOnLoad(){
+  // UX-02: not on a fresh install — the first-run wizard opens at the same moment and the toast would cover Get Started. Existing users: unchanged.
+  if(typeof FirstRunWizard!=='undefined'&&FirstRunWizard.shouldShow())return;
   const lastIso=getLastBackupDate();
   const days=lastIso?Math.floor((Date.now()-new Date(lastIso).getTime())/86400000):null;
   if(days===null||days>=30){
