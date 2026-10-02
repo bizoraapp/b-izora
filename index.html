@@ -13945,7 +13945,10 @@ function posSearchKeydown(e){
   if(e.key==='Tab')return; // not a known barcode: Tab keeps its normal behaviour
   e.preventDefault();
   if(r.status==='ambiguous'){toast(t('bc_ambiguous'),'error',6000);input.select();return;}
-  if(/^[0-9]{6,}$/.test(r.code)){toast(t('bc_not_found'),'warning',5000);input.select();} // looks like a retail barcode
+  // Unknown code: Enter on a value that matches no barcode and lists no product adds nothing and says so.
+  // A normal name/SKU/category search that lists products is left alone.
+  searchPosProducts();
+  if(!document.querySelector('#posSearchResults .psr-name')){toast(t('bc_not_found'),'warning',5000);input.select();}
 }
 function posAddScannedProduct(p,code){
   const now=Date.now();
