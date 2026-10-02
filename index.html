@@ -886,6 +886,19 @@ tbody tr.cancelled-row td:last-child{text-decoration:none;opacity:1}
 .pos-type-opt .pto-sub{font-size:12px;color:var(--txt3);font-weight:500}
 .product-search-wrap{position:relative;margin-bottom:14px}
 .product-search-results{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--card);border:1px solid var(--border);border-radius:var(--r2);box-shadow:var(--sh-lg);max-height:280px;overflow-y:auto;z-index:50;display:none}
+/* Barcode camera (Phase 2): buttons show only when FeatureFlags.barcodeScanning is on (html.bc-cam-on).
+   Plain overlay above the open modal: no backdrop-filter, no animation. */
+.bc-cam-btn{display:none}
+html.bc-cam-on .bc-cam-btn{display:inline-flex;flex-shrink:0}
+.bc-cam-row{display:flex;gap:8px;align-items:center}
+.bc-cam-row>input{flex:1;min-width:0}
+.bc-cam-bg{position:fixed;inset:0;z-index:1050;background:rgba(7,13,30,.85);display:none;align-items:center;justify-content:center;padding:16px}
+.bc-cam-bg.on{display:flex}
+.bc-cam-bg .modal{transform:none;max-width:480px}
+.bc-cam-video{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;background:#000;border-radius:var(--r2)}
+.bc-cam-bg.err .bc-cam-video{display:none}
+.bc-cam-status{margin-top:10px;font-size:14px;text-align:center;color:var(--txt2)}
+.bc-cam-bg.err .bc-cam-status{color:var(--danger);margin-top:0}
 .product-search-results.show{display:block}
 .psr-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s}
 .psr-item:last-child{border-bottom:none}
@@ -1574,7 +1587,7 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
     <!-- PRODUCTS -->
     <div class="page" id="page-products">
       <div class="filter-bar">
-        <div class="search-wrap"><input type="text" id="prodSearch" placeholder="Search by name, SKU, or category…" data-i18n-ph="prd_ph_search" oninput="filterProducts()"></div>
+        <div class="search-wrap"><input type="text" id="prodSearch" placeholder="Search by name, SKU, or category…" data-i18n-ph="prd_ph_search" oninput="filterProducts()"></div><button type="button" class="btn btn-outline btn-sm bc-cam-btn" onclick="bcCamToProductSearch()" title="Scan a barcode with the phone camera" data-i18n-title="bc_cam_btn_title">📷 <span data-i18n="bc_cam_scan">Scan</span></button>
         <select class="fc" id="prodCatSel" onchange="filterProducts()"><option value="">All Categories</option></select>
         <select class="fc" id="prodStockSel" onchange="filterProducts()">
           <option value="" data-i18n="lbl_all_stock_levels">All Stock Levels</option><option value="ok" data-i18n="prd_opt_in_stock">In Stock</option>
@@ -1866,7 +1879,7 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
           <div class="card">
             <div class="card-title" style="margin-bottom:10px">🛒 <span data-i18n="nav_products">Products</span></div>
             <div class="product-search-wrap">
-              <input type="text" class="fc fw" id="posProdSearch" placeholder="🔍 Search product by name or SKU to add…" oninput="searchPosProducts()" onfocus="searchPosProducts()" onkeydown="posSearchKeydown(event)" autocomplete="off" data-i18n-ph="pos_search_ph">
+              <div class="bc-cam-row"><input type="text" class="fc fw" id="posProdSearch" placeholder="🔍 Search product by name or SKU to add…" oninput="searchPosProducts()" onfocus="searchPosProducts()" onkeydown="posSearchKeydown(event)" autocomplete="off" data-i18n-ph="pos_search_ph"><button type="button" class="btn btn-outline btn-sm bc-cam-btn" onclick="bcCamToPos()" title="Scan a barcode with the phone camera" data-i18n-title="bc_cam_btn_title">📷 <span data-i18n="bc_cam_scan">Scan</span></button></div>
               <div class="product-search-results" id="posSearchResults"></div>
             </div>
             <div class="pos-toptype" style="margin-bottom:10px">
@@ -3182,7 +3195,7 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
         <div class="form-group"><label class="form-label">Low Stock Threshold</label><input type="text" inputmode="decimal" class="fc fw num-fmt" id="pLowStock" placeholder="5" value="5"></div>
         <div class="form-group"><label class="form-label">Default Tax %</label><input type="number" class="fc fw" id="pTax" min="0" max="100" step="0.01" placeholder="0" value="0"></div>
       </div>
-      <div class="form-group"><label class="form-label" data-i18n="bc_lbl_barcode">Barcode</label><input type="text" class="fc fw" id="pBarcode" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="80" placeholder="Scan or type the barcode (optional)" data-i18n-ph="bc_ph_barcode" onkeydown="if(event.key==='Enter')event.preventDefault()" oninput="markErr('pBarcode',false)"></div>
+      <div class="form-group"><label class="form-label" data-i18n="bc_lbl_barcode">Barcode</label><div class="bc-cam-row"><input type="text" class="fc fw" id="pBarcode" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="80" placeholder="Scan or type the barcode (optional)" data-i18n-ph="bc_ph_barcode" onkeydown="if(event.key==='Enter')event.preventDefault()" oninput="markErr('pBarcode',false)"><button type="button" class="btn btn-outline btn-sm bc-cam-btn" onclick="bcCamToProductForm()" title="Scan a barcode with the phone camera" data-i18n-title="bc_cam_btn_title">📷 <span data-i18n="bc_cam_scan">Scan</span></button></div></div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Status</label>
           <select class="fc fw" id="pStatus"><option value="active">✅ Active</option><option value="discontinued">🚫 Discontinued</option></select>
@@ -3241,6 +3254,20 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
 </div>
 
 <!-- Stock In -->
+<!-- Barcode camera (Phase 2). Not a .modal-bg: it sits above the open form, and only BarcodeCamera.close() hides it (stopping the camera). -->
+<div class="bc-cam-bg" id="bcCamOverlay" role="dialog" aria-modal="true" aria-labelledby="bcCamTitle">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title" id="bcCamTitle" data-i18n="bc_cam_title">Scan barcode</div>
+      <button type="button" class="modal-close" onclick="BarcodeCamera.close()">✕</button>
+    </div>
+    <div class="modal-body">
+      <video id="bcCamVideo" class="bc-cam-video" playsinline muted></video>
+      <p id="bcCamStatus" class="bc-cam-status" aria-live="polite"></p>
+    </div>
+    <div class="modal-ftr"><button type="button" class="btn btn-outline" onclick="BarcodeCamera.close()" data-i18n="btn_cancel">Cancel</button></div>
+  </div>
+</div>
 <div class="modal-bg" id="mStockIn">
   <div class="modal modal-sm">
     <div class="modal-hdr">
@@ -3248,7 +3275,7 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
       <button class="modal-close" onclick="closeModal('mStockIn')">✕</button>
     </div>
     <div class="modal-body">
-      <div class="form-group"><label class="form-label" data-i18n="bc_lbl_barcode">Barcode</label><input type="text" class="fc fw" id="stockInBarcode" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="80" placeholder="Scan or type a barcode to find the product" data-i18n-ph="bc_ph_scan_stockin" onkeydown="stockInBarcodeKeydown(event)" onchange="stockInBarcodeResolve()"><p id="stockInBarcodeMsg" style="display:none;font-size:13px;margin-top:6px"></p></div>
+      <div class="form-group"><label class="form-label" data-i18n="bc_lbl_barcode">Barcode</label><div class="bc-cam-row"><input type="text" class="fc fw" id="stockInBarcode" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="80" placeholder="Scan or type a barcode to find the product" data-i18n-ph="bc_ph_scan_stockin" onkeydown="stockInBarcodeKeydown(event)" onchange="stockInBarcodeResolve()"><button type="button" class="btn btn-outline btn-sm bc-cam-btn" onclick="bcCamToStockIn()" title="Scan a barcode with the phone camera" data-i18n-title="bc_cam_btn_title">📷 <span data-i18n="bc_cam_scan">Scan</span></button></div><p id="stockInBarcodeMsg" style="display:none;font-size:13px;margin-top:6px"></p></div>
       <div class="form-group"><label class="form-label">Product *</label><select class="fc fw" id="stockInProd"></select></div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Quantity Received *</label><input type="text" inputmode="decimal" class="fc fw num-fmt" id="stockInQty" placeholder="0"></div>
@@ -4330,6 +4357,17 @@ const FeatureFlags = (() => {
     disable(name){ const f=load(); f[name]=false; save(f); },
     getAll(){ return load(); }
   };
+})();
+/* Barcode camera (Phase 2) test switch, device-only like every flag:
+   open Bizora with ?barcodecam=1 to turn FeatureFlags.barcodeScanning on for
+   this phone, ?barcodecam=0 to turn it off again. The default stays OFF; with
+   the flag off the camera buttons are hidden and BarcodeCamera.open() refuses. */
+(function(){
+  try{
+    const v=new URLSearchParams(location.search).get('barcodecam');
+    if(v==='1')FeatureFlags.enable('barcodeScanning');else if(v==='0')FeatureFlags.disable('barcodeScanning');
+    if(FeatureFlags.isEnabled('barcodeScanning'))document.documentElement.classList.add('bc-cam-on');
+  }catch(err){}
 })();
 
 /* ─── ErrorManager ─────────────────────────────────────────────────
@@ -5743,6 +5781,17 @@ const I18N_DICT={
     bc_csv_dup_existing:'Barcode {code} already used',
     bc_csv_dup_in_file:'Barcode repeats row {row}',
     bc_csv_skipped:'{count} row(s) skipped: barcode already used.',
+    bc_cam_scan:'Scan',
+    bc_cam_title:'Scan barcode',
+    bc_cam_btn_title:'Scan a barcode with the phone camera',
+    bc_cam_starting:'Starting the camera…',
+    bc_cam_aim:'Point the camera at the barcode and hold the phone steady.',
+    bc_cam_hint:'No barcode detected yet. Fill the frame with the barcode, keep it in focus and use good light.',
+    bc_cam_unsupported:'Camera barcode scanning isn\u2019t supported on this browser. Type the barcode or use a barcode scanner.',
+    bc_cam_denied:'Camera access was refused. Allow the camera for Bizora in your browser settings, then try again.',
+    bc_cam_no_camera:'No camera was found on this device.',
+    bc_cam_error:'The camera could not be started. Close any other app using the camera and try again.',
+    bc_cam_scanned:'Barcode scanned: {code}',
     val_product_duplicate_discontinued:'A product named \u2018{name}\u2019 already exists ({sku}) but is discontinued. Reactivate that product (edit it and set Status to Active) instead of creating another.',
     csv_dup_existing:'✗ Duplicate — already exists ({sku})',
     csv_dup_in_file:'✗ Duplicate — repeated in this file (row {row})',
@@ -6792,6 +6841,17 @@ const I18N_DICT={
     bc_csv_dup_existing:'Code-barres {code} déjà utilisé',
     bc_csv_dup_in_file:'Code-barres répété (ligne {row})',
     bc_csv_skipped:'{count} ligne(s) ignorée(s)\u00A0: code-barres déjà utilisé.',
+    bc_cam_scan:'Scanner',
+    bc_cam_title:'Scanner un code-barres',
+    bc_cam_btn_title:'Scanner un code-barres avec l\u2019appareil photo du téléphone',
+    bc_cam_starting:'Démarrage de l\u2019appareil photo…',
+    bc_cam_aim:'Pointez l\u2019appareil photo vers le code-barres et tenez le téléphone immobile.',
+    bc_cam_hint:'Aucun code-barres détecté pour l\u2019instant. Cadrez tout le code-barres, gardez-le net et utilisez un bon éclairage.',
+    bc_cam_unsupported:'La lecture des codes-barres par l\u2019appareil photo n\u2019est pas prise en charge par ce navigateur. Saisissez le code-barres ou utilisez un lecteur de codes-barres.',
+    bc_cam_denied:'L\u2019accès à l\u2019appareil photo a été refusé. Autorisez l\u2019appareil photo pour Bizora dans les paramètres du navigateur, puis réessayez.',
+    bc_cam_no_camera:'Aucun appareil photo n\u2019a été trouvé sur cet appareil.',
+    bc_cam_error:'Impossible de démarrer l\u2019appareil photo. Fermez toute autre application qui l\u2019utilise, puis réessayez.',
+    bc_cam_scanned:'Code-barres scanné\u00A0: {code}',
     val_product_duplicate_discontinued:'Un produit nommé \u2018{name}\u2019 existe déjà ({sku}) mais il est arrêté. Réactivez ce produit (modifiez-le et mettez le statut sur Actif) au lieu d\u2019en créer un autre.',
     csv_dup_existing:'✗ Doublon — existe déjà ({sku})',
     csv_dup_in_file:'✗ Doublon — répété dans ce fichier (ligne {row})',
@@ -13963,6 +14023,128 @@ function posAddScannedProduct(p,code){
   }
   _bcLastScan={code,at:now};
   addPosItemFromProduct(p.id);
+}
+/* ═══ BARCODE CAMERA (Phase 2) ═══
+   Optional phone-camera input for the Phase 1 barcode workflows, behind
+   FeatureFlags.barcodeScanning (default OFF). Native BarcodeDetector only: no
+   library, no network. Frames stay in the <video> element; they are never
+   drawn, stored or sent anywhere.
+   The camera only produces a barcode string (normBarcode, never a number).
+   Each caller hands it to the existing Phase 1 path: lookupBarcode,
+   posAddScannedProduct (1 s duplicate guard, stock rule, addPosItemFromProduct),
+   stockInBarcodeResolve, the product form field (saveProduct validates).
+   Lifecycle: the MediaStream and the detection loop (requestAnimationFrame,
+   at most one detect() in flight, about 6 per second) exist only while the
+   scanner is open. The first barcode ends the session: loop stopped, every
+   track stopped, overlay closed, then one callback. Cancel, ✕, Escape, the
+   app going to the background, the page closing and another screen covering
+   the scanner (auto-lock, user switch) stop it the same way.
+   The listeners for those are added on open and removed on close. */
+const BC_CAM_FORMATS=['ean_13','ean_8','upc_a','upc_e','code_128'];
+const BarcodeCamera={
+  _s:null, // the open session, or null
+  supported(){return typeof window.BarcodeDetector==='function'&&!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia);},
+  isOpen(){return !!this._s;},
+  async open(onCode){
+    if(!FeatureFlags.isEnabled('barcodeScanning')||this._s)return;
+    if(!this.supported()){toast(t('bc_cam_unsupported'),'warning',6000);return;}
+    const s={onCode,stream:null,raf:0,busy:false,last:0,started:0,hinted:false};
+    this._s=s;
+    this._show(true);
+    this._status('bc_cam_starting',false);
+    let detector;
+    try{
+      const avail=await BarcodeDetector.getSupportedFormats();
+      const formats=BC_CAM_FORMATS.filter(f=>avail.includes(f));
+      if(!formats.length)throw {bcKey:'bc_cam_unsupported'};
+      detector=new BarcodeDetector({formats});
+      if(s!==this._s)return; // closed while checking
+      const stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}});
+      if(s!==this._s){stream.getTracks().forEach(tr=>tr.stop());return;} // closed while the permission prompt was up
+      s.stream=stream;
+      const v=document.getElementById('bcCamVideo');
+      v.srcObject=stream;
+      await v.play();
+      if(s!==this._s)return;
+    }catch(err){
+      if(s!==this._s)return;
+      this._stopSession(s);
+      const n=err&&err.name;
+      this._status((err&&err.bcKey)||(n==='NotAllowedError'||n==='SecurityError'?'bc_cam_denied':n==='NotFoundError'||n==='OverconstrainedError'?'bc_cam_no_camera':'bc_cam_error'),true);
+      return; // the overlay stays open with the message until the user closes it
+    }
+    this._status('bc_cam_aim',false);
+    const v=document.getElementById('bcCamVideo');
+    s.started=performance.now();
+    const tick=async now=>{
+      if(s!==this._s)return;
+      s.raf=requestAnimationFrame(tick);
+      if(s.busy||now-s.last<160)return;
+      s.last=now;
+      const top=document.elementFromPoint(innerWidth/2,innerHeight/2);
+      if(top&&!top.closest('#bcCamOverlay,#toastRack')){this.close();return;} // covered (auto-lock, user switch): stop the camera; toasts don't count
+      if(v.readyState<2)return;
+      s.busy=true;
+      let found=[];
+      try{found=await detector.detect(v);}catch(e){found=[];}
+      s.busy=false;
+      if(s!==this._s)return; // closed during detect(): ignore whatever it found
+      const hit=(found||[]).find(b=>b&&BC_CAM_FORMATS.includes(b.format)&&normBarcode(b.rawValue));
+      if(hit){const cb=s.onCode;this.close();cb(normBarcode(hit.rawValue));return;}
+      if(!s.hinted&&now-s.started>8000){s.hinted=true;this._status('bc_cam_hint',false);}
+    };
+    s.raf=requestAnimationFrame(tick);
+  },
+  close(){
+    const s=this._s;
+    this._s=null;
+    this._stopSession(s);
+    this._show(false);
+  },
+  _stopSession(s){
+    if(!s)return;
+    cancelAnimationFrame(s.raf);s.raf=0;
+    if(s.stream){s.stream.getTracks().forEach(tr=>tr.stop());s.stream=null;}
+    const v=document.getElementById('bcCamVideo');
+    if(v){try{v.pause();}catch(e){}v.srcObject=null;}
+  },
+  _status(key,isErr){
+    const el=document.getElementById('bcCamStatus');if(el)el.textContent=t(key);
+    document.getElementById('bcCamOverlay').classList.toggle('err',!!isErr);
+  },
+  _show(on){
+    document.getElementById('bcCamOverlay').classList.toggle('on',on);
+    if(on){document.addEventListener('visibilitychange',_bcCamOnHide);window.addEventListener('pagehide',_bcCamOnHide);window.addEventListener('keydown',_bcCamOnKey,true);}
+    else{document.removeEventListener('visibilitychange',_bcCamOnHide);window.removeEventListener('pagehide',_bcCamOnHide);window.removeEventListener('keydown',_bcCamOnKey,true);document.getElementById('bcCamOverlay').classList.remove('err');}
+  }
+};
+function _bcCamOnHide(e){if(e.type==='pagehide'||document.visibilityState==='hidden')BarcodeCamera.close();}
+function _bcCamOnKey(e){if(e.key==='Escape'){e.stopPropagation();e.preventDefault();BarcodeCamera.close();}} // closes the scanner only, not the form under it
+/* Callers: each one feeds an existing Phase 1 path. */
+function bcCamToPos(){
+  BarcodeCamera.open(code=>{
+    const r=lookupBarcode(code);
+    if(r.status==='ok'){posAddScannedProduct(r.product,r.code);return;}
+    if(r.status==='ambiguous'){toast(t('bc_ambiguous'),'error',6000);return;}
+    toast(t('bc_not_found'),'warning',5000); // unknown: nothing added, nothing changed
+  });
+}
+function bcCamToProductForm(){
+  BarcodeCamera.open(code=>{
+    document.getElementById('pBarcode').value=code;markErr('pBarcode',false);
+    toast(tf('bc_cam_scanned',{code}),'success',2500); // filled only; Save still runs saveProduct()'s checks
+  });
+}
+function bcCamToStockIn(){
+  BarcodeCamera.open(code=>{document.getElementById('stockInBarcode').value=code;stockInBarcodeResolve();});
+}
+function bcCamToProductSearch(){
+  BarcodeCamera.open(code=>{
+    const r=lookupBarcode(code);
+    if(r.status==='unknown'){toast(t('bc_not_found'),'warning',5000);return;}
+    if(r.status==='ambiguous')toast(t('bc_ambiguous'),'error',6000);
+    document.getElementById('prodSearch').value=code;filterProducts();
+  });
 }
 function addPosItemFromProduct(productId){
   const p=S.get('products').find(x=>x.id===productId);if(!p)return;
