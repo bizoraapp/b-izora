@@ -1866,7 +1866,7 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
           <div class="card">
             <div class="card-title" style="margin-bottom:10px">🛒 <span data-i18n="nav_products">Products</span></div>
             <div class="product-search-wrap">
-              <input type="text" class="fc fw" id="posProdSearch" placeholder="🔍 Search product by name or SKU to add…" oninput="searchPosProducts()" onfocus="searchPosProducts()" data-i18n-ph="pos_search_ph">
+              <input type="text" class="fc fw" id="posProdSearch" placeholder="🔍 Search product by name or SKU to add…" oninput="searchPosProducts()" onfocus="searchPosProducts()" onkeydown="posSearchKeydown(event)" autocomplete="off" data-i18n-ph="pos_search_ph">
               <div class="product-search-results" id="posSearchResults"></div>
             </div>
             <div class="pos-toptype" style="margin-bottom:10px">
@@ -3182,6 +3182,7 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
         <div class="form-group"><label class="form-label">Low Stock Threshold</label><input type="text" inputmode="decimal" class="fc fw num-fmt" id="pLowStock" placeholder="5" value="5"></div>
         <div class="form-group"><label class="form-label">Default Tax %</label><input type="number" class="fc fw" id="pTax" min="0" max="100" step="0.01" placeholder="0" value="0"></div>
       </div>
+      <div class="form-group"><label class="form-label" data-i18n="bc_lbl_barcode">Barcode</label><input type="text" class="fc fw" id="pBarcode" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="80" placeholder="Scan or type the barcode (optional)" data-i18n-ph="bc_ph_barcode" onkeydown="if(event.key==='Enter')event.preventDefault()" oninput="markErr('pBarcode',false)"></div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Status</label>
           <select class="fc fw" id="pStatus"><option value="active">✅ Active</option><option value="discontinued">🚫 Discontinued</option></select>
@@ -3247,6 +3248,7 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
       <button class="modal-close" onclick="closeModal('mStockIn')">✕</button>
     </div>
     <div class="modal-body">
+      <div class="form-group"><label class="form-label" data-i18n="bc_lbl_barcode">Barcode</label><input type="text" class="fc fw" id="stockInBarcode" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="80" placeholder="Scan or type a barcode to find the product" data-i18n-ph="bc_ph_scan_stockin" onkeydown="stockInBarcodeKeydown(event)" onchange="stockInBarcodeResolve()"><p id="stockInBarcodeMsg" style="display:none;font-size:13px;margin-top:6px"></p></div>
       <div class="form-group"><label class="form-label">Product *</label><select class="fc fw" id="stockInProd"></select></div>
       <div class="form-row">
         <div class="form-group"><label class="form-label">Quantity Received *</label><input type="text" inputmode="decimal" class="fc fw num-fmt" id="stockInQty" placeholder="0"></div>
@@ -5728,6 +5730,19 @@ const I18N_DICT={
     owner_reset_needs_code:'A recovery code exists for this owner account, so Access Control cannot be reset without it. Enter the recovery code to set a new owner password.',
     toast_recovery_code_required_created:'A recovery code has been created for your owner account. Write it down and keep it safe — it is now the only way to reset a forgotten owner password.',
     val_product_duplicate:'A product named \u2018{name}\u2019 already exists ({sku}, stock {stock}). To add quantity, use Stock In; to change price, edit that product.',
+    bc_lbl_barcode:'Barcode',
+    bc_ph_barcode:'Scan or type the barcode (optional)',
+    bc_ph_scan_stockin:'Scan or type a barcode to find the product',
+    bc_val_invalid:'This barcode is not valid: use letters, numbers and symbols only (64 characters maximum).',
+    bc_val_duplicate:'This barcode already belongs to \u2018{name}\u2019 ({sku}). A barcode can identify only one product.',
+    bc_not_found:'Barcode not found. Add this product to your inventory first.',
+    bc_ambiguous:'This barcode is on more than one product. Correct it in Products before scanning it.',
+    bc_dup_ignored:'Same barcode scanned twice: the second scan was ignored.',
+    bc_found:'Found: {name}',
+    bc_discontinued:'\u2018{name}\u2019 is discontinued. Reactivate it in Products to receive stock.',
+    bc_csv_dup_existing:'Barcode {code} already used',
+    bc_csv_dup_in_file:'Barcode repeats row {row}',
+    bc_csv_skipped:'{count} row(s) skipped: barcode already used.',
     val_product_duplicate_discontinued:'A product named \u2018{name}\u2019 already exists ({sku}) but is discontinued. Reactivate that product (edit it and set Status to Active) instead of creating another.',
     csv_dup_existing:'✗ Duplicate — already exists ({sku})',
     csv_dup_in_file:'✗ Duplicate — repeated in this file (row {row})',
@@ -6764,6 +6779,19 @@ const I18N_DICT={
     owner_reset_needs_code:'Un code de récupération existe pour ce compte propriétaire : le contrôle d\u2019accès ne peut pas être réinitialisé sans lui. Saisissez le code de récupération pour définir un nouveau mot de passe propriétaire.',
     toast_recovery_code_required_created:'Un code de récupération a été créé pour votre compte propriétaire. Notez-le et gardez-le en lieu sûr — c\u2019est désormais le seul moyen de réinitialiser un mot de passe propriétaire oublié.',
     val_product_duplicate:'Un produit nommé \u2018{name}\u2019 existe déjà ({sku}, stock {stock}). Pour ajouter de la quantité, utilisez l\u2019entrée de stock ; pour changer le prix, modifiez ce produit.',
+    bc_lbl_barcode:'Code-barres',
+    bc_ph_barcode:'Scannez ou saisissez le code-barres (facultatif)',
+    bc_ph_scan_stockin:'Scannez ou saisissez un code-barres pour trouver le produit',
+    bc_val_invalid:'Ce code-barres n\u2019est pas valide\u00A0: utilisez uniquement des lettres, des chiffres et des symboles (64\u00A0caractères au maximum).',
+    bc_val_duplicate:'Ce code-barres appartient déjà à \u2018{name}\u2019 ({sku}). Un code-barres ne peut identifier qu\u2019un seul produit.',
+    bc_not_found:'Code-barres introuvable. Ajoutez d\u2019abord ce produit à votre inventaire.',
+    bc_ambiguous:'Ce code-barres figure sur plusieurs produits. Corrigez-le dans Produits avant de le scanner.',
+    bc_dup_ignored:'Même code-barres scanné deux fois\u00A0: le second scan a été ignoré.',
+    bc_found:'Trouvé\u00A0: {name}',
+    bc_discontinued:'\u2018{name}\u2019 est arrêté. Réactivez-le dans Produits pour recevoir du stock.',
+    bc_csv_dup_existing:'Code-barres {code} déjà utilisé',
+    bc_csv_dup_in_file:'Code-barres répété (ligne {row})',
+    bc_csv_skipped:'{count} ligne(s) ignorée(s)\u00A0: code-barres déjà utilisé.',
     val_product_duplicate_discontinued:'Un produit nommé \u2018{name}\u2019 existe déjà ({sku}) mais il est arrêté. Réactivez ce produit (modifiez-le et mettez le statut sur Actif) au lieu d\u2019en créer un autre.',
     csv_dup_existing:'✗ Doublon — existe déjà ({sku})',
     csv_dup_in_file:'✗ Doublon — répété dans ce fichier (ligne {row})',
@@ -10622,7 +10650,7 @@ function exportCSV(type){
     const debtors=custs.filter(c=>custDebt(c.id)>0);
     csv='Customer ID,Name,Business,Phone,Outstanding,Invoiced,Paid,Rate%,Status\n'+debtors.map(c=>`"${csvSafe(custIdStr(c.id))}","${csvSafe(c.name)}","${csvSafe(c.businessName||'')}","${csvSafe(c.phone||'')}","${custDebt(c.id)}","${custInvoiced(c.id)}","${custPaid(c.id)}","${custInvoiced(c.id)>0?Math.round(custPaid(c.id)/custInvoiced(c.id)*100):0}","${csvSafe(c.status||'active')}"`).join('\n');fn='ledger_'+todayStr()+'.csv';
   }else if(type==='products'){
-    csv='SKU,Name,Category,Cost,Price,Stock,Unit,Low Stock Threshold,Status\n'+prods.map(p=>`"${csvSafe(p.sku)}","${csvSafe(p.name)}","${csvSafe(p.category||'')}","${p.cost}","${p.price}","${p.stock}","${csvSafe(p.unit||'')}","${p.lowStock||5}","${csvSafe(stockStatus(p))}"`).join('\n');fn='products_'+todayStr()+'.csv';
+    csv='SKU,Name,Category,Cost,Price,Stock,Unit,Low Stock Threshold,Status,Barcode\n'+prods.map(p=>`"${csvSafe(p.sku)}","${csvSafe(p.name)}","${csvSafe(p.category||'')}","${p.cost}","${p.price}","${p.stock}","${csvSafe(p.unit||'')}","${p.lowStock||5}","${csvSafe(stockStatus(p))}","${csvSafe(p.barcode||'')}"`).join('\n');fn='products_'+todayStr()+'.csv';
   }
   dl(csv,fn,'text/csv');toast(tf('toast_entity_exported',{entity:tOpt('entity_'+type,type)}),'success');
 }
@@ -11881,7 +11909,8 @@ function filterProducts(){
   const cat=document.getElementById('prodCatSel').value;
   const stockF=document.getElementById('prodStockSel').value;
   let p=S.get('products');
-  if(q)p=p.filter(x=>(x.name||'').toLowerCase().includes(q)||(x.sku||'').toLowerCase().includes(q)||(x.category||'').toLowerCase().includes(q));
+  const qBc=normBarcode(document.getElementById('prodSearch').value); // exact barcode match, in addition to the existing search
+  if(q)p=p.filter(x=>(x.name||'').toLowerCase().includes(q)||(x.sku||'').toLowerCase().includes(q)||(x.category||'').toLowerCase().includes(q)||(qBc&&normBarcode(x.barcode)===qBc));
   if(cat)p=p.filter(x=>x.category===cat);
   if(stockF)p=p.filter(x=>stockStatus(x)===stockF);
   const actSel=document.getElementById('prodActivitySel');
@@ -11893,7 +11922,7 @@ function filterProducts(){
 function resetProdForm(){
   document.getElementById('editProdId').value='';
   document.getElementById('prodSkuRow').style.display='none';
-  ['pName','pCategory','pCost','pPrice','pNotesF'].forEach(id=>document.getElementById(id).value='');
+  ['pName','pCategory','pCost','pPrice','pNotesF','pBarcode'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('pUnit').value='pcs';
   document.getElementById('pStock').value='';
   document.getElementById('pStock').disabled=false; // editProduct() locks this field; re-enable for Add Product
@@ -11928,6 +11957,55 @@ function duplicateProductMessage(p){
     ?tf('val_product_duplicate_discontinued',{name:p.name,sku:p.sku||'—'})
     :tf('val_product_duplicate',{name:p.name,sku:p.sku||'—',stock:fmtQty(p.stock)});
 }
+/* ═══ BARCODE IDENTIFICATION (Phase 1) ═══
+   A barcode is an optional product identifier (product.barcode, a string).
+   It never carries price, cost, stock, customer or supplier meaning: it only
+   finds a product, then hands over to the existing workflows
+   (addPosItemFromProduct, saveStockIn, the product form).
+   - normBarcode(): one normalization for save, search, import and scan.
+     Removes all whitespace (scanners append Enter/Tab/CR; people type
+     spaces); keeps every other character, letter case and leading zeros.
+     Never converted to a number.
+   - Lookup: barcode -> product id map, built from memory on first use and
+     rebuilt only when the products list changes (new array or new length)
+     or after a barcode write (invalidateBarcodeIndex). No IndexedDB index,
+     no startup scan, no timer. A hit is re-checked against the live record.
+   - A barcode found on two products (possible after restoring another
+     device's backup) is reported as ambiguous and never guessed. */
+const BARCODE_MAX_LEN=64;
+function normBarcode(v){return String(v==null?'':v).replace(/\s+/g,'');}
+function barcodeProblem(code){return !!code&&(code.length>BARCODE_MAX_LEN||!/^[\x21-\x7E]+$/.test(code));}
+let _bcIndex=null,_bcIndexArr=null,_bcIndexLen=-1;
+const _BC_AMBIGUOUS='\u0000ambiguous';
+function invalidateBarcodeIndex(){_bcIndex=null;}
+function _barcodeIndex(){
+  const prods=S.get('products');
+  if(!_bcIndex||_bcIndexArr!==prods||_bcIndexLen!==prods.length){
+    const m=new Map();
+    for(const p of prods){const c=normBarcode(p.barcode);if(c)m.set(c,m.has(c)?_BC_AMBIGUOUS:p.id);}
+    _bcIndex=m;_bcIndexArr=prods;_bcIndexLen=prods.length;
+  }
+  return _bcIndex;
+}
+/* -> {status:'ok',product} | {status:'unknown'} | {status:'ambiguous'} | {status:'empty'} */
+function lookupBarcode(raw){
+  const code=normBarcode(raw);
+  if(!code)return{status:'empty'};
+  for(let attempt=0;attempt<2;attempt++){
+    const id=_barcodeIndex().get(code);
+    if(id===undefined)return{status:'unknown',code};
+    if(id===_BC_AMBIGUOUS)return{status:'ambiguous',code};
+    const p=S.get('products').find(x=>x.id===id);
+    if(p&&normBarcode(p.barcode)===code)return{status:'ok',product:p,code};
+    invalidateBarcodeIndex(); // stale entry (record edited elsewhere): rebuild once and retry
+  }
+  return{status:'unknown',code};
+}
+/* Source-of-truth uniqueness check for saves: any OTHER product using the code. */
+function barcodeOwner(code,excludeId){
+  if(!code)return null;
+  return S.get('products').find(p=>p.id!==excludeId&&normBarcode(p.barcode)===code)||null;
+}
 function saveProduct(){
   const saveProductBtn=document.getElementById('saveProductBtn');
   if(saveProductBtn.disabled)return; // prevent a rapid double-tap from creating two products
@@ -11942,6 +12020,11 @@ function saveProduct(){
   // 4.3.4: refuse a name another product already uses (own name excluded on edit)
   const dupProd=findProductByName(name,eidCheck||null);
   if(dupProd){toast(duplicateProductMessage(dupProd),'error',7000);return;}
+  // Barcode: optional; one product per barcode (own barcode allowed on edit).
+  const barcode=normBarcode(document.getElementById('pBarcode').value);
+  if(barcodeProblem(barcode)){markErr('pBarcode',true);toast(t('bc_val_invalid'),'error',6000);return;}
+  const bcOwner=barcodeOwner(barcode,eidCheck||null);
+  if(bcOwner){markErr('pBarcode',true);toast(tf('bc_val_duplicate',{name:bcOwner.name,sku:bcOwner.sku||'—'}),'error',7000);return;}
   if(isNaN(cost)||cost<0){toast(t('val_cost_price_required'),'error');return;}
   if(isNaN(price)||price<0){toast(t('val_selling_price_required'),'error');return;}
   if(isNaN(stock)||stock<0){toast(t('val_opening_stock_required'),'error');return;}
@@ -11962,12 +12045,13 @@ function saveProduct(){
   if(eid){
     const i=prods.findIndex(p=>p.id===eid);
     const prevPrice=i>-1?(parseFloat(prods[i].price)||0):null;
-    if(i>-1){S.update('products',{...prods[i],...data});}
+    if(i>-1){const rec={...prods[i],...data};if(barcode)rec.barcode=barcode;else delete rec.barcode;S.update('products',rec);}
     // 4.3.3: record old → new catalog price when it changed (same audit structure)
     if(prevPrice!==null&&Math.abs(prevPrice-price)>0.005)logAuditEvent('edit',`Updated product: ${name} (price ${cur(prevPrice)} → ${cur(price)})`,{recordType:'product',recordId:eid,prevValue:prevPrice,newValue:price});
     else log('edit','Updated product: '+name);
   }
-  else{S.add('products',{...data,id:uid(),sku:nextSku(),stock,added:todayStr()});log('add','New product: '+name);}
+  else{S.add('products',{...data,...(barcode?{barcode}:{}),id:uid(),sku:nextSku(),stock,added:todayStr()});log('add','New product: '+name);}
+  invalidateBarcodeIndex();
   closeModal('mAddProd');loadProducts();
   toast(eid?t('toast_product_updated'):t('toast_product_added'),'success');
 }
@@ -11984,6 +12068,7 @@ function editProduct(id){
   document.getElementById('pTax').value=p.tax||0;
   document.getElementById('pStatus').value=p.status||'active';
   document.getElementById('pNotesF').value=p.notes||'';
+  document.getElementById('pBarcode').value=p.barcode||'';
   setFmtVal('pStock',p.stock);
   document.getElementById('pStock').disabled=true;
   document.getElementById('prodSkuRow').style.display='flex';
@@ -13547,8 +13632,32 @@ function openStockIn(productId){
   document.getElementById('stockInCost').value='';
   document.getElementById('stockInInvoice').value='';
   document.getElementById('stockInNotes').value='';
+  document.getElementById('stockInBarcode').value='';stockInBarcodeMsg('',false);
   document.getElementById('stockInSaveBtn').disabled=false; // reset in case a prior save left it disabled
   openModal('mStockIn');
+}
+/* Barcode in Stock In: identifies the product only, by selecting it in the
+   existing dropdown. Quantity, cost and saving stay with saveStockIn(). */
+function stockInBarcodeMsg(text,ok){
+  const el=document.getElementById('stockInBarcodeMsg');if(!el)return;
+  el.textContent=text;el.style.display=text?'block':'none';el.style.color=ok?'var(--success)':'var(--danger)';
+}
+function stockInBarcodeResolve(){
+  const r=lookupBarcode(document.getElementById('stockInBarcode').value);
+  if(r.status==='empty'){stockInBarcodeMsg('',false);return;}
+  if(r.status==='ambiguous'){stockInBarcodeMsg(t('bc_ambiguous'),false);return;}
+  if(r.status!=='ok'){stockInBarcodeMsg(t('bc_not_found'),false);return;}
+  const sel=document.getElementById('stockInProd');
+  if(![...sel.options].some(o=>o.value===r.product.id)){stockInBarcodeMsg(tf('bc_discontinued',{name:r.product.name}),false);return;}
+  sel.value=r.product.id;
+  stockInBarcodeMsg(tf('bc_found',{name:r.product.name}),true);
+  document.getElementById('stockInQty').focus();
+  return true;
+}
+function stockInBarcodeKeydown(e){
+  if(e.key!=='Enter'&&e.key!=='Tab')return;
+  const found=stockInBarcodeResolve();
+  if(e.key==='Enter'||found)e.preventDefault(); // a found product moves focus to Quantity; Tab must not skip past it
 }
 function saveStockIn(){
   if(!Auth.can('manageInventory')){toast(t('perm_no_receive_stock'),'error');return;}
@@ -13600,7 +13709,8 @@ function filterInventory(){
   const q=document.getElementById('invSearch').value.toLowerCase();
   const f=document.getElementById('invFilterSel').value;
   let p=S.get('products');
-  if(q)p=p.filter(x=>(x.name||'').toLowerCase().includes(q)||(x.sku||'').toLowerCase().includes(q));
+  const qBc=normBarcode(document.getElementById('invSearch').value); // exact barcode match, in addition to the existing search
+  if(q)p=p.filter(x=>(x.name||'').toLowerCase().includes(q)||(x.sku||'').toLowerCase().includes(q)||(qBc&&normBarcode(x.barcode)===qBc));
   if(f)p=p.filter(x=>stockStatus(x)===f);
   renderInvGrid(p);
 }
@@ -13798,7 +13908,10 @@ function searchPosProducts(){
   const q=document.getElementById('posProdSearch').value.toLowerCase().trim();
   const box=document.getElementById('posSearchResults');
   if(!q){box.classList.remove('show');box.innerHTML='';return;}
-  const prods=S.get('products').filter(p=>(p.name||'').toLowerCase().includes(q)||(p.sku||'').toLowerCase().includes(q)||(p.category||'').toLowerCase().includes(q)).slice(0,12);
+  let prods=S.get('products').filter(p=>(p.name||'').toLowerCase().includes(q)||(p.sku||'').toLowerCase().includes(q)||(p.category||'').toLowerCase().includes(q));
+  const bcHit=lookupBarcode(document.getElementById('posProdSearch').value); // exact barcode match is listed first; never added without Enter/Tab or a tap
+  if(bcHit.status==='ok')prods=[bcHit.product,...prods.filter(p=>p.id!==bcHit.product.id)];
+  prods=prods.slice(0,12);
   if(!prods.length){box.innerHTML='<div class="psr-item disabled">'+t('js_empty_no_products')+'</div>';box.classList.add('show');return;}
   box.innerHTML=prods.map(p=>{
     const st=stockStatus(p);
@@ -13818,6 +13931,36 @@ function searchPosProducts(){
 document.addEventListener('click',e=>{
   if(!e.target.closest('.product-search-wrap'))document.getElementById('posSearchResults')?.classList.remove('show');
 });
+/* Barcode scanner (keyboard-mode guns send the code + Enter, some + Tab).
+   Exact match only: the product goes through addPosItemFromProduct(), so the
+   cart, quantity, price and stock rules stay the existing ones. The same code
+   within 1 s of the last accepted scan is ignored (accidental double scan);
+   this is a timestamp comparison, not a timer. Unknown codes add nothing. */
+let _bcLastScan={code:'',at:0};
+function posSearchKeydown(e){
+  if(e.key!=='Enter'&&e.key!=='Tab')return;
+  const input=e.target,r=lookupBarcode(input.value);
+  if(r.status==='empty')return;
+  if(r.status==='ok'){e.preventDefault();posAddScannedProduct(r.product,r.code);return;}
+  if(e.key==='Tab')return; // not a known barcode: Tab keeps its normal behaviour
+  e.preventDefault();
+  if(r.status==='ambiguous'){toast(t('bc_ambiguous'),'error',6000);input.select();return;}
+  if(/^[0-9]{6,}$/.test(r.code)){toast(t('bc_not_found'),'warning',5000);input.select();} // looks like a retail barcode
+}
+function posAddScannedProduct(p,code){
+  const now=Date.now();
+  const input=document.getElementById('posProdSearch');
+  if(_bcLastScan.code===code&&now-_bcLastScan.at<1000){
+    input.value='';document.getElementById('posSearchResults').classList.remove('show');
+    toast(t('bc_dup_ignored'),'info',1500);return;
+  }
+  if(stockStatus(p)==='out'){ // same rule as the search list, where out-of-stock items cannot be picked
+    input.value='';document.getElementById('posSearchResults').classList.remove('show');
+    toast(t('toast_not_enough_stock'),'warning');return;
+  }
+  _bcLastScan={code,at:now};
+  addPosItemFromProduct(p.id);
+}
 function addPosItemFromProduct(productId){
   const p=S.get('products').find(x=>x.id===productId);if(!p)return;
   const existing=posItems.find(i=>i.productId===productId);
@@ -17799,6 +17942,7 @@ function buildCsvPreview(type,headers,rows){
   }else if(type==='products'){
     head='<tr><th>'+t('js_th_row')+'</th><th>'+t('js_th_name')+'</th><th>'+t('th_cost')+'</th><th>'+t('th_price')+'</th><th>'+t('th_stock')+'</th><th>'+t('lbl_status')+'</th></tr>';
     const iName=findCol(headers,'name','product name'),iCost=findCol(headers,'cost','cost price'),iPrice=findCol(headers,'price','selling price'),iStock=findCol(headers,'stock','current stock');
+    const iBc=findCol(headers,'barcode','bar code','ean'),bcSeen=new Map(); // optional column; old files without it are unchanged
     const nameIdx=productNameIndex(null),seenInFile=new Map(); // 4.3.4: one lookup per import
     rows.forEach(r=>{
       const name=(r[iName]||'').trim();
@@ -17812,8 +17956,16 @@ function buildCsvPreview(type,headers,rows){
         else seenInFile.set(k,csvParsedRows.length+1);
         if(dup)valid=false;
       }
+      const bc=iBc>-1?normBarcode(r[iBc]):'';
+      if(valid&&bc){
+        if(barcodeProblem(bc))dup={kind:'bc_invalid'};
+        else if(lookupBarcode(bc).status!=='unknown')dup={kind:'bc_existing',code:bc};
+        else if(bcSeen.has(bc))dup={kind:'bc_file',row:bcSeen.get(bc)};
+        else bcSeen.set(bc,csvParsedRows.length+1);
+        if(dup)valid=false;
+      }
       if(valid)validCount++;
-      csvParsedRows.push({valid,dup,data:{name,cost:isNaN(cost)?0:cost,price:isNaN(price)?0:price,stock:isNaN(stock)?0:stock,category:'Imported',unit:'pcs',lowStock:5,tax:0}});
+      csvParsedRows.push({valid,dup,data:{name,cost:isNaN(cost)?0:cost,price:isNaN(price)?0:price,stock:isNaN(stock)?0:stock,category:'Imported',unit:'pcs',lowStock:5,tax:0,...(bc&&valid?{barcode:bc}:{})}});
     });
   }else if(type==='sales'){
     head='<tr><th>'+t('js_th_row')+'</th><th>'+t('lbl_customer')+'</th><th>'+t('lbl_amount')+'</th><th>'+t('th_cost')+'</th><th>'+t('lbl_date')+'</th><th>'+t('js_th_due')+'</th><th>'+t('lbl_status')+'</th></tr>';
@@ -17852,7 +18004,7 @@ function renderCsvPreviewBody(){
     if(type==='customers')cells=`<td>${esc(d.name)}</td><td>${esc(d.phone)}</td><td>${esc(d.businessName)}</td><td>${esc(d.group)}</td>`;
     else if(type==='products')cells=`<td>${esc(d.name)}</td><td>${cur(d.cost)}</td><td>${cur(d.price)}</td><td>${fmtQty(d.stock)}</td>`;
     else if(type==='sales')cells=`<td>${esc(d.custName)}</td><td>${cur(d.amount)}</td><td>${d.costProvided?cur(d.cost):`<em style="color:var(--warning)">${cur(estimatedCsvCost(d.amount))} est.</em>`}</td><td>${esc(d.date)}</td><td>${esc(d.due)}</td>`;
-    return`<tr class="${row.valid?'csv-row-ok':'csv-row-error'}"><td>${i+1}</td>${cells}<td><span class="csv-status-badge" style="background:${row.valid?'var(--success-lt)':'var(--danger-lt)'};color:${row.valid?'var(--success)':'var(--danger)'}">${row.valid?'✓ Valid':(row.dup?(row.dup.kind==='existing'?tf('csv_dup_existing',{sku:row.dup.sku}):tf('csv_dup_in_file',{row:row.dup.row})):'✗ Invalid')}</span></td></tr>`;
+    return`<tr class="${row.valid?'csv-row-ok':'csv-row-error'}"><td>${i+1}</td>${cells}<td><span class="csv-status-badge" style="background:${row.valid?'var(--success-lt)':'var(--danger-lt)'};color:${row.valid?'var(--success)':'var(--danger)'}">${row.valid?'✓ Valid':(row.dup?(row.dup.kind==='existing'?tf('csv_dup_existing',{sku:row.dup.sku}):row.dup.kind==='bc_invalid'?t('bc_val_invalid'):row.dup.kind==='bc_existing'?tf('bc_csv_dup_existing',{code:row.dup.code}):row.dup.kind==='bc_file'?tf('bc_csv_dup_in_file',{row:row.dup.row}):tf('csv_dup_in_file',{row:row.dup.row})):'✗ Invalid')}</span></td></tr>`;
   }).join('');
 }
 function estimatedCsvCost(amount){
@@ -17880,15 +18032,22 @@ function commitCsvImport(){
        rows may have been altered directly) with one lookup for the import. */
     const nameIdx=productNameIndex(null);
     const toAdd=[];
-    validRows.forEach(r=>{const k=normProductName(r.data&&r.data.name);if(!k||nameIdx.has(k))return;nameIdx.set(k,true);toAdd.push(r);});
-    const skipped=validRows.length-toAdd.length;
+    const bcTaken=new Set();let bcSkipped=0;
+    validRows.forEach(r=>{const k=normProductName(r.data&&r.data.name);if(!k||nameIdx.has(k))return;
+      const bc=normBarcode(r.data&&r.data.barcode);
+      if(bc&&(barcodeProblem(bc)||bcTaken.has(bc)||lookupBarcode(bc).status!=='unknown')){bcSkipped++;return;} // barcode: one product per code
+      if(bc)bcTaken.add(bc);
+      nameIdx.set(k,true);toAdd.push(r);});
+    const skipped=validRows.length-toAdd.length-bcSkipped;
     if(!toAdd.length){toast(t('csv_all_duplicates'),'warning',6000);return;}
     const prods=S.get('products');
     toAdd.forEach(r=>prods.push({...r.data,id:uid(),sku:nextSku(),status:'active',notes:'Imported via CSV',added:todayStr()}));
     S.set('products',prods);
+    invalidateBarcodeIndex();
     importedCount=toAdd.length;
-    log('add',`Imported ${toAdd.length} products via CSV`+(skipped?` (${skipped} duplicate name(s) skipped)`:''));
+    log('add',`Imported ${toAdd.length} products via CSV`+(skipped?` (${skipped} duplicate name(s) skipped)`:'')+(bcSkipped?` (${bcSkipped} duplicate barcode(s) skipped)`:''));
     if(skipped)toast(tf('csv_dups_skipped',{count:skipped}),'warning',6000);
+    if(bcSkipped)toast(tf('bc_csv_skipped',{count:bcSkipped}),'warning',6000);
   }else if(type==='sales'){
     const sales=S.get('sales');
     validRows.forEach(r=>{
