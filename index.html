@@ -824,6 +824,7 @@ tbody tr.cancelled-row td:last-child{text-decoration:none;opacity:1}
 .bn-item.active{background:linear-gradient(135deg,var(--gold),var(--gold-d));color:var(--navy-d);box-shadow:var(--glow-gold)}
 .bn-item.active .bn-ic{transform:translateY(-2px) scale(1.12)}
 .bn-item:active{transform:scale(.93)}
+@media(max-width:768px){.bottom-nav{display:flex}} /* UX-04: must follow the .bottom-nav{display:none} rule above, or the phone rule never wins */
 
 /* ═══════ PHASE 5: POS / PRODUCTS / INVENTORY / DEBT COLLECTION ═══════ */
 /* Stock badges */
@@ -1372,11 +1373,11 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
 
 <div class="sb-overlay" id="sbOverlay" onclick="closeSidebar()"></div>
 <nav class="bottom-nav" id="bottomNav">
-  <div class="bn-item" id="bn-dashboard" onclick="go('dashboard')"><span class="bn-ic">🏠</span><span class="bn-lbl">Home</span></div>
-  <div class="bn-item" id="bn-pos" onclick="go('pos')"><span class="bn-ic">🛒</span><span class="bn-lbl">Sales</span></div>
-  <div class="bn-item" id="bn-ledger" onclick="go('ledger')"><span class="bn-ic">💳</span><span class="bn-lbl">Credit</span></div>
-  <div class="bn-item" id="bn-inventory" onclick="go('inventory')"><span class="bn-ic">📦</span><span class="bn-lbl">Inventory</span></div>
-  <div class="bn-item" id="bn-more" onclick="toggleSidebar()"><span class="bn-ic">☰</span><span class="bn-lbl">More</span></div>
+  <div class="bn-item" id="bn-dashboard" onclick="go('dashboard')"><span class="bn-ic">🏠</span><span class="bn-lbl" data-i18n="bn_home">Home</span></div>
+  <div class="bn-item" id="bn-pos" onclick="go('pos')"><span class="bn-ic">🛒</span><span class="bn-lbl" data-i18n="bn_sales">Sales</span></div>
+  <div class="bn-item" id="bn-ledger" onclick="go('ledger')"><span class="bn-ic">💳</span><span class="bn-lbl" data-i18n="bn_credit">Credit</span></div>
+  <div class="bn-item" id="bn-inventory" onclick="go('inventory')"><span class="bn-ic">📦</span><span class="bn-lbl" data-i18n="bn_inventory">Inventory</span></div>
+  <div class="bn-item" id="bn-more" onclick="toggleSidebar()"><span class="bn-ic">☰</span><span class="bn-lbl" data-i18n="bn_more">More</span></div>
 </nav>
 <aside class="sidebar" id="sidebar">
   <div class="sb-logo">
@@ -5437,6 +5438,7 @@ const I18N_DICT={
     nav_sec_overview:'Overview',nav_sec_customers:'Customers',nav_sec_catalog:'Catalog',
     nav_sec_pos:'Point of Sale',nav_sec_analytics:'Analytics',nav_sec_system:'System',nav_sec_support:'Support',
     // Sidebar nav items
+    bn_home:'Home',bn_sales:'Sales',bn_credit:'Credit',bn_inventory:'Inventory',bn_more:'More',
     nav_dashboard:'Dashboard',nav_customers:'Customers',nav_products:'Products',nav_inventory:'Inventory',
     nav_pos:'Start Selling',nav_sales:'Credit Sales',nav_invoices:'Credit Invoices',nav_financial:'Financial Summary',nav_saleshistory:'Sales History',
     nav_payments:'Credit Repayment',nav_collection:'Debt Collection',nav_ledger:'Debt Ledger',
@@ -6493,6 +6495,7 @@ const I18N_DICT={
   fr:{
     nav_sec_overview:'Aperçu',nav_sec_customers:'Clients',nav_sec_catalog:'Catalogue',
     nav_sec_pos:'Point de Vente',nav_sec_analytics:'Analytique',nav_sec_system:'Système',nav_sec_support:'Assistance',
+    bn_home:'Accueil',bn_sales:'Ventes',bn_credit:'Crédit',bn_inventory:'Inventaire',bn_more:'Plus',
     nav_dashboard:'Tableau de bord',nav_customers:'Clients',nav_products:'Produits',nav_inventory:'Inventaire',
     nav_pos:'Commencer à vendre',nav_sales:'Ventes à Crédit',nav_invoices:'Factures à Crédit',nav_financial:'Résumé Financier',nav_saleshistory:'Historique des Ventes',
     nav_payments:'Remboursement de Crédit',nav_collection:'Recouvrement de Créances',nav_ledger:'Registre des Créances',
