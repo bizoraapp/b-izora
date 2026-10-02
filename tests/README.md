@@ -27,3 +27,9 @@ These are the real-browser suites behind releases 4.3.3–4.3.8: Playwright with
 | In-app self-tests | `devsuite437.py` | 30 pass (same 1 known fail as 4.3.6) |
 
 **Known limitation (backlog BZ-020, release 4.3.9):** these scripts were written in a temporary workspace. They still contain hard-coded paths (`/home/claude/...`, `/tmp/...`) and fixed ports, and some compare against older builds kept in folders outside this repository. Release 4.3.9 makes them path-independent and adds one `tests/run.js` entry point with a single pass/fail verdict. **Until then, treat them as reference material; do not delete or weaken them.**
+
+## UX suite (`ux-4.3.8/`)
+
+Phone-viewport (360×640) user-experience checks across 13 layers, plus a manual script for a real Android phone.
+Run `python3 tests/ux-4.3.8/ux_suite.py`. Results on the audited 4.3.8 build: 147/160 pass; the 13 failures are 10 display/flow
+problems listed in `tests/ux-4.3.8/FINDINGS_4.3.8.md` (UX-01 to UX-10), proposed for the backlog.
