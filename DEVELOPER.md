@@ -135,6 +135,15 @@ Approval kinds `overpay` and `creditRefund` reuse the existing `OwnerApproval` s
 
 ## 10. Changelog
 
+### After 4.3.8 — UX-01 to UX-04 (merged to `main` 2 Oct 2026, PR #5; no version bump, still build 2026.10.01a / cache v131)
+- **UX-01:** `input[type=tel].fc` added to the three `.fc` selector lists. `#frPhone` (first-run wizard) is the only tel input in the app.
+- **UX-02:** `checkBackupReminderOnLoad()` returns early while `FirstRunWizard.shouldShow()` is true (fresh install), so the toast no longer covers the wizard. Existing users: unchanged.
+- **UX-03:** `FirstRunWizard.complete()` refuses a blank name (`markErr` + `#frBizNameErr`, key `val_business_name_required`) and keeps the wizard open. `skip()` is unchanged and stores no default name.
+- **UX-04:** `@media(max-width:768px){.bottom-nav{display:flex}}` placed after the `.bottom-nav{display:none}` base rule (the base rule used to override the phone rule). The print rule still hides the bar. The five `.bn-lbl` labels use `data-i18n` (`bn_home`, `bn_sales`, `bn_credit`, `bn_inventory`, `bn_more`).
+- **Files:** `index.html` only. **Database:** no change. **i18n:** 6 new keys, EN/FR parity 1358/1358.
+- **Rollout note:** `service-worker.js` is unchanged, so no new worker is installed and no update banner appears. The service worker serves `index.html` stale-while-revalidate, so an installed app should pick up the new file on a later open once a fresh copy has been fetched. This has not been tested on a device. A version and cache bump in the next release makes the update explicit.
+- **Revert:** UX-04 alone with `git revert 5184d38`.
+
 ### 4.3.8 — build 2026.10.01a (cache v131, previous v120 = live production 4.2.7)
 - **Status:** merged into `main` (PR #3, merge commit `f156eb6`). Production deployment is pending Netlify credits, so 4.3.8 is not confirmed live. See `engineering/release/RELEASE_HISTORY.md`.
 - **Also in this build (carried from earlier work, documented here for the first time):** dashboard Smart Insights (section 11) and WhatsApp PDF receipts opening the native share sheet directly (section 12). The 4.3.0–4.3.6 changes are summarised in `RELEASE_HISTORY.md`; they have no separate entries in this changelog.

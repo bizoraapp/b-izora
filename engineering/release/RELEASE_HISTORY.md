@@ -22,6 +22,17 @@ Full change details are in the `DEVELOPER.md` changelog and in `engineering/audi
 | 4.2.1 | v114 | Earlier live | |
 | 4.1.9 | v112 | Earlier live | |
 
+## After 4.3.8: UX fixes UX-01 to UX-04 (merged to `main`, no version bump)
+
+Merged to `main` on 2 Oct 2026 (PR #5, merge commit `9211ebc`, commits `8d454c8` and `5184d38`). `index.html` only. `APP_VERSION` stays 4.3.8, `CACHE_VERSION` stays v131, `IDB_VERSION` stays 8; no service-worker, database or timer change. **Not confirmed live**, like 4.3.8 itself. The next release number is Ngwe's decision.
+
+- **UX-01:** the phone field on the first-run wizard now has the same style and height as the other fields.
+- **UX-02:** the "No backup created yet" reminder is skipped on a fresh install, so it no longer covers Get Started. Existing users are unaffected.
+- **UX-03:** Get Started refuses a blank business name with an inline message; Skip for now is unchanged.
+- **UX-04:** the bottom navigation bar (Home / Sales / Credit / Inventory / More) now shows on phones (768 px and below), with French labels. It can be reverted alone with `git revert 5184d38`.
+
+Checks recorded in PR #5: protected 28/28, EN/FR 1358/1358, UX suite 152/160 (the 5 targeted checks fixed; UX-05 to UX-10 remain open). UX-04 had not been tested on a real phone when it was merged.
+
 ## 4.3.8: version values
 
 `APP_VERSION` 4.3.8 · `BUILD_NUMBER` 2026.10.01a · `CACHE_VERSION` v131 · `PREVIOUS_CACHE_VERSION` v120 · `IDB_VERSION` 8 (no schema change, no migration).
