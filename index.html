@@ -824,7 +824,7 @@ tbody tr.cancelled-row td:last-child{text-decoration:none;opacity:1}
 .bn-item.active{background:linear-gradient(135deg,var(--gold),var(--gold-d));color:var(--navy-d);box-shadow:var(--glow-gold)}
 .bn-item.active .bn-ic{transform:translateY(-2px) scale(1.12)}
 .bn-item:active{transform:scale(.93)}
-@media(max-width:768px){.bottom-nav{display:flex}} /* UX-04: must follow the .bottom-nav{display:none} rule above, or the phone rule never wins */
+@media(max-width:768px) and (pointer:coarse){.bottom-nav{display:flex}} /* UX-04: must follow the .bottom-nav{display:none} rule above, or the phone rule never wins. Touch screens only: a narrow desktop window (mouse) keeps the sidebar menu */
 
 /* ═══════ PHASE 5: POS / PRODUCTS / INVENTORY / DEBT COLLECTION ═══════ */
 /* Stock badges */
