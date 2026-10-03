@@ -5479,6 +5479,12 @@ const I18N_DICT={
     ins_review:'Review',
     ins_all_good:'Your business is doing well. Keep on.',
     ins_overdue_sub:'Customers have outstanding repayments past their expected dates.',
+    ins_stock_out_one:'{n} product is out of stock',
+    ins_stock_out:'{n} products are out of stock',
+    ins_stock_out_sub:'Customers can\u2019t buy them until you restock.',
+    ins_stock_low_one:'{n} product is low on stock',
+    ins_stock_low:'{n} products are low on stock',
+    ins_stock_low_sub:'Restock soon to avoid running out.',
     ins_loss_one:'{n} item in Loss Register',
     ins_loss:'{n} items in Loss Register',
     ins_loss_sub:'Review recorded business losses.',
@@ -6528,6 +6534,12 @@ const I18N_DICT={
     ins_review:'À examiner',
     ins_all_good:'Votre entreprise se porte bien. Continuez ainsi.',
     ins_overdue_sub:'Des clients ont des remboursements en retard.',
+    ins_stock_out_one:'{n} produit en rupture de stock',
+    ins_stock_out:'{n} produits en rupture de stock',
+    ins_stock_out_sub:'Les clients ne peuvent pas les acheter tant que vous n\u2019avez pas réapprovisionné.',
+    ins_stock_low_one:'{n} produit en stock faible',
+    ins_stock_low:'{n} produits en stock faible',
+    ins_stock_low_sub:'Réapprovisionnez bientôt pour éviter la rupture.',
     ins_loss_one:'{n} élément dans le registre des pertes',
     ins_loss:'{n} éléments dans le registre des pertes',
     ins_loss_sub:'Examinez les pertes enregistrées.',
@@ -15094,9 +15106,12 @@ function generateInsights(){
       if(debt>c.limit)insights.push({icon:'🚨',tone:'danger',txt:`Customer ${esc(c.name)} exceeded their credit limit of ${cur(c.limit)} (current: ${cur(debt)}).`,cat:'collection'});
     }
   });
-  // Products needing restock
-  const lowProds=prods.filter(p=>stockStatus(p)!=='ok');
-  if(lowProds.length)insights.push({icon:'📦',tone:'warn',txt:`${lowProds.length} product${lowProds.length>1?'s':''} need${lowProds.length===1?'s':''} restocking (low or out of stock).`,cat:'inventory'});
+  // Products needing restock: out of stock (red) and low (orange) are separate
+  // alerts, each opening Inventory filtered the same way (stockStatus()).
+  let outN=0,lowN=0;
+  for(const p of prods){const st=stockStatus(p);if(st==='out')outN++;else if(st==='low')lowN++;}
+  if(outN)insights.push({icon:'🔴',tone:'danger',txt:tf(outN===1?'ins_stock_out_one':'ins_stock_out',{n:outN}),sub:t('ins_stock_out_sub'),cat:'inventory',nav:'stockout'});
+  if(lowN)insights.push({icon:'📦',tone:'warn',txt:tf(lowN===1?'ins_stock_low_one':'ins_stock_low',{n:lowN}),sub:t('ins_stock_low_sub'),cat:'inventory',nav:'stocklow'});
   // Overdue summary
   const overdue=sales.filter(s=>invStatus(s)==='overdue');
   if(overdue.length){
@@ -15109,7 +15124,7 @@ function generateInsights(){
   if(totalInv>0){
     const rate=Math.round((totalPaid/totalInv)*100);
     if(rate>=80)insights.push({icon:'🎉',tone:'good',txt:`Excellent! Overall collection rate is ${rate}%.`,cat:'sales'});
-    else if(rate<50)insights.push({icon:'⚠️',tone:'danger',txt:`Collection rate is only ${rate}% — consider following up on outstanding invoices.`,cat:'collection'});
+    else if(rate<50)insights.push({icon:'⚠️',tone:'danger',txt:`Collection rate is only ${rate}% — consider following up on outstanding invoices.`,cat:'collection',nav:'collrate'});
   }
   if(!insights.length)insights.push({icon:'✅',tone:'good',txt:'No urgent insights right now — everything looks healthy.',cat:'sales',empty:true});
   return insights;
@@ -15182,10 +15197,22 @@ const INSIGHT_NAV={
     _setFieldVal('lossFilterStatus','Open');
     go('inventory');openLossRegisterView();
   }},
+  stockout:{page:'inventory',open(){_openInventoryStock('out');}},
+  stocklow:{page:'inventory',open(){_openInventoryStock('low');}},
+  collrate:{page:'collection',open(){_setFieldVal('collSearch','');_setFieldVal('collFilterSel','');go('collection');}},
   nosale30:{page:'products',open(){_openProductsActivity('nosale30');}},
   never:{page:'products',open(){_openProductsActivity('never');}},
   inactive6m:{page:'products',open(){_openProductsActivity('inactive6m');}}
 };
+/* Inventory list filtered to 'out' or 'low' (the page's own Low / Out of Stock
+   filter, which uses stockStatus() like the alert count). Leaves the Loss
+   Register / reconciliation / daily-check views if one was open. */
+function _openInventoryStock(f){
+  _setFieldVal('invSearch','');_setFieldVal('invFilterSel',f);
+  ['invLossRegisterView','invReconciliationView','invDailyCheckView'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  const nv=document.getElementById('invNormalView');if(nv)nv.style.display='';
+  go('inventory');
+}
 function _openProductsActivity(bucket){
   go('products');
   const av=document.getElementById('prodAnalyticsView');

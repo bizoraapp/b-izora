@@ -63,9 +63,21 @@ def run_existing(build,port):
     srv.shutdown(); return out
 
 old=run_existing('/home/claude/bz',8861); new=run_existing('/home/claude/main',8862)
+import re
+# Approved change (2026-10-03, stock alerts): the single "N product(s) need(s) restocking (low or out
+# of stock)." line was replaced by separate "N product(s) is/are out of stock" (red) and
+# "N product(s) is/are low on stock" (orange) alerts. Every other old line must still be present
+# word for word, and the new stock alerts must add up to the old restocking count.
+_RESTOCK_OLD=re.compile(r'^(\d+) products? needs? restocking \(low or out of stock\)\.$')
+_STOCK_NEW=re.compile(r'^(\d+) products? (?:is|are) (?:out of stock|low on stock)$')
+def _preserved(o,nw):
+    keep=[x for x in o if not _RESTOCK_OLD.match(x)]
+    was=sum(int(_RESTOCK_OLD.match(x).group(1)) for x in o if _RESTOCK_OLD.match(x))
+    now=sum(int(_STOCK_NEW.match(y).group(1)) for y in nw if _STOCK_NEW.match(y))
+    return set(keep)<=set(nw) and was==now
 for n in [0,1,3]:
     k=f'od{n}'
-    check(f'Existing insights preserved (overdue={n}): every old card text still present',set(old[k])<=set(new[k]),f'old={old[k]} new={new[k]}')
+    check(f'Existing insights preserved (overdue={n}): every old card text still present',_preserved(old[k],new[k]),f'old={old[k]} new={new[k]}')
     check(f'Existing Collection-page insights identical (overdue={n})',old[f'coll{n}']==new[f'coll{n}'])
 check('Old build empty state was the fallback line',old['empty']==['No urgent insights right now — everything looks healthy.'])
 check('generateInsights() output text unchanged when empty',old['gen_empty']==new['gen_empty'])
