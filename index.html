@@ -2728,9 +2728,9 @@ html[data-platform="android"] .topbar,html[data-platform="android"] .bottom-nav,
       </div>
       <div class="card" style="box-shadow:none;border:2px solid var(--gold);margin-bottom:0">
         <div style="font-size:16px;font-weight:800"><span data-i18n="plan_annual_name">Annual</span> ⭐</div>
-        <div style="font-size:20px;font-weight:800;color:var(--navy);margin:2px 0" data-i18n="plan_annual_price">12,000 CFA/year</div>
+        <div style="font-size:20px;font-weight:800;color:var(--navy);margin:2px 0" data-i18n="plan_annual_price">12,000 CFA first year</div>
         <div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:2px" data-i18n="plan_annual_tag">Best value</div>
-        <div style="font-size:12.5px;color:var(--txt2);margin-bottom:10px" data-i18n="plan_annual_save">Save 24,000 CFA compared with paying monthly for 12 months</div>
+        <div style="font-size:12.5px;color:var(--txt2);margin-bottom:10px" data-i18n="plan_annual_save">Save 24,000 CFA in year 1. Then 25,000 CFA/year, still 11,000 CFA less than paying monthly.</div>
         <button class="btn btn-primary" style="width:100%" onclick="choosePlan('ANNUAL')" data-i18n="plan_choose_annual">Choose Annual</button>
       </div>
     </div>
@@ -4887,7 +4887,8 @@ function _loadOrHealTrial(){
    storefront links — no API key, no secret, nothing that grants access on
    its own — so exposing them client-side carries no more risk than the
    customer browsing Selar directly.
-   SELAR_CHECKOUT_URL is the ANNUAL product (12,000 CFA/device/year) and is
+   SELAR_CHECKOUT_URL is the ANNUAL product (12,000 CFA/device for the first
+   year, then 25,000 CFA/device/year; the amounts charged are set on Selar) and is
    deliberately left under its original name: every existing call site and
    every already-shipped build points at it, so renaming it would be churn
    with no benefit. It stays the default for any caller that doesn't ask
@@ -5643,8 +5644,8 @@ const I18N_DICT={
     lic_renew_monthly:'Renew Monthly',lic_renew_annual:'Renew Annual',lic_switch_annual:'Switch to Annual',
     plan_choose_title:'Choose your Bizora plan',
     plan_monthly_name:'Monthly',plan_monthly_price:'3,000 CFA/month',plan_monthly_tag:'Pay as you go',plan_choose_monthly:'Choose Monthly',
-    plan_annual_name:'Annual',plan_annual_price:'12,000 CFA/year',plan_annual_tag:'Best value',
-    plan_annual_save:'Save 24,000 CFA compared with paying monthly for 12 months',plan_choose_annual:'Choose Annual',
+    plan_annual_name:'Annual',plan_annual_price:'12,000 CFA first year',plan_annual_tag:'Best value',
+    plan_annual_save:'Save 24,000 CFA in year 1. Then 25,000 CFA/year, still 11,000 CFA less than paying monthly.',plan_choose_annual:'Choose Annual',
     lic_trial_has_ended:'Your free trial has ended.',lic_license_has_expired:'Your license has expired.',
     lic_renew_to_continue:'Renew to continue business operations.',lic_left_in_trial:'left in your free trial.',
     lic_plan:'Plan',lic_plan_monthly:'Monthly',lic_plan_annual:'Annual',
@@ -6682,8 +6683,8 @@ const I18N_DICT={
     lic_renew_monthly:'Renouveler Mensuel',lic_renew_annual:'Renouveler Annuel',lic_switch_annual:'Passer \u00e0 l\u2019Annuel',
     plan_choose_title:'Choisissez votre forfait Bizora',
     plan_monthly_name:'Mensuel',plan_monthly_price:'3\u00a0000\u00a0FCFA/mois',plan_monthly_tag:'Paiement mensuel',plan_choose_monthly:'Choisir Mensuel',
-    plan_annual_name:'Annuel',plan_annual_price:'12\u00a0000\u00a0FCFA/an',plan_annual_tag:'Meilleur rapport qualit\u00e9-prix',
-    plan_annual_save:'\u00c9conomisez 24\u00a0000\u00a0FCFA par rapport au paiement mensuel sur 12\u00a0mois',plan_choose_annual:'Choisir Annuel',
+    plan_annual_name:'Annuel',plan_annual_price:'12\u00a0000\u00a0FCFA la\u00a01re\u00a0ann\u00e9e',plan_annual_tag:'Meilleur rapport qualit\u00e9-prix',
+    plan_annual_save:'\u00c9conomisez 24\u00a0000\u00a0FCFA la 1re\u00a0ann\u00e9e. Ensuite 25\u00a0000\u00a0FCFA/an, soit toujours 11\u00a0000\u00a0FCFA de moins qu\u2019en mensuel.',plan_choose_annual:'Choisir Annuel',
     lic_trial_has_ended:'Votre essai gratuit est terminé.',lic_license_has_expired:'Votre licence a expiré.',
     lic_renew_to_continue:'Renouvelez pour continuer vos opérations commerciales.',lic_left_in_trial:'restants dans votre essai gratuit.',
     lic_plan:'Formule',lic_plan_monthly:'Mensuel',lic_plan_annual:'Annuel',
